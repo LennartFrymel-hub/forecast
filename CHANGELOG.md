@@ -1,3 +1,15 @@
+## [0.16.0-rc.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0-rc.2...v0.16.0-rc.3) (2026-02-22)
+
+
+### Bug Fixes
+
+* unpinned ([ce6fa79](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/ce6fa79698da67601bd4714105f35dc422b0444a))
+
+
+### Documentation
+
+* migrate from MkDocs to Quarto with quartodoc API generation ([8942820](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/8942820273681166c0b88b5fa29beb0bddaa91de))
+
 ## [0.16.0-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0-rc.1...v0.16.0-rc.2) (2026-02-20)
 
 
