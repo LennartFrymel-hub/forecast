@@ -1,4 +1,7 @@
 ---
+# SPDX-FileCopyrightText: 2024-2026 bartzbeielstein
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
 # Root home page for the Quarto website.
 # All links use docs/-prefixed paths since this file is at the project root.
 title: "Welcome to spotforecast2-safe (Core)"
