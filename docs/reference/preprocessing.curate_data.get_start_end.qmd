@@ -1,0 +1,35 @@
+# preprocessing.curate_data.get_start_end { #spotforecast2_safe.preprocessing.curate_data.get_start_end }
+
+```python
+preprocessing.curate_data.get_start_end(data, forecast_horizon, verbose=True)
+```
+
+Get start and end date strings for data and covariate ranges.
+Covariate range is extended by the forecast horizon.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name             | Type                                           | Description                                  | Default    |
+|------------------|------------------------------------------------|----------------------------------------------|------------|
+| data             | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The dataset with a datetime index.           | _required_ |
+| forecast_horizon | [int](`int`)                                   | The forecast horizon in hours.               | _required_ |
+| verbose          | [bool](`bool`)                                 | Whether to print the determined date ranges. | `True`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                       | Description                                                                                                                                                    |
+|--------|----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [tuple](`tuple`)\[[str](`str`), [str](`str`), [str](`str`), [str](`str`)\] | tuple[str, str, str, str]: (data_start, data_end, covariate_start, covariate_end) Date strings in the format "YYYY-MM-DDTHH:MM" for data and covariate ranges. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.preprocessing.curate_data import get_start_end
+>>> import pandas as pd
+>>> date_rng = pd.date_range(start='2023-01-01', end='2023-01-10', freq='h')
+>>> data = pd.DataFrame(date_rng, columns=['date'])
+>>> data.set_index('date', inplace=True)
+>>> start, end, cov_start, cov_end = get_start_end(data, forecast_horizon=24, verbose=False)
+>>> print(start, end, cov_start, cov_end)
+2023-01-01T00:00 2023-01-10T00:00 2023-01-01T00:00 2023-01-11T00:00
+```

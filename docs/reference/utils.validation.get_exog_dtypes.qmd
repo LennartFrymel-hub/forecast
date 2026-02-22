@@ -1,0 +1,48 @@
+# utils.validation.get_exog_dtypes { #spotforecast2_safe.utils.validation.get_exog_dtypes }
+
+```python
+utils.validation.get_exog_dtypes(exog)
+```
+
+Extract and store the data types of exogenous variables.
+
+This function returns a dictionary mapping column names to their data types.
+For Series, uses the series name as the key. For DataFrames, uses all column names.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                                                | Description                                 | Default    |
+|--------|---------------------------------------------------------------------------------------------------------------------|---------------------------------------------|------------|
+| exog   | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Exogenous variable/s (Series or DataFrame). | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                  | Description                                               |
+|--------|-------------------------------------------------------|-----------------------------------------------------------|
+|        | [Dict](`typing.Dict`)\[[str](`str`), [type](`type`)\] | Dictionary mapping variable names to their pandas dtypes. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.utils.validation import get_exog_dtypes
+>>>
+>>> # DataFrame with mixed types
+>>> exog_df = pd.DataFrame({
+...     "temp": pd.Series([20.5, 21.3, 22.1], dtype='float64'),
+...     "day": pd.Series([1, 2, 3], dtype='int64'),
+...     "is_weekend": pd.Series([False, False, True], dtype='bool')
+... })
+>>> dtypes = get_exog_dtypes(exog_df)
+>>> dtypes['temp']
+dtype('float64')
+>>> dtypes['day']
+dtype('int64')
+>>>
+>>> # Series
+>>> exog_series = pd.Series([1.0, 2.0, 3.0], name="temperature", dtype='float64')
+>>> dtypes = get_exog_dtypes(exog_series)
+>>> dtypes
+{'temperature': dtype('float64')}
+```

@@ -1,0 +1,51 @@
+# utils.validation.check_y { #spotforecast2_safe.utils.validation.check_y }
+
+```python
+utils.validation.check_y(y, series_id='`y`')
+```
+
+Validate that y is a pandas Series without missing values.
+
+This function ensures that the input time series meets the basic requirements
+for forecasting: it must be a pandas Series and must not contain any NaN values.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type                | Description                                                         | Default    |
+|-----------|---------------------|---------------------------------------------------------------------|------------|
+| y         | [Any](`typing.Any`) | Time series values to validate.                                     | _required_ |
+| series_id | [str](`str`)        | Identifier of the series used in error messages. Defaults to "`y`". | `'`y`'`    |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                         |
+|--------|----------------------------|-------------------------------------|
+|        | [TypeError](`TypeError`)   | If y is not a pandas Series.        |
+|        | [ValueError](`ValueError`) | If y contains missing (NaN) values. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.utils.validation import check_y
+>>>
+>>> # Valid series
+>>> y = pd.Series([1, 2, 3, 4, 5])
+>>> check_y(y)  # No error
+>>>
+>>> # Invalid: not a Series
+>>> try:
+...     check_y([1, 2, 3])
+... except TypeError as e:
+...     print(f"Error: {e}")
+Error: `y` must be a pandas Series with a DatetimeIndex or a RangeIndex. Found <class 'list'>.
+>>>
+>>> # Invalid: contains NaN
+>>> y_with_nan = pd.Series([1, 2, np.nan, 4])
+>>> try:
+...     check_y(y_with_nan)
+... except ValueError as e:
+...     print(f"Error: {e}")
+Error: `y` has missing values.
+```

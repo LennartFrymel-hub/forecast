@@ -1,0 +1,46 @@
+# processing.agg_predict.agg_predict { #spotforecast2_safe.processing.agg_predict.agg_predict }
+
+```python
+processing.agg_predict.agg_predict(predictions, weights=None)
+```
+
+Aggregates multiple prediction columns into a single combined prediction series.
+
+The combination is a weighted sum of the prediction columns. If no weights are provided,
+a default weighting scheme based on specific predefined columns is used.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                                                                                                                                                                                                     | Description                                                                                                                                                                                                 | Default    |
+|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| predictions | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                                                                                                                           | DataFrame containing the prediction columns.                                                                                                                                                                | _required_ |
+| weights     | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[Dict](`typing.Dict`)\[[str](`str`), [float](`float`)\], [List](`typing.List`)\[[float](`float`)\], [np](`numpy`).[ndarray](`numpy.ndarray`)\]\] | Dictionary mapping column names to their weights, or a list/array of weights corresponding to the order of columns in `predictions`. If None, defaults to summing all columns (weight=1.0 for each column). | `None`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                     | Description                                           |
+|--------|------------------------------------------|-------------------------------------------------------|
+|        | [pd](`pandas`).[Series](`pandas.Series`) | pd.Series: A Series containing the aggregated values. |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                                                    |
+|--------|----------------------------|------------------------------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If a column specified in weights (or default weights) is missing from predictions.             |
+|        | [ValueError](`ValueError`) | If weights is a list/array and its length does not match the number of columns in predictions. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.processing import agg_predict
+>>> import pandas as pd
+>>> df = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
+>>> agg_predict(df, weights={"A": 1.0, "B": -1.0})
+0   -2.0
+1   -2.0
+dtype: float64
+>>> agg_predict(df, weights=[0.5, 2.0])
+0    6.5
+1    9.0
+dtype: float64
+```

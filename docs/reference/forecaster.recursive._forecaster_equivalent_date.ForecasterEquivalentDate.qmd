@@ -1,0 +1,456 @@
+# forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate { #spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate }
+
+```python
+forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate(
+    offset,
+    n_offsets=1,
+    agg_func=np.mean,
+    binner_kwargs=None,
+    forecaster_id=None,
+)
+```
+
+This forecaster predicts future values based on the most recent equivalent
+date. It also allows to aggregate multiple past values of the equivalent
+date using a function (e.g. mean, median, max, min, etc.). The equivalent
+date is calculated by moving back in time a specified number of steps (offset).
+The offset can be defined as an integer or as a pandas DateOffset. This
+approach is useful as a baseline, but it is a simplistic method and may not
+capture complex underlying patterns.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name          | Type                                                                                                                                                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Default    |
+|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| offset        | ([int](`int`), [pandas](`pandas`).[tseries](`pandas.tseries`).[offsets](`pandas.tseries.offsets`).[DateOffset](`pandas.tseries.offsets.DateOffset`)) | Number of steps to go back in time to find the most recent equivalent date to the target period. If `offset` is an integer, it represents the number of steps to go back in time. For example, if the frequency of the time series is daily, `offset = 7` means that the most recent data similar to the target period is the value observed 7 days ago. Pandas DateOffsets can also be used to move forward a given number of valid dates. For example, Bday(2) can be used to move back two business days. If the date does not start on a valid date, it is first moved to a valid date. For example, if the date is a Saturday, it is moved to the previous Friday. Then, the offset is applied. If the result is a non-valid date, it is moved to the next valid date. For example, if the date is a Sunday, it is moved to the next Monday. For more information about offsets, see https://pandas.pydata.org/docs/reference/offset_frequency.html. | _required_ |
+| n_offsets     | [int](`int`)                                                                                                                                         | Number of equivalent dates (multiple of offset) used in the prediction. Defaults to 1. If `n_offsets` is greater than 1, the values at the equivalent dates are aggregated using the `agg_func` function. For example, if the frequency of the time series is daily, `offset = 7`, `n_offsets = 2` and `agg_func = np.mean`, the predicted value will be the mean of the values observed 7 and 14 days ago.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | `1`        |
+| agg_func      | [Callable](`typing.Callable`)                                                                                                                        | Function used to aggregate the values of the equivalent dates when the number of equivalent dates (`n_offsets`) is greater than 1. Defaults to np.mean.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | `np.mean`  |
+| binner_kwargs | [dict](`dict`)                                                                                                                                       | Additional arguments to pass to the `QuantileBinner` used to discretize the residuals into k bins according to the predicted values associated with each residual. Available arguments are: `n_bins`, `method`, `subsample`, `random_state` and `dtype`. Argument `method` is passed internally to the function `numpy.percentile`. Defaults to None.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | `None`     |
+| forecaster_id | ([str](`str`), [int](`int`))                                                                                                                         | Name used as an identifier of the forecaster. Defaults to None.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `None`     |
+
+## Attributes {.doc-section .doc-section-attributes}
+
+| Name                         | Type                                                                                                                                                 | Description                                                                                                                                                                                                            |
+|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| offset                       | ([int](`int`), [pandas](`pandas`).[tseries](`pandas.tseries`).[offsets](`pandas.tseries.offsets`).[DateOffset](`pandas.tseries.offsets.DateOffset`)) | Number of steps to go back in time to find the most recent equivalent date to the target period.                                                                                                                       |
+| n_offsets                    | [int](`int`)                                                                                                                                         | Number of equivalent dates (multiple of offset) used in the prediction.                                                                                                                                                |
+| agg_func                     | [Callable](`typing.Callable`)                                                                                                                        | Function used to aggregate the values of the equivalent dates when the number of equivalent dates (`n_offsets`) is greater than 1.                                                                                     |
+| window_size                  | [int](`int`)                                                                                                                                         | Number of past values needed to include the last equivalent dates according to the `offset` and `n_offsets`.                                                                                                           |
+| last_window_                 | pandas Series                                                                                                                                        | This window represents the most recent data observed by the predictor during its training phase. It contains the past values needed to include the last equivalent date according the `offset` and `n_offsets`.        |
+| index_type_                  | [type](`type`)                                                                                                                                       | Type of index of the input used in training.                                                                                                                                                                           |
+| index_freq_                  | [str](`str`)                                                                                                                                         | Frequency of Index of the input used in training.                                                                                                                                                                      |
+| training_range_              | pandas Index                                                                                                                                         | First and last values of index of the data used during training.                                                                                                                                                       |
+| series_name_in_              | [str](`str`)                                                                                                                                         | Names of the series provided by the user during training.                                                                                                                                                              |
+| in_sample_residuals_         | numpy ndarray                                                                                                                                        | Residuals of the model when predicting training data. Only stored up to 10_000 values.                                                                                                                                 |
+| in_sample_residuals_by_bin_  | [dict](`dict`)                                                                                                                                       | In sample residuals binned according to the predicted value each residual is associated with. The number of residuals stored per bin is limited to `10_000 // self.binner.n_bins_` in the form `{bin: residuals}`.     |
+| out_sample_residuals_        | numpy ndarray                                                                                                                                        | Residuals of the model when predicting non-training data. Only stored up to 10_000 values. Use `set_out_sample_residuals()` method to set values.                                                                      |
+| out_sample_residuals_by_bin_ | [dict](`dict`)                                                                                                                                       | Out of sample residuals binned according to the predicted value each residual is associated with. The number of residuals stored per bin is limited to `10_000 // self.binner.n_bins_` in the form `{bin: residuals}`. |
+| binner                       | [spotforecast](`spotforecast`).[preprocessing](`spotforecast.preprocessing`).[QuantileBinner](`spotforecast.preprocessing.QuantileBinner`)           | `QuantileBinner` used to discretize residuals into k bins according to the predicted values associated with each residual.                                                                                             |
+| binner_intervals_            | [dict](`dict`)                                                                                                                                       | Intervals used to discretize residuals into k bins according to the predicted values associated with each residual.                                                                                                    |
+| binner_kwargs                | [dict](`dict`)                                                                                                                                       | Additional arguments to pass to the `QuantileBinner`.                                                                                                                                                                  |
+| creation_date                | [str](`str`)                                                                                                                                         | Date of creation.                                                                                                                                                                                                      |
+| is_fitted                    | [bool](`bool`)                                                                                                                                       | Tag to identify if the estimator has been fitted (trained).                                                                                                                                                            |
+| fit_date                     | [str](`str`)                                                                                                                                         | Date of last fit.                                                                                                                                                                                                      |
+| spotforecast_version         | [str](`str`)                                                                                                                                         | Version of spotforecast library used to create the forecaster.                                                                                                                                                         |
+| python_version               | [str](`str`)                                                                                                                                         | Version of python used to create the forecaster.                                                                                                                                                                       |
+| forecaster_id                | ([str](`str`), [int](`int`))                                                                                                                         | Name used as an identifier of the forecaster.                                                                                                                                                                          |
+| estimator                    | [Ignored](`Ignored`)                                                                                                                                 | Not used, present here for API consistency by convention.                                                                                                                                                              |
+| differentiation              | [Ignored](`Ignored`)                                                                                                                                 | Not used, present here for API consistency by convention.                                                                                                                                                              |
+| differentiation_max          | [Ignored](`Ignored`)                                                                                                                                 | Not used, present here for API consistency by convention.                                                                                                                                                              |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+>>> # Series with daily frequency
+>>> data = pd.Series(
+...     data = np.arange(14),
+...     index = pd.date_range(start='2022-01-01', periods=14, freq='D')
+... )
+>>> # Forecast based on the value 7 days ago
+>>> forecaster = ForecasterEquivalentDate(offset=7)
+>>> forecaster.fit(y=data)
+>>> forecaster.predict(steps=3)
+2022-01-15    7
+2022-01-16    8
+2022-01-17    9
+Freq: D, Name: pred, dtype: int64
+```
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [fit](#spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.fit) | Training Forecaster. |
+| [get_tags](#spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.get_tags) | Return the tags that characterize the behavior of the forecaster. |
+| [predict](#spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.predict) | Predict n steps ahead. |
+| [predict_interval](#spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.predict_interval) | Predict n steps ahead and estimate prediction intervals using conformal |
+| [set_in_sample_residuals](#spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.set_in_sample_residuals) | Set in-sample residuals in case they were not calculated during the |
+| [set_out_sample_residuals](#spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.set_out_sample_residuals) | Set new values to the attribute `out_sample_residuals_`. Out of sample |
+| [summary](#spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.summary) | Show forecaster information. |
+
+### fit { #spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.fit }
+
+```python
+forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.fit(
+    y,
+    store_in_sample_residuals=False,
+    random_state=123,
+    exog=None,
+)
+```
+
+Training Forecaster.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                      | Type                 | Description                                                                                                                                                                                                                           | Default    |
+|---------------------------|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| y                         | pandas Series        | Training time series.                                                                                                                                                                                                                 | _required_ |
+| store_in_sample_residuals | [bool](`bool`)       | If `True`, in-sample residuals will be stored in the forecaster object after fitting (`in_sample_residuals_` and `in_sample_residuals_by_bin_` attributes). If `False`, only the intervals of the bins are stored. Defaults to False. | `False`    |
+| random_state              | [int](`int`)         | Set a seed for the random generator so that the stored sample residuals are always deterministic. Defaults to 123.                                                                                                                    | `123`      |
+| exog                      | [Ignored](`Ignored`) | Not used, present here for API consistency by convention.                                                                                                                                                                             | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+>>> data = pd.Series(
+...     data = np.arange(14),
+...     index = pd.date_range(start='2022-01-01', periods=14, freq='D')
+... )
+>>> forecaster = ForecasterEquivalentDate(offset=7)
+>>> forecaster.fit(y=data)
+```
+
+### get_tags { #spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.get_tags }
+
+```python
+forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.get_tags(
+)
+```
+
+Return the tags that characterize the behavior of the forecaster.
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                | Description                      |
+|--------|-----------------------------------------------------|----------------------------------|
+| dict   | [dict](`dict`)\[[str](`str`), [Any](`typing.Any`)\] | Dictionary with forecaster tags. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+>>> forecaster = ForecasterEquivalentDate(offset=7)
+>>> tags = forecaster.get_tags()
+>>> sorted(tags.keys())[:3]
+['allowed_input_types_exog', 'allowed_input_types_series', 'forecaster_name']
+```
+
+### predict { #spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.predict }
+
+```python
+forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.predict(
+    steps,
+    last_window=None,
+    check_inputs=True,
+    exog=None,
+)
+```
+
+Predict n steps ahead.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type                 | Description                                                                                                                                                                                                                                 | Default    |
+|--------------|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| steps        | [int](`int`)         | Number of steps to predict.                                                                                                                                                                                                                 | _required_ |
+| last_window  | pandas Series        | Past values needed to select the last equivalent dates according to the offset. If `last_window = None`, the values stored in `self.last_window_` are used and the predictions start immediately after the training data. Defaults to None. | `None`     |
+| check_inputs | [bool](`bool`)       | If `True`, the input is checked for possible warnings and errors with the `check_predict_input` function. This argument is created for internal use and is not recommended to be changed. Defaults to True.                                 | `True`     |
+| exog         | [Ignored](`Ignored`) | Not used, present here for API consistency by convention.                                                                                                                                                                                   | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                     | Description                  |
+|--------|------------------------------------------|------------------------------|
+|        | [pd](`pandas`).[Series](`pandas.Series`) | pd.Series: Predicted values. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                                                                                                                                                                                                                                                                                                                       |
+|--------|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If all equivalent values are missing when using a pandas DateOffset as offset. This can be caused by using an offset larger than the available data. To avoid this, try to decrease the size of the offset, the number of `n_offsets` or increase the size of `last_window`. In backtesting, this error may be caused by using an `initial_train_size` too small. |
+|        | [Warning](`Warning`)       | If some equivalent values are missing when using a pandas DateOffset as offset. This can be caused by using an offset larger than the available data or by using an `initial_train_size` too small in backtesting. To avoid this, increase the `last_window` size or decrease the number of `n_offsets`.                                                          |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+>>> data = pd.Series(
+...     data = np.arange(14),
+...     index = pd.date_range(start='2022-01-01', periods=14, freq='D')
+... )
+>>> forecaster = ForecasterEquivalentDate(offset=7)
+>>> forecaster.fit(y=data)
+>>> forecaster.predict(steps=3)
+2022-01-15    7
+2022-01-16    8
+2022-01-17    9
+Freq: D, Name: pred, dtype: int64
+```
+
+### predict_interval { #spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.predict_interval }
+
+```python
+forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.predict_interval(
+    steps,
+    last_window=None,
+    method='conformal',
+    interval=[5, 95],
+    use_in_sample_residuals=True,
+    use_binned_residuals=True,
+    random_state=None,
+    exog=None,
+    n_boot=None,
+)
+```
+
+Predict n steps ahead and estimate prediction intervals using conformal
+prediction method. Refer to the References section for additional
+details on this method.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                    | Type                                                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Default       |
+|-------------------------|------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| steps                   | [int](`int`)                                         | Number of steps to predict.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | _required_    |
+| last_window             | pandas Series                                        | Past values needed to select the last equivalent dates according to the offset. If `last_window = None`, the values stored in `self.last_window_` are used and the predictions start immediately after the training data. Defaults to None.                                                                                                                                                                                                                                                                                                                      | `None`        |
+| method                  | [str](`str`)                                         | Technique used to estimate prediction intervals. Available options: - 'conformal': Employs the conformal prediction split method for interval estimation [1]_. Defaults to 'conformal'.                                                                                                                                                                                                                                                                                                                                                                          | `'conformal'` |
+| interval                | ([float](`float`), [list](`list`), [tuple](`tuple`)) | Confidence level of the prediction interval. Interpretation depends on the method used: - If `float`, represents the nominal (expected) coverage (between 0 and 1). For instance, `interval=0.95` corresponds to `[2.5, 97.5]` percentiles. - If `list` or `tuple`, defines the exact percentiles to compute, which must be between 0 and 100 inclusive. For example, interval of 95% should be as `interval = [2.5, 97.5]`. - When using `method='conformal'`, the interval must be a float or a list/tuple defining a symmetric interval. Defaults to [5, 95]. | `[5, 95]`     |
+| use_in_sample_residuals | [bool](`bool`)                                       | If `True`, residuals from the training data are used as proxy of prediction error to create predictions. If `False`, out of sample residuals (calibration) are used. Out-of-sample residuals must be precomputed using Forecaster's `set_out_sample_residuals()` method. Defaults to True.                                                                                                                                                                                                                                                                       | `True`        |
+| use_binned_residuals    | [bool](`bool`)                                       | If `True`, residuals are selected based on the predicted values (binned selection). If `False`, residuals are selected randomly. Defaults to True.                                                                                                                                                                                                                                                                                                                                                                                                               | `True`        |
+| random_state            | [Ignored](`Ignored`)                                 | Not used, present here for API consistency by convention.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | `None`        |
+| exog                    | [Ignored](`Ignored`)                                 | Not used, present here for API consistency by convention.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | `None`        |
+| n_boot                  | [Ignored](`Ignored`)                                 | Not used, present here for API consistency by convention.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | `None`        |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                                                                                                                                                 |
+|--------|------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Values predicted by the forecaster and their estimated interval. - pred: predictions. - lower_bound: lower bound of the interval. - upper_bound: upper bound of the interval. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                                                                 |
+|--------|----------------------------|-------------------------------------------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If `method` is not 'conformal'.                                                                             |
+|        | [ValueError](`ValueError`) | If `interval` is not a float or a list/tuple defining a symmetric interval when using `method='conformal'`. |
+
+#### References {.doc-section .doc-section-references}
+
+.. [1] MAPIE - Model Agnostic Prediction Interval Estimator.
+    https://mapie.readthedocs.io/en/stable/theoretical_description_regression.html#the-split-method
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+>>> data = pd.Series(
+...     data = np.arange(14, dtype=float),
+...     index = pd.date_range(start='2022-01-01', periods=14, freq='D')
+... )
+>>> forecaster = ForecasterEquivalentDate(offset=7)
+>>> forecaster.fit(y=data, store_in_sample_residuals=True)
+>>> forecaster.predict_interval(steps=3, interval=0.8)
+            pred  lower_bound  upper_bound
+2022-01-15   7.0          6.0          8.0
+2022-01-16   8.0          7.0          9.0
+2022-01-17   9.0          8.0         10.0
+```
+
+### set_in_sample_residuals { #spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.set_in_sample_residuals }
+
+```python
+forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.set_in_sample_residuals(
+    y,
+    random_state=123,
+    exog=None,
+)
+```
+
+Set in-sample residuals in case they were not calculated during the
+training process.
+
+In-sample residuals are calculated as the difference between the true
+values and the predictions made by the forecaster using the training
+data. The following internal attributes are updated:
+
++ `in_sample_residuals_`: residuals stored in a numpy ndarray.
++ `binner_intervals_`: intervals used to bin the residuals are calculated
+using the quantiles of the predicted values.
++ `in_sample_residuals_by_bin_`: residuals are binned according to the
+predicted value they are associated with and stored in a dictionary, where
+the keys are the intervals of the predicted values and the values are
+the residuals associated with that range.
+
+A total of 10_000 residuals are stored in the attribute `in_sample_residuals_`.
+If the number of residuals is greater than 10_000, a random sample of
+10_000 residuals is stored. The number of residuals stored per bin is
+limited to `10_000 // self.binner.n_bins_`.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type                 | Description                                                                  | Default    |
+|--------------|----------------------|------------------------------------------------------------------------------|------------|
+| y            | pandas Series        | Training time series.                                                        | _required_ |
+| random_state | [int](`int`)         | Sets a seed to the random sampling for reproducible output. Defaults to 123. | `123`      |
+| exog         | [Ignored](`Ignored`) | Not used, present here for API consistency by convention.                    | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                                                  | Description                                                  |
+|--------|-------------------------------------------------------|--------------------------------------------------------------|
+|        | [NotFittedError](`sklearn.exceptions.NotFittedError`) | If the forecaster has not been fitted.                       |
+|        | [IndexError](`IndexError`)                            | If the index range of `y` does not match the training range. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+>>> data = pd.Series(
+...     data=np.arange(14, dtype=float),
+...     index=pd.date_range(start="2022-01-01", periods=14, freq="D"),
+... )
+>>> forecaster = ForecasterEquivalentDate(offset=7)
+>>> forecaster.fit(y=data)
+>>> # Recompute and store residuals if needed
+>>> forecaster.set_in_sample_residuals(y=data, random_state=123)
+>>> forecaster.in_sample_residuals_.shape
+(7,)
+```
+
+### set_out_sample_residuals { #spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.set_out_sample_residuals }
+
+```python
+forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.set_out_sample_residuals(
+    y_true,
+    y_pred,
+    append=False,
+    random_state=123,
+)
+```
+
+Set new values to the attribute `out_sample_residuals_`. Out of sample
+residuals are meant to be calculated using observations that did not
+participate in the training process. Two internal attributes are updated:
+
++ `out_sample_residuals_`: residuals stored in a numpy ndarray.
++ `out_sample_residuals_by_bin_`: residuals are binned according to the
+predicted value they are associated with and stored in a dictionary, where
+the keys are the  intervals of the predicted values and the values are
+the residuals associated with that range. If a bin binning is empty, it
+is filled with a random sample of residuals from other bins. This is done
+to ensure that all bins have at least one residual and can be used in the
+prediction process.
+
+A total of 10_000 residuals are stored in the attribute `out_sample_residuals_`.
+If the number of residuals is greater than 10_000, a random sample of
+10_000 residuals is stored. The number of residuals stored per bin is
+limited to `10_000 // self.binner.n_bins_`.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type                         | Description                                                                                                                                                                                                                                               | Default    |
+|--------------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| y_true       | numpy ndarray, pandas Series | True values of the time series from which the residuals have been calculated.                                                                                                                                                                             | _required_ |
+| y_pred       | numpy ndarray, pandas Series | Predicted values of the time series.                                                                                                                                                                                                                      | _required_ |
+| append       | [bool](`bool`)               | If `True`, new residuals are added to the once already stored in the forecaster. If after appending the new residuals, the limit of `10_000 // self.binner.n_bins_` values per bin is reached, a random sample of residuals is stored. Defaults to False. | `False`    |
+| random_state | [int](`int`)                 | Sets a seed to the random sampling for reproducible output. Defaults to 123.                                                                                                                                                                              | `123`      |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                                                  | Description                                                        |
+|--------|-------------------------------------------------------|--------------------------------------------------------------------|
+|        | [NotFittedError](`sklearn.exceptions.NotFittedError`) | If the forecaster has not been fitted.                             |
+|        | [TypeError](`TypeError`)                              | If `y_true` or `y_pred` are not numpy arrays or pandas Series.     |
+|        | [ValueError](`ValueError`)                            | If `y_true` and `y_pred` have different lengths.                   |
+|        | [ValueError](`ValueError`)                            | If `y_true` and `y_pred` are pandas Series with different indexes. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+>>> data = pd.Series(
+...     data=np.arange(21, dtype=float),
+...     index=pd.date_range(start="2022-01-01", periods=21, freq="D"),
+... )
+>>> forecaster = ForecasterEquivalentDate(offset=7)
+>>> forecaster.fit(y=data)
+>>> preds = forecaster.predict(steps=7)
+>>> y_true = pd.Series(data[-7:].to_numpy(), index=preds.index)
+>>> forecaster.set_out_sample_residuals(y_true=y_true, y_pred=preds)
+>>> forecaster.out_sample_residuals_.shape
+(7,)
+```
+
+### summary { #spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.summary }
+
+```python
+forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.summary(
+)
+```
+
+Show forecaster information.
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+>>> data = pd.Series(
+...     data=np.arange(14, dtype=float),
+...     index=pd.date_range(start="2022-01-01", periods=14, freq="D"),
+... )
+>>> forecaster = ForecasterEquivalentDate(offset=7)
+>>> forecaster.fit(y=data)
+>>> forecaster.summary()
+============================
+```

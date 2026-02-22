@@ -1,0 +1,120 @@
+# processing.n2n_predict.n2n_predict { #spotforecast2_safe.processing.n2n_predict.n2n_predict }
+
+```python
+processing.n2n_predict.n2n_predict(
+    data=None,
+    columns=None,
+    forecast_horizon=24,
+    contamination=0.01,
+    window_size=72,
+    force_train=True,
+    model_dir=None,
+    verbose=True,
+    show_progress=True,
+)
+```
+
+End-to-end baseline forecasting using equivalent date method.
+
+This function implements a complete forecasting pipeline that:
+1. Loads and validates target data
+2. Detects and removes outliers
+3. Imputes missing values
+4. Splits into train/validation/test sets
+5. Trains or loads equivalent date forecasters
+6. Generates multi-step ahead predictions
+
+Models are persisted to disk following scikit-learn conventions using joblib.
+By default, models are retrained (force_train=True). Set force_train=False to reuse existing cached models.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name             | Type                                                                                             | Description                                                                                                                                               | Default   |
+|------------------|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| data             | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\]                  | Optional DataFrame with target time series data. If None, fetches data automatically. Default: None.                                                      | `None`    |
+| columns          | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\]                           | List of target columns to forecast. If None, uses all available columns. Default: None.                                                                   | `None`    |
+| forecast_horizon | [int](`int`)                                                                                     | Number of time steps to forecast ahead. Default: 24.                                                                                                      | `24`      |
+| contamination    | [float](`float`)                                                                                 | Contamination parameter for outlier detection. Default: 0.01.                                                                                             | `0.01`    |
+| window_size      | [int](`int`)                                                                                     | Rolling window size for gap detection. Default: 72.                                                                                                       | `72`      |
+| force_train      | [bool](`bool`)                                                                                   | Force retraining of all models, ignoring cached models. Default: True.                                                                                    | `True`    |
+| model_dir        | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[str](`str`), [Path](`pathlib.Path`)\]\] | Directory for saving/loading trained models. If None, uses cache directory from get_cache_home(). Default: None (uses ~/spotforecast2_cache/forecasters). | `None`    |
+| verbose          | [bool](`bool`)                                                                                   | Print progress messages. Default: True.                                                                                                                   | `True`    |
+| show_progress    | [bool](`bool`)                                                                                   | Show progress bar during training and prediction. Default: True.                                                                                          | `True`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                             | Description                                                                            |
+|--------|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                   | Tuple containing:                                                                      |
+|        | [Dict](`typing.Dict`)                                                                            | - predictions: DataFrame with forecast values for each target variable.                |
+|        | [Tuple](`typing.Tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [Dict](`typing.Dict`)\] | - forecasters: Dictionary of trained ForecasterEquivalentDate objects keyed by target. |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                         | Description                                                    |
+|--------|------------------------------|----------------------------------------------------------------|
+|        | [ValueError](`ValueError`)   | If data validation fails or required data cannot be retrieved. |
+|        | [ImportError](`ImportError`) | If required dependencies are not installed.                    |
+|        | [OSError](`OSError`)         | If models cannot be saved to disk.                             |
+
+## Examples {.doc-section .doc-section-examples}
+
+Basic usage with automatic model caching:
+
+```python
+>>> predictions, forecasters = n2n_predict(
+...     forecast_horizon=24,
+...     verbose=True
+... )
+>>> print(predictions.shape)
+(24, 11)
+```
+
+Load cached models (if available):
+
+```python
+>>> predictions, forecasters = n2n_predict(
+...     forecast_horizon=24,
+...     force_train=False,
+...     model_dir="./saved_models",
+...     verbose=True
+... )
+```
+
+Force retraining and update cache:
+
+```python
+>>> predictions, forecasters = n2n_predict(
+...     forecast_horizon=24,
+...     force_train=True,
+...     model_dir="./saved_models",
+...     verbose=True
+... )
+```
+
+With specific target columns:
+
+```python
+>>> predictions, forecasters = n2n_predict(
+...     columns=["power", "energy"],
+...     forecast_horizon=48,
+...     force_train=False,
+...     verbose=True
+... )
+```
+
+## Notes {.doc-section .doc-section-notes}
+
+- Trained models are saved to disk using joblib for fast reuse.
+- When force_train=False, existing models are loaded and prediction
+  proceeds without retraining. This significantly speeds up prediction
+  for repeated calls with the same configuration.
+- The model_dir directory is created automatically if it doesn't exist.
+- Default model_dir uses get_cache_home() which respects the
+  SPOTFORECAST2_CACHE environment variable.
+
+## Performance Notes {.doc-section .doc-section-performance-notes}
+
+- First run: Full training (~2-5 minutes depending on data size)
+- Subsequent runs (force_train=False): Model loading only (~1-2 seconds)
+- Force retrain (force_train=True): Full training again (~2-5 minutes)

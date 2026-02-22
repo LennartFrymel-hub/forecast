@@ -1,0 +1,101 @@
+# manager.predictor.get_model_prediction { #spotforecast2_safe.manager.predictor.get_model_prediction }
+
+```python
+manager.predictor.get_model_prediction(
+    model_name,
+    model_dir=None,
+    predict_size=None,
+)
+```
+
+Get the prediction package from the latest trained model.
+
+This function retrieves the latest iteration of a specified model from the
+cache and calls its `package_prediction` method to obtain a comprehensive
+set of predictions and metrics.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type                                                                                             | Description                                                                       | Default    |
+|--------------|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|------------|
+| model_name   | [str](`str`)                                                                                     | Name of the model to use (e.g., 'lgbm', 'xgb').                                   | _required_ |
+| model_dir    | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[str](`str`), [Path](`pathlib.Path`)\]\] | Directory where models are stored. If None, defaults to the library's cache home. | `None`     |
+| predict_size | [Optional](`typing.Optional`)\[[int](`int`)\]                                                    | Optional override for the prediction horizon.                                     | `None`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                        | Description                                                             |
+|--------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+|        | [Optional](`typing.Optional`)\[[Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\]\] | A dictionary containing predictions and metrics if a model is found and |
+|        | [Optional](`typing.Optional`)\[[Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\]\] | successfully executes `package_prediction`. Returns None otherwise.     |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import tempfile
+>>> from pathlib import Path
+>>> from spotforecast2_safe.manager.predictor import get_model_prediction
+>>> from joblib import dump
+>>>
+>>> # Example 1: No model found scenario
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     result = get_model_prediction('lgbm', model_dir=tmpdir)
+...     print(f"Result when no model exists: {result}")
+Result when no model exists: None
+>>>
+>>> # Example 2: Model found but no package_prediction method
+>>> class SimpleModel:
+...     '''Simple model without package_prediction method'''
+...     def __init__(self):
+...         self.name = 'simple'
+>>>
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     model_dir = Path(tmpdir)
+...     simple_model = SimpleModel()
+...     dump(simple_model, model_dir / "test_forecaster_1.joblib")
+...     result = get_model_prediction('test', model_dir=model_dir)
+...     print(f"Result without package_prediction: {result}")
+Result without package_prediction: None
+>>>
+>>> # Example 3: Successful prediction package retrieval
+>>> class ForecastModel:
+...     '''Model with package_prediction method'''
+...     def __init__(self):
+...         self.name = 'xgb'
+...     def package_prediction(self):
+...         return {
+...             'predictions': [1.0, 2.0, 3.0],
+...             'metrics': {'mse': 0.05, 'mae': 0.02}
+...         }
+>>>
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     model_dir = Path(tmpdir)
+...     forecast_model = ForecastModel()
+...     dump(forecast_model, model_dir / "xgb_forecaster_1.joblib")
+...     result = get_model_prediction('xgb', model_dir=model_dir)
+...     print(f"Predictions available: {'predictions' in result}")
+...     print(f"Metrics available: {'metrics' in result}")
+Predictions available: True
+Metrics available: True
+>>>
+>>> # Example 4: Safety-critical - verify prediction integrity
+>>> class SafetyModel:
+...     '''Safety model with validation'''
+...     def __init__(self):
+...         self.name = 'safety_forecaster'
+...     def package_prediction(self):
+...         return {
+...             'predictions': [10.5, 11.2],
+...             'confidence_intervals': [(10.0, 11.0), (10.8, 11.6)],
+...             'validation_passed': True
+...         }
+>>>
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     model_dir = Path(tmpdir)
+...     safety_model = SafetyModel()
+...     dump(safety_model, model_dir / "safety_forecaster_forecaster_2.joblib")
+...     pkg = get_model_prediction('safety_forecaster', model_dir=model_dir)
+...     if pkg:
+...         print(f"Validation status: {pkg['validation_passed']}")
+Validation status: True
+```

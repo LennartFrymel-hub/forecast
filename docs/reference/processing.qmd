@@ -1,0 +1,5 @@
+# processing { #spotforecast2_safe.processing }
+
+`processing`
+
+Processing module for end-to-end forecasting pipelines.

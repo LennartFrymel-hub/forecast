@@ -1,0 +1,41 @@
+# utils.generate_holiday.create_holiday_df { #spotforecast2_safe.utils.generate_holiday.create_holiday_df }
+
+```python
+utils.generate_holiday.create_holiday_df(
+    start,
+    end,
+    tz='UTC',
+    freq='h',
+    country_code='DE',
+    state='NW',
+)
+```
+
+Create a DataFrame with datetime index and a binary holiday indicator column.
+
+Expands daily holidays to all timestamps in the desired frequency.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type                                                                                    | Description                                     | Default    |
+|--------------|-----------------------------------------------------------------------------------------|-------------------------------------------------|------------|
+| start        | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Start date/datetime.                            | _required_ |
+| end          | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | End date/datetime.                              | _required_ |
+| tz           | [str](`str`)                                                                            | Timezone to use if not inferred from start/end. | `'UTC'`    |
+| freq         | [str](`str`)                                                                            | Frequency of the resulting DataFrame.           | `'h'`      |
+| country_code | [str](`str`)                                                                            | Country code for holidays (e.g. "DE", "US").    | `'DE'`     |
+| state        | [str](`str`)                                                                            | State code for holidays (e.g. "NW", "CA").      | `'NW'`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                                                                                       |
+|--------|------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: DataFrame with index covering [start, end] at `freq`,           and a 'holiday' column (1 if holiday, 0 otherwise). |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> df = create_holiday_df("2023-12-24", "2023-12-26", freq="D")
+>>> df["holiday"].tolist()
+[0, 1, 1]
+```

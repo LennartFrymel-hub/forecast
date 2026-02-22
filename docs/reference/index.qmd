@@ -1,0 +1,139 @@
+# Function reference {.doc .doc-index}
+
+## Data
+
+Utilities for fetching and loading time series, weather, and holiday data.
+
+
+| | |
+| --- | --- |
+| [data.fetch_data.fetch_data](data.fetch_data.fetch_data.qmd#spotforecast2_safe.data.fetch_data.fetch_data) | Fetches the integrated raw dataset from a CSV file or processes a DataFrame. |
+| [data.fetch_data.fetch_holiday_data](data.fetch_data.fetch_holiday_data.qmd#spotforecast2_safe.data.fetch_data.fetch_holiday_data) | Fetches holiday data for the dataset period. |
+| [data.fetch_data.fetch_weather_data](data.fetch_data.fetch_weather_data.qmd#spotforecast2_safe.data.fetch_data.fetch_weather_data) | Fetches weather data for the dataset period plus forecast horizon. |
+| [data.fetch_data.get_cache_home](data.fetch_data.get_cache_home.qmd#spotforecast2_safe.data.fetch_data.get_cache_home) | Return the location where persistent models are to be cached. |
+| [data.fetch_data.get_data_home](data.fetch_data.get_data_home.qmd#spotforecast2_safe.data.fetch_data.get_data_home) | Return the location where datasets are to be stored. |
+| [data.data](data.data.qmd#spotforecast2_safe.data.data) | Data structures for input and processed data. |
+
+## Preprocessing
+
+Hardened tools for data curation, resampling, outlier detection,
+feature engineering, and temporal train/test splitting.
+
+
+| | |
+| --- | --- |
+| [preprocessing.curate_data.agg_and_resample_data](preprocessing.curate_data.agg_and_resample_data.qmd#spotforecast2_safe.preprocessing.curate_data.agg_and_resample_data) | Aggregates and resamples the data to (e.g.,hourly) frequency by computing the specified aggregation (e.g. for each hour). |
+| [preprocessing.curate_data.basic_ts_checks](preprocessing.curate_data.basic_ts_checks.qmd#spotforecast2_safe.preprocessing.curate_data.basic_ts_checks) | Checks if the time series data has a datetime index and is sorted. |
+| [preprocessing.curate_data.curate_holidays](preprocessing.curate_data.curate_holidays.qmd#spotforecast2_safe.preprocessing.curate_data.curate_holidays) | Checks if the holiday dataframe has the correct shape. |
+| [preprocessing.curate_data.curate_weather](preprocessing.curate_data.curate_weather.qmd#spotforecast2_safe.preprocessing.curate_data.curate_weather) | Checks if the weather dataframe has the correct shape. |
+| [preprocessing.curate_data.get_start_end](preprocessing.curate_data.get_start_end.qmd#spotforecast2_safe.preprocessing.curate_data.get_start_end) | Get start and end date strings for data and covariate ranges. |
+| [preprocessing.outlier.get_outliers](preprocessing.outlier.get_outliers.qmd#spotforecast2_safe.preprocessing.outlier.get_outliers) | Detect outliers in each column using Isolation Forest. |
+| [preprocessing.outlier.manual_outlier_removal](preprocessing.outlier.manual_outlier_removal.qmd#spotforecast2_safe.preprocessing.outlier.manual_outlier_removal) | Manual outlier removal function. |
+| [preprocessing.outlier.mark_outliers](preprocessing.outlier.mark_outliers.qmd#spotforecast2_safe.preprocessing.outlier.mark_outliers) | Marks outliers as NaN in the dataset using Isolation Forest. |
+| [preprocessing.split.split_abs_train_val_test](preprocessing.split.split_abs_train_val_test.qmd#spotforecast2_safe.preprocessing.split.split_abs_train_val_test) | Splits a time series DataFrame into training, validation, and test sets based on absolute timestamps. |
+| [preprocessing.split.split_rel_train_val_test](preprocessing.split.split_rel_train_val_test.qmd#spotforecast2_safe.preprocessing.split.split_rel_train_val_test) | Splits a time series DataFrame into training, validation, and test sets by percentages. |
+| [preprocessing.exog_builder.ExogBuilder](preprocessing.exog_builder.ExogBuilder.qmd#spotforecast2_safe.preprocessing.exog_builder.ExogBuilder) | Builds a set of exogenous features for a given date range. |
+| [preprocessing.imputation.WeightFunction](preprocessing.imputation.WeightFunction.qmd#spotforecast2_safe.preprocessing.imputation.WeightFunction) | Callable class for sample weights that can be pickled. |
+| [preprocessing.imputation.custom_weights](preprocessing.imputation.custom_weights.qmd#spotforecast2_safe.preprocessing.imputation.custom_weights) | Return 0 if index is in or near any gap. |
+| [preprocessing.imputation.get_missing_weights](preprocessing.imputation.get_missing_weights.qmd#spotforecast2_safe.preprocessing.imputation.get_missing_weights) | Return imputed DataFrame and a series indicating missing weights. |
+
+## Processing
+
+Utilities for aggregated and n-to-n predictions.
+
+
+| | |
+| --- | --- |
+| [processing.agg_predict.agg_predict](processing.agg_predict.agg_predict.qmd#spotforecast2_safe.processing.agg_predict.agg_predict) | Aggregates multiple prediction columns into a single combined prediction series. |
+| [processing.n2n_predict.n2n_predict](processing.n2n_predict.n2n_predict.qmd#spotforecast2_safe.processing.n2n_predict.n2n_predict) | End-to-end baseline forecasting using equivalent date method. |
+
+## Forecaster
+
+Recursive forecasting classes, seasonal baselines, and metrics.
+
+
+| | |
+| --- | --- |
+| [forecaster.base](forecaster.base.qmd#spotforecast2_safe.forecaster.base) | ForecasterBase class. |
+| [forecaster.recursive._forecaster_recursive.ForecasterRecursive](forecaster.recursive._forecaster_recursive.ForecasterRecursive.qmd#spotforecast2_safe.forecaster.recursive._forecaster_recursive.ForecasterRecursive) | Recursive autoregressive forecaster for scikit-learn compatible estimators. |
+| [forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate](forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.qmd#spotforecast2_safe.forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate) | This forecaster predicts future values based on the most recent equivalent |
+| [forecaster.utils](forecaster.utils.qmd#spotforecast2_safe.forecaster.utils) |  |
+| [forecaster.metrics.add_y_train_argument](forecaster.metrics.add_y_train_argument.qmd#spotforecast2_safe.forecaster.metrics.add_y_train_argument) | Add `y_train` argument to a function if it is not already present. |
+| [forecaster.metrics.calculate_coverage](forecaster.metrics.calculate_coverage.qmd#spotforecast2_safe.forecaster.metrics.calculate_coverage) | Calculate coverage of a given interval. |
+| [forecaster.metrics.create_mean_pinball_loss](forecaster.metrics.create_mean_pinball_loss.qmd#spotforecast2_safe.forecaster.metrics.create_mean_pinball_loss) | Create pinball loss for a given quantile. |
+| [forecaster.metrics.crps_from_predictions](forecaster.metrics.crps_from_predictions.qmd#spotforecast2_safe.forecaster.metrics.crps_from_predictions) | Compute the Continuous Ranked Probability Score (CRPS) from predictions. |
+| [forecaster.metrics.crps_from_quantiles](forecaster.metrics.crps_from_quantiles.qmd#spotforecast2_safe.forecaster.metrics.crps_from_quantiles) | Calculate the Continuous Ranked Probability Score (CRPS) from quantiles. |
+| [forecaster.metrics.mean_absolute_scaled_error](forecaster.metrics.mean_absolute_scaled_error.qmd#spotforecast2_safe.forecaster.metrics.mean_absolute_scaled_error) | Mean Absolute Scaled Error (MASE). |
+| [forecaster.metrics.root_mean_squared_scaled_error](forecaster.metrics.root_mean_squared_scaled_error.qmd#spotforecast2_safe.forecaster.metrics.root_mean_squared_scaled_error) | Root Mean Squared Scaled Error (RMSSE). |
+| [forecaster.metrics.symmetric_mean_absolute_percentage_error](forecaster.metrics.symmetric_mean_absolute_percentage_error.qmd#spotforecast2_safe.forecaster.metrics.symmetric_mean_absolute_percentage_error) | Compute the Symmetric Mean Absolute Percentage Error (SMAPE). |
+
+## Model Selection
+
+Backtesting and cross-validation utilities for time series models.
+
+
+| | |
+| --- | --- |
+| [model_selection.validation.backtesting_forecaster](model_selection.validation.backtesting_forecaster.qmd#spotforecast2_safe.model_selection.validation.backtesting_forecaster) | Backtesting of forecaster model following the folds generated by the TimeSeriesFold |
+| [model_selection.validation.backtesting_forecaster_one_step](model_selection.validation.backtesting_forecaster_one_step.qmd#spotforecast2_safe.model_selection.validation.backtesting_forecaster_one_step) | Backtesting of forecaster model using one-step-ahead predictions. |
+
+## Manager
+
+High-level training, prediction, and model persistence orchestration.
+
+
+| | |
+| --- | --- |
+| [manager.metrics.calculate_metrics](manager.metrics.calculate_metrics.qmd#spotforecast2_safe.manager.metrics.calculate_metrics) | Calculate MAE and MSE for numeric evaluation. |
+| [manager.trainer.get_last_model](manager.trainer.get_last_model.qmd#spotforecast2_safe.manager.trainer.get_last_model) | Get the latest trained model from the cache. |
+| [manager.trainer.get_path_model](manager.trainer.get_path_model.qmd#spotforecast2_safe.manager.trainer.get_path_model) | Yield the path to a model file for a given iteration and model name. |
+| [manager.trainer.load_iteration](manager.trainer.load_iteration.qmd#spotforecast2_safe.manager.trainer.load_iteration) | Load a saved model at a given iteration. |
+| [manager.predictor.get_model_prediction](manager.predictor.get_model_prediction.qmd#spotforecast2_safe.manager.predictor.get_model_prediction) | Get the prediction package from the latest trained model. |
+
+## Utils
+
+General-purpose utility functions: CPE generation, validation, holiday
+calendars, and data transforms.
+
+
+| | |
+| --- | --- |
+| [utils.cpe.get_cpe_identifier](utils.cpe.get_cpe_identifier.qmd#spotforecast2_safe.utils.cpe.get_cpe_identifier) | Generates the CPE 2.3 identifier for the spotforecast2-safe project. |
+| [utils.generate_holiday.create_holiday_df](utils.generate_holiday.create_holiday_df.qmd#spotforecast2_safe.utils.generate_holiday.create_holiday_df) | Create a DataFrame with datetime index and a binary holiday indicator column. |
+| [utils.validation.check_exog](utils.validation.check_exog.qmd#spotforecast2_safe.utils.validation.check_exog) | Validate that exog is a pandas Series or DataFrame. |
+| [utils.validation.check_exog_dtypes](utils.validation.check_exog_dtypes.qmd#spotforecast2_safe.utils.validation.check_exog_dtypes) | Check that exogenous variables have valid data types (int, float, category). |
+| [utils.validation.check_interval](utils.validation.check_interval.qmd#spotforecast2_safe.utils.validation.check_interval) | Validate that a confidence interval specification is valid. |
+| [utils.validation.check_predict_input](utils.validation.check_predict_input.qmd#spotforecast2_safe.utils.validation.check_predict_input) | Check all inputs of predict method. This is a helper function to validate |
+| [utils.validation.check_residuals_input](utils.validation.check_residuals_input.qmd#spotforecast2_safe.utils.validation.check_residuals_input) | Check residuals input arguments in Forecasters. |
+| [utils.validation.check_y](utils.validation.check_y.qmd#spotforecast2_safe.utils.validation.check_y) | Validate that y is a pandas Series without missing values. |
+| [utils.validation.get_exog_dtypes](utils.validation.get_exog_dtypes.qmd#spotforecast2_safe.utils.validation.get_exog_dtypes) | Extract and store the data types of exogenous variables. |
+| [utils.validation.set_cpu_gpu_device](utils.validation.set_cpu_gpu_device.qmd#spotforecast2_safe.utils.validation.set_cpu_gpu_device) | Set the device for the estimator to either 'cpu', 'gpu', 'cuda', or None. |
+
+## Weather
+
+Weather data integration using the Open-Meteo API.
+
+
+| | |
+| --- | --- |
+| [weather.weather_client.WeatherClient](weather.weather_client.WeatherClient.qmd#spotforecast2_safe.weather.weather_client.WeatherClient) | Client for fetching weather data from Open-Meteo API. |
+| [weather.weather_client.WeatherService](weather.weather_client.WeatherService.qmd#spotforecast2_safe.weather.weather_client.WeatherService) | High-level service for weather data generation. |
+
+## Downloader
+
+Data downloaders for external data sources (e.g. ENTSO-E).
+
+
+| | |
+| --- | --- |
+| [downloader.entsoe.download_new_data](downloader.entsoe.download_new_data.qmd#spotforecast2_safe.downloader.entsoe.download_new_data) | Download new load and forecast data from ENTSO-E. |
+| [downloader.entsoe.merge_build_manual](downloader.entsoe.merge_build_manual.qmd#spotforecast2_safe.downloader.entsoe.merge_build_manual) | Merge all raw CSV files from the 'raw' directory into a single interim file. |
+
+## Exceptions
+
+Custom exception types for safety-critical failure signalling.
+
+
+| | |
+| --- | --- |
+| [exceptions](exceptions.qmd#spotforecast2_safe.exceptions) | Custom exceptions and warnings for spotforecast2. |

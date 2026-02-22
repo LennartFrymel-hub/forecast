@@ -1,0 +1,65 @@
+# utils.validation.check_exog_dtypes { #spotforecast2_safe.utils.validation.check_exog_dtypes }
+
+```python
+utils.validation.check_exog_dtypes(
+    exog,
+    call_check_exog=True,
+    series_id='`exog`',
+)
+```
+
+Check that exogenous variables have valid data types (int, float, category).
+
+This function validates that the exogenous variables (Series or DataFrame)
+contain only supported data types: integer, float, or category. It issues a
+warning if other types (like object/string) are found, as these may cause
+issues with some machine learning estimators.
+
+It also strictly enforces that categorical columns must have integer categories.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name            | Type                                                                                                                | Description                                                                   | Default    |
+|-----------------|---------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|------------|
+| exog            | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Exogenous variables to check.                                                 | _required_ |
+| call_check_exog | [bool](`bool`)                                                                                                      | If True, calls check_exog() first to ensure basic validity. Defaults to True. | `True`     |
+| series_id       | [str](`str`)                                                                                                        | Identifier used in warning/error messages. Defaults to "`exog`".              | `'`exog`'` |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                     | Description                                            |
+|--------|--------------------------|--------------------------------------------------------|
+|        | [TypeError](`TypeError`) | If categorical columns contain non-integer categories. |
+
+## Warns {.doc-section .doc-section-warns}
+
+If columns with unsupported data types (not int, float, category)
+are found.
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.utils.validation import check_exog_dtypes
+>>>
+>>> # Valid types (float, int)
+>>> df_valid = pd.DataFrame({
+...     "a": [1.0, 2.0, 3.0],
+...     "b": [1, 2, 3]
+... })
+>>> check_exog_dtypes(df_valid)  # No warning
+>>>
+>>> # Invalid type (object/string)
+>>> df_invalid = pd.DataFrame({
+...     "a": [1, 2, 3],
+...     "b": ["x", "y", "z"]
+... })
+>>> check_exog_dtypes(df_invalid)
+... # Issues DataTypeWarning about column 'b'
+>>>
+>>> # Valid categorical (with integer categories)
+>>> df_cat = pd.DataFrame({"a": [1, 2, 1]})
+>>> df_cat["a"] = df_cat["a"].astype("category")
+>>> check_exog_dtypes(df_cat)  # No warning
+```

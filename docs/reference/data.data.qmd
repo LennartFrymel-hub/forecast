@@ -1,0 +1,145 @@
+# data.data { #spotforecast2_safe.data.data }
+
+`data.data`
+
+Data structures for input and processed data.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [Data](#spotforecast2_safe.data.data.Data) | Container for input time series data. |
+| [Period](#spotforecast2_safe.data.data.Period) | Class abstraction for the information required to encode a period using RBF. |
+
+### Data { #spotforecast2_safe.data.data.Data }
+
+```python
+data.data.Data(data)
+```
+
+Container for input time series data.
+
+#### Attributes {.doc-section .doc-section-attributes}
+
+| Name   | Type                                           | Description                                             |
+|--------|------------------------------------------------|---------------------------------------------------------|
+| data   | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pandas DataFrame containing the input time series data. |
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [from_csv](#spotforecast2_safe.data.data.Data.from_csv) | Load data from a CSV file. |
+| [from_dataframe](#spotforecast2_safe.data.data.Data.from_dataframe) | Create a new Data instance from an existing DataFrame. |
+
+##### from_csv { #spotforecast2_safe.data.data.Data.from_csv }
+
+```python
+data.data.Data.from_csv(
+    csv_path,
+    timezone,
+    columns=None,
+    parse_dates=True,
+    index_col=0,
+    **kwargs,
+)
+```
+
+Load data from a CSV file.
+
+The CSV must contain a datetime column that becomes the DataFrame index.
+The index is localized to the provided timezone if it is naive, and then
+converted to UTC.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                                                                   | Description                                                                                                                                              | Default    |
+|-------------|------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| csv_path    | [Path](`pathlib.Path`)                                                 | Path to the CSV file.                                                                                                                                    | _required_ |
+| timezone    | [Optional](`typing.Optional`)\[[str](`str`)\]                          | Timezone to assign if the index has no timezone. Must be provided if the index is naive.                                                                 | _required_ |
+| columns     | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\] | List of column names to include. If provided, only these columns will be loaded from the CSV (optimizes reading speed). If None, all columns are loaded. | `None`     |
+| parse_dates | [bool](`bool`) or [list](`list`)                                       | Passed to ``pd.read_csv``. Defaults to True.                                                                                                             | `True`     |
+| index_col   | [int](`int`) or [str](`str`)                                           | Column to use as index. Defaults to 0.                                                                                                                   | `0`        |
+| **kwargs    | [Any](`Any`)                                                           | Additional keyword arguments forwarded to ``pd.read_csv``.                                                                                               | `{}`       |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                        | Description                               |
+|--------|---------------------------------------------|-------------------------------------------|
+| Data   | [Data](`spotforecast2_safe.data.data.Data`) | Instance containing the loaded DataFrame. |
+
+###### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                 |
+|--------|----------------------------|-------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If the CSV does not yield a DatetimeIndex.                  |
+|        | [ValueError](`ValueError`) | If the index is timezone-naive and no timezone is provided. |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data import Data
+>>> data = Data.from_csv(
+...     Path("data.csv"),
+...     timezone="UTC",
+...     columns=["target_col"]
+... )
+```
+
+##### from_dataframe { #spotforecast2_safe.data.data.Data.from_dataframe }
+
+```python
+data.data.Data.from_dataframe(df, timezone, columns=None)
+```
+
+Create a new Data instance from an existing DataFrame.
+
+The DataFrame must have a datetime index. The index is localized to the
+provided timezone if it is naive, and then converted to UTC.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type                                                                   | Description                                                                                                                          | Default    |
+|----------|------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|------------|
+| df       | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                         | Input DataFrame containing data.                                                                                                     | _required_ |
+| timezone | [Optional](`typing.Optional`)\[[str](`str`)\]                          | Timezone to assign if the index is naive. Must be provided if the index has no timezone.                                             | _required_ |
+| columns  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\] | List of column names to include. If provided, only these columns will be selected from the DataFrame. If None, all columns are used. | `None`     |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                        | Description                                 |
+|--------|---------------------------------------------|---------------------------------------------|
+| Data   | [Data](`spotforecast2_safe.data.data.Data`) | Instance containing the provided DataFrame. |
+
+###### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                 |
+|--------|----------------------------|-------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If the DataFrame index is not a DatetimeIndex.              |
+|        | [ValueError](`ValueError`) | If the index is timezone-naive and no timezone is provided. |
+
+### Period { #spotforecast2_safe.data.data.Period }
+
+```python
+data.data.Period(name, n_periods, column, input_range)
+```
+
+Class abstraction for the information required to encode a period using RBF.
+
+#### Attributes {.doc-section .doc-section-attributes}
+
+| Name        | Type                                                  | Description                                                            |
+|-------------|-------------------------------------------------------|------------------------------------------------------------------------|
+| name        | [str](`str`)                                          | Name of the period (e.g., 'hour', 'day').                              |
+| n_periods   | [int](`int`)                                          | Number of periods to encode (e.g., 24 for hours).                      |
+| column      | [str](`str`)                                          | Name of the column in the DataFrame containing the period information. |
+| input_range | [Tuple](`typing.Tuple`)\[[int](`int`), [int](`int`)\] | Tuple of (min, max) values for the period (e.g., (0, 23) for hours).   |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data import Period
+>>> period = Period(name="hour", n_periods=24, column="hour", input_range=(0, 23))
+>>> period.name
+'hour'
+```

@@ -1,0 +1,944 @@
+# forecaster.utils { #spotforecast2_safe.forecaster.utils }
+
+`forecaster.utils`
+
+
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [align_series_and_exog_multiseries](#spotforecast2_safe.forecaster.utils.align_series_and_exog_multiseries) | Align series and exog according to their index. |
+| [check_extract_values_and_index](#spotforecast2_safe.forecaster.utils.check_extract_values_and_index) | Extract values and index from a pandas Series or DataFrame, ensuring they are valid. |
+| [check_preprocess_series](#spotforecast2_safe.forecaster.utils.check_preprocess_series) | Check and preprocess `series` argument in `ForecasterRecursiveMultiSeries` class. |
+| [check_residuals_input](#spotforecast2_safe.forecaster.utils.check_residuals_input) | Check residuals input arguments in Forecasters. |
+| [date_to_index_position](#spotforecast2_safe.forecaster.utils.date_to_index_position) | Transform a datetime string or pandas Timestamp to an integer position. |
+| [exog_to_direct](#spotforecast2_safe.forecaster.utils.exog_to_direct) | Transforms `exog` to a pandas DataFrame with the shape needed for Direct |
+| [exog_to_direct_numpy](#spotforecast2_safe.forecaster.utils.exog_to_direct_numpy) | Transforms `exog` to numpy ndarray with the shape needed for Direct |
+| [get_style_repr_html](#spotforecast2_safe.forecaster.utils.get_style_repr_html) | Generate CSS style for HTML representation of the Forecaster. |
+| [initialize_differentiator_multiseries](#spotforecast2_safe.forecaster.utils.initialize_differentiator_multiseries) | Initialize `differentiator_` attribute for multiseries forecasters. |
+| [initialize_estimator](#spotforecast2_safe.forecaster.utils.initialize_estimator) | Handle the deprecation of 'regressor' in favor of 'estimator'. |
+| [initialize_transformer_series](#spotforecast2_safe.forecaster.utils.initialize_transformer_series) | Initialize transformer_series_ attribute for multivariate/multiseries forecasters. |
+| [initialize_window_features](#spotforecast2_safe.forecaster.utils.initialize_window_features) | Check window_features argument input and generate the corresponding list. |
+| [predict_multivariate](#spotforecast2_safe.forecaster.utils.predict_multivariate) | Generate multi-output predictions using multiple baseline forecasters. |
+| [prepare_levels_multiseries](#spotforecast2_safe.forecaster.utils.prepare_levels_multiseries) | Prepare list of levels to be predicted in multiseries Forecasters. |
+| [prepare_steps_direct](#spotforecast2_safe.forecaster.utils.prepare_steps_direct) | Prepare list of steps to be predicted in Direct Forecasters. |
+| [preprocess_levels_self_last_window_multiseries](#spotforecast2_safe.forecaster.utils.preprocess_levels_self_last_window_multiseries) | Preprocess `levels` and `last_window` arguments for prediction. |
+| [select_n_jobs_fit_forecaster](#spotforecast2_safe.forecaster.utils.select_n_jobs_fit_forecaster) | Select the number of jobs to run in parallel during the fit process. |
+| [set_cpu_gpu_device](#spotforecast2_safe.forecaster.utils.set_cpu_gpu_device) | Set the device for the estimator. |
+| [transform_numpy](#spotforecast2_safe.forecaster.utils.transform_numpy) | Transform raw values of a numpy ndarray with a scikit-learn alike |
+
+### align_series_and_exog_multiseries { #spotforecast2_safe.forecaster.utils.align_series_and_exog_multiseries }
+
+```python
+forecaster.utils.align_series_and_exog_multiseries(series_dict, exog_dict=None)
+```
+
+Align series and exog according to their index.
+
+Heading and trailing NaNs are removed from all series in `series_dict`.
+If needed, reindexing is applied to `exog_dict`.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                   | Description                                                                        | Default    |
+|-------------|------------------------|------------------------------------------------------------------------------------|------------|
+| series_dict | [dict](`dict`)         | Dictionary with the series used during training.                                   | _required_ |
+| exog_dict   | ([dict](`dict`), None) | Dictionary with the exogenous variable/s used during training. Defaults to `None`. | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                                                                 | Description                                                                                                                                        |
+|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [tuple](`tuple`)\[[dict](`dict`)\[[str](`str`), [pd](`pandas`).[Series](`pandas.Series`)\], [dict](`dict`)\[[str](`str`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`) \| None\]\] | A tuple containing: - series_dict (dict): Dictionary with the aligned series. - exog_dict (dict): Dictionary with the aligned exogenous variables. |
+
+### check_extract_values_and_index { #spotforecast2_safe.forecaster.utils.check_extract_values_and_index }
+
+```python
+forecaster.utils.check_extract_values_and_index(
+    data,
+    data_label='`y`',
+    ignore_freq=False,
+    return_values=True,
+)
+```
+
+Extract values and index from a pandas Series or DataFrame, ensuring they are valid.
+
+Validates that the input data has a proper DatetimeIndex or RangeIndex and extracts
+its values and index for use in forecasting operations. Optionally checks for
+index frequency consistency.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name          | Type                                                                                                                | Description                                                                     | Default    |
+|---------------|---------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|------------|
+| data          | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Input data (pandas Series or DataFrame) to extract values and index from.       | _required_ |
+| data_label    | [str](`str`)                                                                                                        | Label used in exception messages for better error reporting. Defaults to "`y`". | `'`y`'`    |
+| ignore_freq   | [bool](`bool`)                                                                                                      | If True, the frequency of the index is not checked. Defaults to False.          | `False`    |
+| return_values | [bool](`bool`)                                                                                                      | If True, the values of the data are returned. Defaults to True.                 | `True`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                         | Description                                                                                                                                                              |
+|--------|----------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [Tuple](`typing.Tuple`)\[[Optional](`typing.Optional`)\[[np](`numpy`).[ndarray](`numpy.ndarray`)\], [pd](`pandas`).[Index](`pandas.Index`)\] | A tuple containing: - values (numpy.ndarray or None): Values of the data as numpy array,   or None if return_values is False. - index (pandas.Index): Index of the data. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                     | Description                                         |
+|--------|--------------------------|-----------------------------------------------------|
+|        | [TypeError](`TypeError`) | If data is not a pandas Series or DataFrame.        |
+|        | [TypeError](`TypeError`) | If data index is not a DatetimeIndex or RangeIndex. |
+
+#### Warns {.doc-section .doc-section-warns}
+
+If DatetimeIndex has no frequency (inferred automatically).
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> dates = pd.date_range('2020-01-01', periods=10, freq='D')
+>>> series = pd.Series(np.arange(10), index=dates)
+>>> values, index = check_extract_values_and_index(series)
+>>> print(values.shape)
+(10,)
+>>> print(type(index))
+<class 'pandas.core.indexes.datetimes.DatetimeIndex'>
+```
+
+Extract index only:
+
+```python
+>>> _, index = check_extract_values_and_index(series, return_values=False)
+>>> print(index[0])
+2020-01-01 00:00:00
+```
+
+### check_preprocess_series { #spotforecast2_safe.forecaster.utils.check_preprocess_series }
+
+```python
+forecaster.utils.check_preprocess_series(series)
+```
+
+Check and preprocess `series` argument in `ForecasterRecursiveMultiSeries` class.
+
+    - If `series` is a wide-format pandas DataFrame, each column represents a
+    different time series, and the index must be either a `DatetimeIndex` or
+    a `RangeIndex` with frequency or step size, as appropriate
+    - If `series` is a long-format pandas DataFrame with a MultiIndex, the
+    first level of the index must contain the series IDs, and the second
+    level must be a `DatetimeIndex` with the same frequency across all series.
+    - If series is a dictionary, each key must be a series ID, and each value
+    must be a named pandas Series. All series must have the same index, which
+    must be either a `DatetimeIndex` or a `RangeIndex`, and they must share the
+    same frequency or step size, as appropriate.
+
+When `series` is a pandas DataFrame, it is converted to a dictionary of pandas
+Series, where the keys are the series IDs and the values are the Series with
+the same index as the original DataFrame.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                             | Description                                                 | Default    |
+|--------|------------------------------------------------------------------|-------------------------------------------------------------|------------|
+| series | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`)) | pandas DataFrame or dictionary of pandas Series/DataFrames. | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                                                 | Description                                                                                                                                                                                                             |
+|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [tuple](`tuple`)\[[dict](`dict`)\[[str](`str`), [pd](`pandas`).[Series](`pandas.Series`)\], [dict](`dict`)\[[str](`str`), [pd](`pandas`).[Index](`pandas.Index`)\]\] | A tuple containing: - series_dict (dict): Dictionary where keys are series IDs and values   are pandas Series. - series_indexes (dict): Dictionary where keys are series IDs and values   are the index of each series. |
+
+Raises:
+    TypeError:
+        If `series` is not a pandas DataFrame or a dictionary of pandas Series/DataFrames.
+    TypeError:
+        If the index of `series` is not a DatetimeIndex or RangeIndex with frequency/step size.
+    ValueError:
+        If the series in `series` have different frequencies or step sizes.
+    ValueError:
+        If all values of any series are NaN.
+    UserWarning:
+        If `series` is a wide-format DataFrame, only the first column will be used as series values.
+    UserWarning:
+        If `series` is a DataFrame (either wide or long format), additional internal transformations are required, which can increase computational time.
+        It is recommended to use a dictionary of pandas Series instead.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> from spotforecast2_safe.forecaster.utils import check_preprocess_series
+>>> # Example with wide-format DataFrame
+>>> dates = pd.date_range('2020-01-01', periods=5, freq='D')
+>>> df_wide = pd.DataFrame({
+...     'series_1': [1, 2, 3, 4, 5],
+...     'series_2': [5, 4, 3, 2, 1],
+... }, index=dates)
+>>> series_dict, series_indexes = check_preprocess_series(df_wide)
+UserWarning: `series` DataFrame has multiple columns. Only the values of first column, 'series_1', will be used as series values. All other columns will be ignored.
+UserWarning: Passing a DataFrame (either wide or long format) as `series` requires additional internal transformations, which can increase computational time.
+It is recommended to use a dictionary of pandas Series instead.
+>>> print(series_dict['series_1'])
+2020-01-01    1
+2020-01-02    2
+2020-01-03    3
+2020-01-04    4
+2020-01-05    5
+Name: series_1, dtype: int64
+>>> print(series_indexes['series_1'])
+DatetimeIndex(['2020-01-01', '2020-01-02', '2020-01-03', '2020-01-04',
+               '2020-01-05'],
+              dtype='datetime64[ns]', freq='D')
+>>> # Example with long-format DataFrame
+>>> df_long = pd.DataFrame({
+...     'series_id': ['series_1'] * 5 + ['series_2'] * 5,
+...     'value': [1, 2, 3, 4, 5, 5, 4, 3, 2, 1],
+... }, index=pd.MultiIndex.from_product([['series_1', 'series_2'], dates], names=['series_id', 'date']))
+>>> series_dict, series_indexes = check_preprocess_series(df_long)
+UserWarning: `series` DataFrame has multiple columns. Only the values of first column, 'value', will be used as series values. All other columns will be ignored.
+UserWarning: Passing a DataFrame (either wide or long format) as `series` requires additional internal transformations, which can increase computational time.
+It is recommended to use a dictionary of pandas Series instead.
+>>> print(series_dict['series_1'])
+2020-01-01    1
+2020-01-02    2
+2020-01-03    3
+2020-01-04    4
+2020-01-05    5
+Name: series_1, dtype: int64
+>>> print(series_indexes['series_1'])
+DatetimeIndex(['2020-01-01', '2020-01-02', '2020-01-03', '2020-01-04',
+                  '2020-01-05'],
+                 dtype='datetime64[ns]', freq='D')
+```
+
+```python
+>>> # Example with dictionary of Series
+>>> series_dict_input = {
+...     'series_1': pd.Series([1, 2, 3, 4, 5], index=dates),
+...     'series_2': pd.Series([5, 4, 3, 2, 1], index=dates),
+... }
+>>> series_dict, series_indexes = check_preprocess_series(series_dict_input)
+>>> print(series_dict['series_1'])
+2020-01-01    1
+2020-01-02    2
+2020-01-03    3
+2020-01-04    4
+2020-01-05    5
+Name: series_1, dtype: int64
+>>> print(series_indexes['series_1'])
+DatetimeIndex(['2020-01-01', '2020-01-02', '2020-01-03', '2020-01-04',
+               '2020-01-05'],
+              dtype='datetime64[ns]', freq='D')
+    >>> # Example with dictionary of DataFrames
+    >>> df_series_1 = pd.DataFrame({'value': [1, 2, 3, 4, 5]}, index=dates)
+    >>> df_series_2 = pd.DataFrame({'value': [5, 4, 3, 2, 1]}, index=dates)
+    >>> series_dict_input = {
+    ...     'series_1': df_series_1,
+    ...     'series_2': df_series_2,
+    ... }
+    >>> series_dict, series_indexes = check_preprocess_series(series_dict_input)
+    >>> print(series_dict['series_1'])
+2020-01-01    1
+2020-01-02    2
+2020-01-03    3
+2020-01-04    4
+2020-01-05    5
+Name: series_1, dtype: int64
+>>> print(series_indexes['series_1'])
+DatetimeIndex(['2020-01-01', '2020-01-02', '2020-01-03', '2020-01-04',
+               '2020-01-05'],
+              dtype='datetime64[ns]', freq='D')
+```
+
+### check_residuals_input { #spotforecast2_safe.forecaster.utils.check_residuals_input }
+
+```python
+forecaster.utils.check_residuals_input(
+    forecaster_name,
+    use_in_sample_residuals,
+    in_sample_residuals_,
+    out_sample_residuals_,
+    use_binned_residuals,
+    in_sample_residuals_by_bin_,
+    out_sample_residuals_by_bin_,
+    levels=None,
+    encoding=None,
+)
+```
+
+Check residuals input arguments in Forecasters.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                         | Type                                                             | Description                                                         | Default    |
+|------------------------------|------------------------------------------------------------------|---------------------------------------------------------------------|------------|
+| forecaster_name              | [str](`str`)                                                     | Forecaster name.                                                    | _required_ |
+| use_in_sample_residuals      | [bool](`bool`)                                                   | Indicates if in sample or out sample residuals are used.            | _required_ |
+| in_sample_residuals_         | ([np](`numpy`).[ndarray](`numpy.ndarray`), [dict](`dict`), None) | Residuals of the model when predicting training data.               | _required_ |
+| out_sample_residuals_        | ([np](`numpy`).[ndarray](`numpy.ndarray`), [dict](`dict`), None) | Residuals of the model when predicting non training data.           | _required_ |
+| use_binned_residuals         | [bool](`bool`)                                                   | Indicates if residuals are binned.                                  | _required_ |
+| in_sample_residuals_by_bin_  | ([dict](`dict`), None)                                           | In sample residuals binned according to the predicted value.        | _required_ |
+| out_sample_residuals_by_bin_ | ([dict](`dict`), None)                                           | Out of sample residuals binned according to the predicted value.    | _required_ |
+| levels                       | ([list](`list`), None)                                           | Names of the series (levels) to be predicted. Defaults to `None`.   | `None`     |
+| encoding                     | ([str](`str`), None)                                             | Encoding used to identify the different series. Defaults to `None`. | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.utils import check_residuals_input
+>>> import numpy as np
+>>> forecaster_name = "ForecasterRecursiveMultiSeries"
+>>> use_in_sample_residuals = True
+>>> in_sample_residuals_ = {'series_1': np.array([0.1, -0.2]), 'series_2': np.array([0.3, -0.1])}
+>>> out_sample_residuals_ = None
+>>> use_binned_residuals = False
+>>> check_residuals_input(
+...     forecaster_name,
+...     use_in_sample_residuals,
+...     in_sample_residuals_,
+...     out_sample_residuals_,
+...     use_binned_residuals,
+...     in_sample_residuals_by_bin_=None,
+...     out_sample_residuals_by_bin_=None,
+...     levels=['series_1', 'series_2'],
+...     encoding='onehot'
+... )
+```
+
+### date_to_index_position { #spotforecast2_safe.forecaster.utils.date_to_index_position }
+
+```python
+forecaster.utils.date_to_index_position(
+    index,
+    date_input,
+    method='prediction',
+    date_literal='steps',
+    kwargs_pd_to_datetime={},
+)
+```
+
+Transform a datetime string or pandas Timestamp to an integer position.
+
+The integer represents the position of the datetime in the index.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                  | Type                                                                         | Description                                                                       | Default        |
+|-----------------------|------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|----------------|
+| index                 | [pd](`pandas`).[Index](`pandas.Index`)                                       | Original datetime index.                                                          | _required_     |
+| date_input            | ([int](`int`), [str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)) | Datetime to transform.                                                            | _required_     |
+| method                | [str](`str`)                                                                 | Strategy to use. Options: 'prediction', 'validation'. Defaults to `'prediction'`. | `'prediction'` |
+| date_literal          | [str](`str`)                                                                 | Variable name used in error messages. Defaults to `'steps'`.                      | `'steps'`      |
+| kwargs_pd_to_datetime | [dict](`dict`)                                                               | Keyword arguments for `pd.to_datetime()`. Defaults to `{}`.                       | `{}`           |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type         | Description                                                  |
+|--------|--------------|--------------------------------------------------------------|
+| int    | [int](`int`) | `date_input` transformed to integer position in the `index`. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                               |
+|--------|----------------------------|---------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If `method` is not 'prediction' or 'validation'.                          |
+|        | [TypeError](`TypeError`)   | If `date_input` is not an int, str, or pandas Timestamp.                  |
+|        | [TypeError](`TypeError`)   | If `index` is not a pandas DatetimeIndex when `date_input` is not an int. |
+|        | [ValueError](`ValueError`) | If `date_input` is a date and does not meet requirement.                  |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.utils import date_to_index_position
+>>> import pandas as pd
+>>> index = pd.date_range(start='2020-01-01', periods=10, freq='D')
+>>> # Using an integer input
+>>> date_to_index_position(index, 5)
+5
+>>> # Using a date input for prediction
+>>> date_to_index_position(index, '2020-01-15', method='prediction')
+5
+>>> # Using a date input for validation
+>>> date_to_index_position(index, '2020-01-05', method='validation')
+5
+```
+
+### exog_to_direct { #spotforecast2_safe.forecaster.utils.exog_to_direct }
+
+```python
+forecaster.utils.exog_to_direct(exog, steps)
+```
+
+Transforms `exog` to a pandas DataFrame with the shape needed for Direct
+forecasting.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                       | Description                                        | Default    |
+|--------|--------------------------------------------------------------------------------------------|----------------------------------------------------|------------|
+| exog   | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)) | Exogenous variables.                               | _required_ |
+| steps  | [int](`int`)                                                                               | Number of steps that will be predicted using exog. | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                               | Description                                                                                                                                                                 |
+|--------|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [list](`list`)\[[str](`str`)\]\] | A tuple containing: - exog_direct (pd.DataFrame): Exogenous variables transformed. - exog_direct_names (list): Names of the columns of the exogenous variables transformed. |
+
+### exog_to_direct_numpy { #spotforecast2_safe.forecaster.utils.exog_to_direct_numpy }
+
+```python
+forecaster.utils.exog_to_direct_numpy(exog, steps)
+```
+
+Transforms `exog` to numpy ndarray with the shape needed for Direct
+forecasting.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                                                                 | Description                                                                                          | Default    |
+|--------|--------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|------------|
+| exog   | ([np](`numpy`).[ndarray](`numpy.ndarray`), [pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)) | Exogenous variables, shape(samples,). If exog is a pandas format, the direct exog names are created. | _required_ |
+| steps  | [int](`int`)                                                                                                                         | Number of steps that will be predicted using exog.                                                   | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                 | Description                                                                                                                                                                                                                  |
+|--------|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [tuple](`tuple`)\[[np](`numpy`).[ndarray](`numpy.ndarray`), [list](`list`)\[[str](`str`)\] \| None\] | A tuple containing: - exog_direct (np.ndarray): Exogenous variables transformed. - exog_direct_names (list, None): Names of the columns of the exogenous   variables transformed. Only created if `exog` is a pandas format. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.utils import exog_to_direct_numpy
+>>> import numpy as np
+>>> exog = np.array([10, 20, 30, 40, 50])
+>>> steps = 3
+>>> exog_direct, exog_direct_names = exog_to_direct_numpy(exog, steps)
+>>> print(exog_direct)
+[[10 20 30]
+ [20 30 40]
+ [30 40 50]]
+>>> print(exog_direct_names)
+None
+```
+
+### get_style_repr_html { #spotforecast2_safe.forecaster.utils.get_style_repr_html }
+
+```python
+forecaster.utils.get_style_repr_html(is_fitted=False)
+```
+
+Generate CSS style for HTML representation of the Forecaster.
+
+Creates a unique CSS style block with a container ID for rendering
+forecaster objects in Jupyter notebooks or HTML documents. The styling
+provides a clean, monospace display with a light gray background.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type           | Description                                                                                                                | Default   |
+|-----------|----------------|----------------------------------------------------------------------------------------------------------------------------|-----------|
+| is_fitted | [bool](`bool`) | Parameter to indicate if the Forecaster has been fitted. Currently not used in styling but reserved for future extensions. | `False`   |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                  | Description                                                                                                                                                     |
+|--------|-------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [Tuple](`typing.Tuple`)\[[str](`str`), [str](`str`)\] | A tuple containing: - style (str): CSS style block as a string with unique container class. - unique_id (str): Unique 8-character ID for the container element. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> style, uid = get_style_repr_html(is_fitted=True)
+>>> print(f"Container ID: {uid}")
+Container ID: a1b2c3d4
+>>> print(f"Style contains CSS: {'container-' in style}")
+Style contains CSS: True
+```
+
+Using in HTML rendering:
+
+```python
+>>> style, uid = get_style_repr_html(is_fitted=False)
+>>> html = f"{style}<div class='container-{uid}'>Forecaster Info</div>"
+>>> print("background-color" in html)
+True
+```
+
+### initialize_differentiator_multiseries { #spotforecast2_safe.forecaster.utils.initialize_differentiator_multiseries }
+
+```python
+forecaster.utils.initialize_differentiator_multiseries(
+    series_names_in_,
+    differentiator=None,
+)
+```
+
+Initialize `differentiator_` attribute for multiseries forecasters.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name             | Type                                       | Description                                                                                       | Default    |
+|------------------|--------------------------------------------|---------------------------------------------------------------------------------------------------|------------|
+| series_names_in_ | [list](`list`)                             | Names of the series (levels) used during training.                                                | _required_ |
+| differentiator   | ([object](`object`), [dict](`dict`), None) | Skforecast object (or dict of objects) used to differentiate the time series. Defaults to `None`. | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                       | Description                                           |
+|--------|------------------------------------------------------------|-------------------------------------------------------|
+| dict   | [dict](`dict`)\[[str](`str`), [object](`object`) \| None\] | Dictionary with the `differentiator` for each series. |
+
+### initialize_estimator { #spotforecast2_safe.forecaster.utils.initialize_estimator }
+
+```python
+forecaster.utils.initialize_estimator(estimator=None, regressor=None)
+```
+
+Handle the deprecation of 'regressor' in favor of 'estimator'.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type                       | Description                                                                     | Default   |
+|-----------|----------------------------|---------------------------------------------------------------------------------|-----------|
+| estimator | ([object](`object`), None) | Estimator or pipeline compatible with the scikit-learn API. Defaults to `None`. | `None`    |
+| regressor | ([object](`object`), None) | Deprecated. Alias for `estimator`. Defaults to `None`.                          | `None`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description                 |
+|--------|--------|-----------------------------|
+| object | None   | The valid estimator object. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                       |
+|--------|----------------------------|---------------------------------------------------|
+|        | [ValueError](`ValueError`) | If both `estimator` and `regressor` are provided. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.utils import initialize_estimator
+>>> from sklearn.linear_model import LinearRegression
+>>> # Using the `estimator` argument
+>>> estimator = LinearRegression()
+>>> initialize_estimator(estimator=estimator)
+LinearRegression()
+>>> # Using the deprecated `regressor` argument
+>>> regressor = LinearRegression()
+>>> initialize_estimator(regressor=regressor)
+LinearRegression()
+```
+
+### initialize_transformer_series { #spotforecast2_safe.forecaster.utils.initialize_transformer_series }
+
+```python
+forecaster.utils.initialize_transformer_series(
+    forecaster_name,
+    series_names_in_,
+    encoding=None,
+    transformer_series=None,
+)
+```
+
+Initialize transformer_series_ attribute for multivariate/multiseries forecasters.
+
+Creates a dictionary of transformers for each time series in multivariate or
+multiseries forecasting. Handles three cases: no transformation (None), same
+transformer for all series (single object), or different transformers per series
+(dictionary). Clones transformer objects to avoid overwriting.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name               | Type                                                                                     | Description                                                                                                                                                                                                                                      | Default    |
+|--------------------|------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| forecaster_name    | [str](`str`)                                                                             | Name of the forecaster using this function. Special handling is applied for 'ForecasterRecursiveMultiSeries'.                                                                                                                                    | _required_ |
+| series_names_in_   | [list](`list`)\[[str](`str`)\]                                                           | Names of the time series (levels) used during training. These will be the keys in the returned transformer dictionary.                                                                                                                           | _required_ |
+| encoding           | [str](`str`) \| None                                                                     | Encoding used to identify different series. Only used for ForecasterRecursiveMultiSeries. If None, creates a single '_unknown_level' entry. Defaults to None.                                                                                    | `None`     |
+| transformer_series | [object](`object`) \| [dict](`dict`)\[[str](`str`), [object](`object`) \| None\] \| None | Transformer(s) to apply to series. Can be: - None: No transformation applied - Single transformer object: Same transformer cloned for all series - Dict mapping series names to transformers: Different transformer per series Defaults to None. | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                       | Description                                                                                                                       |
+|--------|------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| dict   | [dict](`dict`)\[[str](`str`), [object](`object`) \| None\] | Dictionary with series names as keys and transformer objects (or None) as values. Transformers are cloned to prevent overwriting. |
+
+#### Warns {.doc-section .doc-section-warns}
+
+If transformer_series is a dict and some series_names_in_
+are not present in the dict keys (those series get no transformation).
+
+#### Examples {.doc-section .doc-section-examples}
+
+No transformation:
+
+```python
+>>> from spotforecast2_safe.forecaster.utils import initialize_transformer_series
+>>> series = ['series1', 'series2', 'series3']
+>>> result = initialize_transformer_series(
+...     forecaster_name='ForecasterDirectMultiVariate',
+...     series_names_in_=series,
+...     transformer_series=None
+... )
+>>> print(result)
+{'series1': None, 'series2': None, 'series3': None}
+```
+
+Same transformer for all series:
+
+```python
+>>> from sklearn.preprocessing import StandardScaler
+>>> scaler = StandardScaler()
+>>> result = initialize_transformer_series(
+...     forecaster_name='ForecasterDirectMultiVariate',
+...     series_names_in_=['series1', 'series2'],
+...     transformer_series=scaler
+... )
+>>> len(result)
+2
+>>> all(isinstance(v, StandardScaler) for v in result.values())
+True
+>>> result['series1'] is result['series2']  # Different clones
+False
+```
+
+Different transformer per series:
+
+```python
+>>> from sklearn.preprocessing import MinMaxScaler
+>>> transformers = {
+...     'series1': StandardScaler(),
+...     'series2': MinMaxScaler()
+... }
+>>> result = initialize_transformer_series(
+...     forecaster_name='ForecasterDirectMultiVariate',
+...     series_names_in_=['series1', 'series2'],
+...     transformer_series=transformers
+... )
+>>> isinstance(result['series1'], StandardScaler)
+True
+>>> isinstance(result['series2'], MinMaxScaler)
+True
+```
+
+### initialize_window_features { #spotforecast2_safe.forecaster.utils.initialize_window_features }
+
+```python
+forecaster.utils.initialize_window_features(window_features)
+```
+
+Check window_features argument input and generate the corresponding list.
+
+This function validates window feature objects and extracts their metadata,
+ensuring they have the required attributes (window_sizes, features_names) and
+methods (transform_batch, transform) for proper forecasting operations.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name            | Type                | Description                                                                                                                                                                                        | Default    |
+|-----------------|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| window_features | [Any](`typing.Any`) | Classes used to create window features. Can be a single object or a list of objects. Each object must have `window_sizes`, `features_names` attributes and `transform_batch`, `transform` methods. | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                                                                                                           | Description                                                                                                                                                                                                                                                                                                    |
+|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [Tuple](`typing.Tuple`)\[[Optional](`typing.Optional`)\[[List](`typing.List`)\[[object](`object`)\]\], [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\], [Optional](`typing.Optional`)\[[int](`int`)\]\] | A tuple containing: - window_features (list or None): List of classes used to create window features. - window_features_names (list or None): List with all the features names of the window features. - max_size_window_features (int or None): Maximum value of the `window_sizes` attribute of all classes. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                    |
+|--------|----------------------------|----------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If `window_features` is an empty list.                         |
+|        | [ValueError](`ValueError`) | If a window feature is missing required attributes or methods. |
+|        | [TypeError](`TypeError`)   | If `window_sizes` or `features_names` have incorrect types.    |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.preprocessing import RollingFeatures
+>>> wf = RollingFeatures(stats=['mean', 'std'], window_sizes=[7, 14])
+>>> wf_list, names, max_size = initialize_window_features(wf)
+>>> print(f"Max window size: {max_size}")
+Max window size: 14
+>>> print(f"Number of features: {len(names)}")
+Number of features: 4
+```
+
+Multiple window features:
+
+```python
+>>> class MockWF:
+...     def __init__(self, names, sizes):
+...         self.features_names = names
+...         self.window_sizes = sizes
+...     def transform_batch(self, X): pass
+...     def transform(self, X): pass
+>>> wf1 = MockWF(['f1'], 7)
+>>> wf2 = MockWF(['f2', 'f3'], 3)
+>>> wf_list, names, max_size = initialize_window_features([wf1, wf2])
+>>> print(f"Max window size: {max_size}")
+Max window size: 7
+```
+
+### predict_multivariate { #spotforecast2_safe.forecaster.utils.predict_multivariate }
+
+```python
+forecaster.utils.predict_multivariate(
+    forecasters,
+    steps_ahead,
+    exog=None,
+    show_progress=False,
+)
+```
+
+Generate multi-output predictions using multiple baseline forecasters.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name          | Type                                           | Description                                                                                                                                                                 | Default    |
+|---------------|------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| forecasters   | [dict](`dict`)                                 | Dictionary of fitted forecaster instances (one per target). Keys are target names, values are the fitted forecasters (e.g., ForecasterRecursive, ForecasterEquivalentDate). | _required_ |
+| steps_ahead   | [int](`int`)                                   | Number of steps to forecast.                                                                                                                                                | _required_ |
+| exog          | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | Exogenous variables for prediction. If provided, will be passed to each forecaster's predict method.                                                                        | `None`     |
+| show_progress | [bool](`bool`)                                 | Show progress bar while predicting per target forecaster. Default: False.                                                                                                   | `False`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                               |
+|--------|------------------------------------------------|-----------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: DataFrame with predictions for all targets. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> from sklearn.linear_model import LinearRegression
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+>>> from spotforecast2_safe.forecaster.utils import predict_multivariate
+>>> y1 = pd.Series([1, 2, 3, 4, 5])
+>>> y2 = pd.Series([2, 4, 6, 8, 10])
+>>> f1 = ForecasterRecursive(estimator=LinearRegression(), lags=2)
+>>> f2 = ForecasterRecursive(estimator=LinearRegression(), lags=2)
+>>> f1.fit(y=y1)
+>>> f2.fit(y=y2)
+>>> forecasters = {'target1': f1, 'target2': f2}
+>>> predictions = predict_multivariate(forecasters, steps_ahead=2)
+>>> predictions
+   target1  target2
+5      6.0     12.0
+6      7.0     14.0
+```
+
+### prepare_levels_multiseries { #spotforecast2_safe.forecaster.utils.prepare_levels_multiseries }
+
+```python
+forecaster.utils.prepare_levels_multiseries(
+    X_train_series_names_in_,
+    levels=None,
+)
+```
+
+Prepare list of levels to be predicted in multiseries Forecasters.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                     | Type                                 | Description                                                       | Default    |
+|--------------------------|--------------------------------------|-------------------------------------------------------------------|------------|
+| X_train_series_names_in_ | [list](`list`)                       | Names of the series (levels) included in the matrix `X_train`.    | _required_ |
+| levels                   | ([str](`str`), [list](`list`), None) | Names of the series (levels) to be predicted. Defaults to `None`. | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                               | Description                                                                                                                                                     |
+|--------|--------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [tuple](`tuple`)\[[list](`list`)\[[str](`str`)\], [bool](`bool`)\] | A tuple containing: - levels (list): Names of the series (levels) to be predicted. - input_levels_is_list (bool): Indicates if input levels argument is a list. |
+
+### prepare_steps_direct { #spotforecast2_safe.forecaster.utils.prepare_steps_direct }
+
+```python
+forecaster.utils.prepare_steps_direct(max_step, steps=None)
+```
+
+Prepare list of steps to be predicted in Direct Forecasters.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type                                                                     | Description                                                                                                                                                       | Default    |
+|----------|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| max_step | ([int](`int`), [list](`list`), [np](`numpy`).[ndarray](`numpy.ndarray`)) | Maximum number of future steps the forecaster will predict.                                                                                                       | _required_ |
+| steps    | ([int](`int`), [list](`list`), None)                                     | Predict n steps. The value of `steps` must be less than or equal to the value of steps defined when initializing the forecaster. Starts at 1. Defaults to `None`. | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                           | Description            |
+|--------|--------------------------------|------------------------|
+| list   | [list](`list`)\[[int](`int`)\] | Steps to be predicted. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.utils import prepare_steps_direct
+>>> max_step = 5
+>>> steps = 3
+>>> prepare_steps_direct(max_step, steps)
+[1, 2, 3]
+```
+
+```python
+>>> max_step = 5
+>>> steps = [1, 3, 5]
+>>> prepare_steps_direct(max_step, steps)
+[1, 3, 5]
+```
+
+```python
+>>> max_step = 5
+>>> steps = None
+>>> prepare_steps_direct(max_step, steps)
+[1, 2, 3, 4, 5]
+```
+
+### preprocess_levels_self_last_window_multiseries { #spotforecast2_safe.forecaster.utils.preprocess_levels_self_last_window_multiseries }
+
+```python
+forecaster.utils.preprocess_levels_self_last_window_multiseries(
+    levels,
+    input_levels_is_list,
+    last_window_,
+)
+```
+
+Preprocess `levels` and `last_window` arguments for prediction.
+
+Only levels whose last window ends at the same datetime index will be
+predicted together.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                 | Type           | Description                                     | Default    |
+|----------------------|----------------|-------------------------------------------------|------------|
+| levels               | [list](`list`) | Names of the series (levels) to be predicted.   | _required_ |
+| input_levels_is_list | [bool](`bool`) | Indicates if input levels argument is a list.   | _required_ |
+| last_window_         | [dict](`dict`) | Dictionary with the last window of each series. | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                               | Description                                                                                                                                               |
+|--------|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [tuple](`tuple`)\[[list](`list`)\[[str](`str`)\], [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | A tuple containing: - levels (list): Names of the series (levels) to be predicted. - last_window (pd.DataFrame): Series values used to create predictors. |
+
+### select_n_jobs_fit_forecaster { #spotforecast2_safe.forecaster.utils.select_n_jobs_fit_forecaster }
+
+```python
+forecaster.utils.select_n_jobs_fit_forecaster(forecaster_name, estimator)
+```
+
+Select the number of jobs to run in parallel during the fit process.
+
+This function determines the optimal number of parallel processes for fitting
+the forecaster based on the available system resources. In safety-critical
+environments, this helps manage computational load and ensures system
+predictability.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name            | Type               | Description                                        | Default    |
+|-----------------|--------------------|----------------------------------------------------|------------|
+| forecaster_name | [str](`str`)       | Name of the forecaster being fitted.               | _required_ |
+| estimator       | [object](`object`) | The estimator object being used by the forecaster. | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type         | Description                                               |
+|--------|--------------|-----------------------------------------------------------|
+| int    | [int](`int`) | The number of jobs (CPUs) to use for parallel processing. |
+
+### set_cpu_gpu_device { #spotforecast2_safe.forecaster.utils.set_cpu_gpu_device }
+
+```python
+forecaster.utils.set_cpu_gpu_device(estimator, device='cpu')
+```
+
+Set the device for the estimator.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type                 | Description                                                             | Default    |
+|-----------|----------------------|-------------------------------------------------------------------------|------------|
+| estimator | [object](`object`)   | Estimator object.                                                       | _required_ |
+| device    | ([str](`str`), None) | Device to use. One of 'cpu', 'gpu', 'cuda', or None. Defaults to 'cpu'. | `'cpu'`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                 | Description                                      |
+|--------|----------------------|--------------------------------------------------|
+|        | [str](`str`) \| None | str, None: The original device of the estimator. |
+
+### transform_numpy { #spotforecast2_safe.forecaster.utils.transform_numpy }
+
+```python
+forecaster.utils.transform_numpy(
+    array,
+    transformer,
+    fit=False,
+    inverse_transform=False,
+)
+```
+
+Transform raw values of a numpy ndarray with a scikit-learn alike
+transformer, preprocessor or ColumnTransformer. The transformer used must
+have the following methods: fit, transform, fit_transform and
+inverse_transform. ColumnTransformers are not allowed since they do not
+have inverse_transform method.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name              | Type                                     | Description                                                                                                                                                          | Default    |
+|-------------------|------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| array             | [np](`numpy`).[ndarray](`numpy.ndarray`) | Array to be transformed.                                                                                                                                             | _required_ |
+| transformer       | ([object](`object`), None)               | Scikit-learn alike transformer, preprocessor, or ColumnTransformer with methods: fit, transform, fit_transform and inverse_transform.                                | _required_ |
+| fit               | [bool](`bool`)                           | Train the transformer before applying it. Defaults to `False`.                                                                                                       | `False`    |
+| inverse_transform | [bool](`bool`)                           | Transform back the data to the original representation. This is not available when using transformers of class scikit-learn ColumnTransformers. Defaults to `False`. | `False`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                     | Description                    |
+|--------|------------------------------------------|--------------------------------|
+|        | [np](`numpy`).[ndarray](`numpy.ndarray`) | np.ndarray: Transformed array. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                              |
+|--------|----------------------------|--------------------------------------------------------------------------|
+|        | [TypeError](`TypeError`)   | If `array` is not a numpy ndarray.                                       |
+|        | [TypeError](`TypeError`)   | If `transformer` is not a scikit-learn alike transformer.                |
+|        | [ValueError](`ValueError`) | If `inverse_transform` is True and `transformer` is a ColumnTransformer. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.utils import transform_numpy
+>>> from sklearn.preprocessing import StandardScaler
+>>> import numpy as np
+>>> array = np.array([1, 2, 3, 4, 5])
+>>> transformer = StandardScaler()
+>>> array_transformed = transform_numpy(array, transformer, fit=True)
+>>> print(array_transformed)
+[-1.41421356 -0.70710678  0.          0.70710678  1.41421356]
+>>> array_inversed = transform_numpy(array_transformed, transformer, inverse_transform=True)
+>>> print(array_inversed)
+[1. 2. 3. 4. 5.]
+```

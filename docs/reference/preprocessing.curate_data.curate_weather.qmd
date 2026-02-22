@@ -1,0 +1,44 @@
+# preprocessing.curate_data.curate_weather { #spotforecast2_safe.preprocessing.curate_data.curate_weather }
+
+```python
+preprocessing.curate_data.curate_weather(weather_df, data, forecast_horizon)
+```
+
+Checks if the weather dataframe has the correct shape.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name             | Type                                           | Description                               | Default    |
+|------------------|------------------------------------------------|-------------------------------------------|------------|
+| weather_df       | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | DataFrame containing weather information. | _required_ |
+| data             | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The main dataset.                         | _required_ |
+| forecast_horizon | [int](`int`)                                   | The forecast horizon in hours.            | _required_ |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data, fetch_weather_data
+>>> from spotforecast2_safe.preprocessing.curate_data import get_start_end, curate_weather
+>>> data = fetch_data()
+>>> START, END, COV_START, COV_END = get_start_end(
+...     data=data,
+...     forecast_horizon=24,
+...     verbose=False
+... )
+>>> weather_df = fetch_weather_data(
+...     cov_start=COV_START,
+...     cov_end=COV_END,
+...     tz='UTC',
+...     freq='h',
+...     latitude=51.5136,
+...     longitude=7.4653
+... )
+>>> FORECAST_HORIZON = 24
+>>> curate_weather(weather_df, data, forecast_horizon=FORECAST_HORIZON)
+```
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                               | Description                                                        |
+|--------|------------------------------------|--------------------------------------------------------------------|
+|        | [AssertionError](`AssertionError`) | If the weather dataframe does not have the correct number of rows. |

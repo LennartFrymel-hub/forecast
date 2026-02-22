@@ -1,0 +1,336 @@
+# =============================================================================
+# _quarto.yml  —  spotforecast2-safe Documentation
+# =============================================================================
+# Master project configuration for Quarto. This file replaces mkdocs.yml.
+#
+# Build pipeline:
+#   1. docs/pre-render.py  → _variables.yml  (version extraction)
+#   2. quartodoc build     → docs/reference/*.qmd  (API autodoc)
+#   3. quarto render       → _site/  (full HTML site)
+#   4. quarto publish      → gh-pages branch
+#
+# ⚠️  Safety-critical note: pin Quarto and quartodoc versions in CI to
+#     guarantee reproducible renders across audit cycles.
+# =============================================================================
+
+project:
+  type: website
+  output-dir: _site
+
+  # ── Render allowlist ──────────────────────────────────────────────────────
+  # Without this, Quarto renders EVERY .md/.qmd/.ipynb in the repo
+  # (CHANGELOG.md, MODEL_CARD.md, tests/*.md, scripts/*.ipynb, …)
+  # and CHANGELOG.html ends up as the root index.  List only what belongs
+  # in the documentation site.
+  render:
+    - "index.qmd"      # root home page (actual content, not a redirect)
+    - "docs/**/*.qmd"  # all hand-written docs
+    - "docs/**/*.md"   # any remaining markdown in docs/
+    - "!docs/index.qmd" # excluded: content moved to root index.qmd
+
+  # Pre-render hook: extracts version from pyproject.toml → _variables.yml
+  # so that {{< var version >}} works in any .qmd file.
+  pre-render: docs/pre-render.py
+
+# =============================================================================
+# Website metadata & navigation
+# =============================================================================
+website:
+  title: "spotforecast2-safe"
+  description: "Safe forecasting with spot — safety-critical time series forecasting for production"
+  site-url: "https://sequential-parameter-optimization.github.io/spotforecast2-safe/"
+  repo-url: "https://github.com/sequential-parameter-optimization/spotforecast2-safe"
+  repo-actions: [edit, issue]
+
+  # ── Minimal top bar (search + GitHub icon only) ───────────────────────────
+  navbar:
+    background: primary
+    search: true
+    right:
+      - icon: github
+        href: "https://github.com/sequential-parameter-optimization/spotforecast2-safe"
+        aria-label: "GitHub repository"
+
+  # ── Left sidebar (primary navigation) ────────────────────────────────────
+  sidebar:
+    style: "docked"       # matches MkDocs Material "navigation.sections" feel
+    search: false         # already in navbar
+    collapse-level: 1     # top-level sections default to collapsed
+    contents:
+      - text: "Home"
+        file: index.qmd
+      - text: "Getting Started"
+        file: docs/api_overview.qmd
+
+      - section: "API Reference"
+        contents:
+          - text: "Overview"
+            file: docs/reference/index.qmd
+          - section: "Data"
+            contents:
+              - text: "fetch_data"
+                file: docs/reference/data.fetch_data.fetch_data.qmd
+              - text: "fetch_holiday_data"
+                file: docs/reference/data.fetch_data.fetch_holiday_data.qmd
+              - text: "fetch_weather_data"
+                file: docs/reference/data.fetch_data.fetch_weather_data.qmd
+          - section: "Preprocessing"
+            contents:
+              - text: "ExogBuilder"
+                file: docs/reference/preprocessing.exog_builder.ExogBuilder.qmd
+              - text: "curate_data"
+                file: docs/reference/preprocessing.curate_data.agg_and_resample_data.qmd
+              - text: "outlier detection"
+                file: docs/reference/preprocessing.outlier.mark_outliers.qmd
+              - text: "split"
+                file: docs/reference/preprocessing.split.split_abs_train_val_test.qmd
+          - section: "Forecaster"
+            contents:
+              - text: "base"
+                file: docs/reference/forecaster.base.qmd
+              - text: "ForecasterRecursive"
+                file: docs/reference/forecaster.recursive._forecaster_recursive.ForecasterRecursive.qmd
+              - text: "ForecasterEquivalentDate"
+                file: docs/reference/forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.qmd
+              - text: "metrics"
+                file: docs/reference/forecaster.metrics.add_y_train_argument.qmd
+              - text: "utils"
+                file: docs/reference/forecaster.utils.qmd
+          - section: "Model Selection"
+            contents:
+              - text: "backtesting_forecaster"
+                file: docs/reference/model_selection.validation.backtesting_forecaster.qmd
+          - section: "Manager"
+            contents:
+              - text: "metrics"
+                file: docs/reference/manager.metrics.calculate_metrics.qmd
+              - text: "trainer"
+                file: docs/reference/manager.trainer.get_last_model.qmd
+              - text: "predictor"
+                file: docs/reference/manager.predictor.get_model_prediction.qmd
+          - section: "Utils"
+            contents:
+              - text: "cpe"
+                file: docs/reference/utils.cpe.get_cpe_identifier.qmd
+              - text: "generate_holiday"
+                file: docs/reference/utils.generate_holiday.create_holiday_df.qmd
+              - text: "validation"
+                file: docs/reference/utils.validation.check_y.qmd
+          - text: "Weather"
+            file: docs/reference/weather.weather_client.WeatherClient.qmd
+          - text: "Downloader"
+            file: docs/reference/downloader.entsoe.download_new_data.qmd
+          - text: "Exceptions"
+            file: docs/reference/exceptions.qmd
+
+      - section: "Processing Guides"
+        contents:
+          - text: "Model Persistence"
+            file: docs/processing/model_persistence.qmd
+
+      - section: "Preprocessing Guides"
+        contents:
+          - text: "Outlier Detection"
+            file: docs/preprocessing/outliers.qmd
+          - text: "Period Configuration Rationale"
+            file: docs/PERIOD_CONFIGURATION_RATIONALE.qmd
+
+      - section: "Forecaster Guides"
+        contents:
+          - text: "ForecasterRecursive"
+            file: docs/recursive/ForecasterRecursive.qmd
+          - text: "ForecasterEquivalentDate"
+            file: docs/recursive/ForecasterEquivalentDate.qmd
+
+      - section: "Safety & Security"
+        contents:
+          - text: "Streamlining Process"
+            file: docs/safe/spotforecast2-safe.qmd
+          - text: "Model/Method Card"
+            file: docs/safe/MODEL_CARD.qmd
+          - text: "Version Management"
+            file: docs/safe/VERSION_MANAGEMENT.qmd
+          - text: "Security Policy"
+            file: docs/security.qmd
+
+      - section: "Development & Community"
+        contents:
+          - text: "Contributing Guide"
+            file: docs/contributing.qmd
+          - text: "Tasks"
+            file: docs/tasks.qmd
+  # ── Page footer ───────────────────────────────────────────────────────────
+  page-footer:
+    center: |
+      Copyright © 2024-2026 bartzbeielstein |
+      [AGPL-3.0-or-later](https://www.gnu.org/licenses/agpl-3.0.html)
+
+  search:
+    location: navbar
+    type: overlay
+
+# =============================================================================
+# HTML output format
+# =============================================================================
+format:
+  html:
+    # Light/dark theme toggle — mirrors the MkDocs Material teal/slate palette
+    theme:
+      light: cosmo
+      dark: darkly
+    # Table of contents on every page
+    toc: true
+    toc-depth: 3
+    toc-location: right
+    # Code block features
+    code-copy: true
+    code-fold: false
+    highlight-style: github
+    # Math — MathJax renders $…$ inline and $$…$$ display blocks.
+    # No additional configuration required; this is handled natively by Quarto.
+    html-math-method: mathjax
+    # Smooth anchor scrolling
+    smooth-scroll: true
+    # Link external URLs with an icon
+    link-external-icon: true
+    link-external-newwindow: true
+
+# =============================================================================
+# quartodoc — API reference generation
+# =============================================================================
+# Run `quartodoc build --config _quarto.yml` before `quarto render`.
+# Generated files land in docs/reference/ and are committed to the repo (or
+# generated fresh in CI before every render — see docs.yml workflow).
+#
+# Documentation: https://machow.github.io/quartodoc/
+# =============================================================================
+quartodoc:
+  package: spotforecast2_safe
+  # Path to the Python source tree (relative to this file)
+  source_dir: src
+  # Output directory for generated .qmd stub files
+  dir: docs/reference
+  # Google Docstring parser — matches the project's docstring_style setting
+  parser: google
+  # Enable cross-package interlinks using @-style references in docstrings
+  render_interlinks: true
+
+  sections:
+
+    # ── Data ─────────────────────────────────────────────────────────────────
+    - title: "Data"
+      desc: |
+        Utilities for fetching and loading time series, weather, and holiday data.
+      contents:
+        - data.fetch_data.fetch_data
+        - data.fetch_data.fetch_holiday_data
+        - data.fetch_data.fetch_weather_data
+        - data.fetch_data.get_cache_home
+        - data.fetch_data.get_data_home
+        - data.data
+
+    # ── Preprocessing ─────────────────────────────────────────────────────────
+    - title: "Preprocessing"
+      desc: |
+        Hardened tools for data curation, resampling, outlier detection,
+        feature engineering, and temporal train/test splitting.
+      contents:
+        - preprocessing.curate_data.agg_and_resample_data
+        - preprocessing.curate_data.basic_ts_checks
+        - preprocessing.curate_data.curate_holidays
+        - preprocessing.curate_data.curate_weather
+        - preprocessing.curate_data.get_start_end
+        - preprocessing.outlier.get_outliers
+        - preprocessing.outlier.manual_outlier_removal
+        - preprocessing.outlier.mark_outliers
+        - preprocessing.split.split_abs_train_val_test
+        - preprocessing.split.split_rel_train_val_test
+        - preprocessing.exog_builder.ExogBuilder
+        - preprocessing.imputation.WeightFunction
+        - preprocessing.imputation.custom_weights
+        - preprocessing.imputation.get_missing_weights
+
+    # ── Processing ────────────────────────────────────────────────────────────
+    - title: "Processing"
+      desc: |
+        Utilities for aggregated and n-to-n predictions.
+      contents:
+        - processing.agg_predict.agg_predict
+        - processing.n2n_predict.n2n_predict
+
+    # ── Forecaster ────────────────────────────────────────────────────────────
+    - title: "Forecaster"
+      desc: |
+        Recursive forecasting classes, seasonal baselines, and metrics.
+      contents:
+        - forecaster.base
+        - forecaster.recursive._forecaster_recursive.ForecasterRecursive
+        - forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate
+        - forecaster.utils
+        - forecaster.metrics.add_y_train_argument
+        - forecaster.metrics.calculate_coverage
+        - forecaster.metrics.create_mean_pinball_loss
+        - forecaster.metrics.crps_from_predictions
+        - forecaster.metrics.crps_from_quantiles
+        - forecaster.metrics.mean_absolute_scaled_error
+        - forecaster.metrics.root_mean_squared_scaled_error
+        - forecaster.metrics.symmetric_mean_absolute_percentage_error
+
+    # ── Model Selection ───────────────────────────────────────────────────────
+    - title: "Model Selection"
+      desc: |
+        Backtesting and cross-validation utilities for time series models.
+      contents:
+        - model_selection.validation.backtesting_forecaster
+        - model_selection.validation.backtesting_forecaster_one_step
+
+    # ── Manager ───────────────────────────────────────────────────────────────
+    - title: "Manager"
+      desc: |
+        High-level training, prediction, and model persistence orchestration.
+      contents:
+        - manager.metrics.calculate_metrics
+        - manager.trainer.get_last_model
+        - manager.trainer.get_path_model
+        - manager.trainer.load_iteration
+        - manager.predictor.get_model_prediction
+
+    # ── Utils ─────────────────────────────────────────────────────────────────
+    - title: "Utils"
+      desc: |
+        General-purpose utility functions: CPE generation, validation, holiday
+        calendars, and data transforms.
+      contents:
+        - utils.cpe.get_cpe_identifier
+        - utils.generate_holiday.create_holiday_df
+        - utils.validation.check_exog
+        - utils.validation.check_exog_dtypes
+        - utils.validation.check_interval
+        - utils.validation.check_predict_input
+        - utils.validation.check_residuals_input
+        - utils.validation.check_y
+        - utils.validation.get_exog_dtypes
+        - utils.validation.set_cpu_gpu_device
+
+    # ── Weather ───────────────────────────────────────────────────────────────
+    - title: "Weather"
+      desc: |
+        Weather data integration using the Open-Meteo API.
+      contents:
+        - weather.weather_client.WeatherClient
+        - weather.weather_client.WeatherService
+
+    # ── Downloader ────────────────────────────────────────────────────────────
+    - title: "Downloader"
+      desc: |
+        Data downloaders for external data sources (e.g. ENTSO-E).
+      contents:
+        - downloader.entsoe.download_new_data
+        - downloader.entsoe.merge_build_manual
+
+    # ── Exceptions ────────────────────────────────────────────────────────────
+    - title: "Exceptions"
+      desc: |
+        Custom exception types for safety-critical failure signalling.
+      contents:
+        - exceptions

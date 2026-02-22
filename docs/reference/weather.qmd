@@ -1,0 +1,5 @@
+# weather { #spotforecast2_safe.weather }
+
+`weather`
+
+Weather data utilities for spotforecast2.

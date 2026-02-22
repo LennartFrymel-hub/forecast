@@ -1,0 +1,34 @@
+# preprocessing.imputation.WeightFunction { #spotforecast2_safe.preprocessing.imputation.WeightFunction }
+
+```python
+preprocessing.imputation.WeightFunction(weights_series)
+```
+
+Callable class for sample weights that can be pickled.
+
+This class wraps the weights_series and provides a callable interface
+compatible with ForecasterRecursive's weight_func parameter. Unlike
+local functions with closures, instances of this class can be pickled
+using standard pickle/joblib.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name           | Type                                     | Description                                     | Default    |
+|----------------|------------------------------------------|-------------------------------------------------|------------|
+| weights_series | [pd](`pandas`).[Series](`pandas.Series`) | Series containing weight values for each index. | _required_ |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import pickle
+>>> weights = pd.Series([1.0, 0.9, 0.8], index=[0, 1, 2])
+>>> weight_func = WeightFunction(weights)
+>>> weight_func(pd.Index([0, 1]))
+array([1. , 0.9])
+>>> # Can be pickled
+>>> pickled = pickle.dumps(weight_func)
+>>> unpickled = pickle.loads(pickled)
+>>> unpickled(pd.Index([0, 1]))
+array([1. , 0.9])
+```

@@ -1,0 +1,34 @@
+# preprocessing.imputation.get_missing_weights { #spotforecast2_safe.preprocessing.imputation.get_missing_weights }
+
+```python
+preprocessing.imputation.get_missing_weights(
+    data,
+    window_size=72,
+    verbose=False,
+)
+```
+
+Return imputed DataFrame and a series indicating missing weights.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                                           | Description                                                    | Default    |
+|-------------|------------------------------------------------|----------------------------------------------------------------|------------|
+| data        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The input dataset.                                             | _required_ |
+| window_size | [int](`int`)                                   | The size of the rolling window to consider for missing values. | `72`       |
+| verbose     | [bool](`bool`)                                 | Whether to print additional information.                       | `False`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                         | Description                                                                                                                                             |
+|--------|--------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[Series](`pandas.Series`)\] | Tuple[pd.DataFrame, pd.Series]: A tuple containing the forward and backward filled DataFrame and a boolean series where True indicates missing weights. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data
+>>> from spotforecast2_safe.preprocessing.imputation import get_missing_weights
+>>> data = fetch_data()
+>>> filled_data, missing_weights = get_missing_weights(data, window_size=72, verbose=True)
+```

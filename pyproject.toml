@@ -38,19 +38,22 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "cloudpickle>=3.1.2,<4.0",
-    "mkdocs>=1.6.1,<2.0",
-    "mkdocs-macros-plugin>=1.5.0,<2.0",
-    "mkdocs-material>=9.7.1,<10.0",
-    "mkdocstrings>=1.0.3,<2.0",
-    "mkdocstrings-python>=2.0.1,<3.0",
+    # ── Documentation (Quarto + quartodoc) ──────────────────────────────────
+    # Pin quartodoc to a minor-version range; upgrade deliberately.
+    # The Quarto CLI binary itself is pinned in .github/workflows/docs.yml.
+    "quartodoc>=0.9.1,<1.0",
+    # ── Testing ─────────────────────────────────────────────────────────────
     "pytest>=9.0.2,<10.0",
     "pytest-anyio>=0.0.0,<1.0",
     "pytest-cov>=6.0.0,<7.0",
+    # ── Linting / formatting ─────────────────────────────────────────────────
     "black>=24.1.0,<25.0",
     "isort>=5.13.0,<6.0",
     "ruff>=0.3.0,<1.0",
+    # ── Security scanning ────────────────────────────────────────────────────
     "safety>=3.0.0,<4.0",
     "bandit>=1.8.0,<2.0",
+    # ── Type checking ────────────────────────────────────────────────────────
     "mypy>=1.8.0,<2.0",
 ]
 
@@ -61,11 +64,8 @@ dev = [
     "black>=24.1.0,<25.0",
     "isort>=5.13.0,<6.0",
     "ruff>=0.3.0,<1.0",
-    "mkdocs>=1.6.1,<2.0",
-    "mkdocs-macros-plugin>=1.5.0,<2.0",
-    "mkdocs-material>=9.7.1,<10.0",
-    "mkdocstrings>=1.0.2,<2.0",
-    "mkdocstrings-python>=2.0.1,<3.0",
+    # Documentation — replaces MkDocs stack
+    "quartodoc>=0.9.1,<1.0",
     "safety>=3.0.0,<4.0",
     "bandit>=1.8.0,<2.0",
     "mypy>=1.8.0,<2.0",

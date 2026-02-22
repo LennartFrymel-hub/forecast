@@ -1,0 +1,36 @@
+# forecaster.metrics.crps_from_quantiles { #spotforecast2_safe.forecaster.metrics.crps_from_quantiles }
+
+```python
+forecaster.metrics.crps_from_quantiles(y_true, pred_quantiles, quantile_levels)
+```
+
+Calculate the Continuous Ranked Probability Score (CRPS) from quantiles.
+
+The empirical cdf is approximated using linear interpolation
+between the predicted quantiles.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name            | Type                                     | Description                                                   | Default    |
+|-----------------|------------------------------------------|---------------------------------------------------------------|------------|
+| y_true          | [float](`float`)                         | The true value of the random variable.                        | _required_ |
+| pred_quantiles  | [np](`numpy`).[ndarray](`numpy.ndarray`) | The predicted quantile values.                                | _required_ |
+| quantile_levels | [np](`numpy`).[ndarray](`numpy.ndarray`) | The quantile levels corresponding to the predicted quantiles. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type             | Description     |
+|--------|------------------|-----------------|
+|        | [float](`float`) | The CRPS score. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2.forecaster.metrics import crps_from_quantiles
+>>> y_true = 5.0
+>>> pred_quantiles = np.array([4.0, 4.5, 5.0, 5.5, 6.0])
+>>> quantile_levels = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+>>> crps = crps_from_quantiles(y_true, pred_quantiles, quantile_levels)
+>>> crps >= 0
+True
+```

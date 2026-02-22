@@ -1,0 +1,44 @@
+# preprocessing.split.split_rel_train_val_test { #spotforecast2_safe.preprocessing.split.split_rel_train_val_test }
+
+```python
+preprocessing.split.split_rel_train_val_test(
+    data,
+    perc_train,
+    perc_val,
+    verbose=False,
+)
+```
+
+Splits a time series DataFrame into training, validation, and test sets by percentages.
+
+The test percentage is computed as 1 - perc_train - perc_val.
+Sizes are rounded to ensure the splits sum to the full dataset size.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type                                           | Description                                | Default    |
+|------------|------------------------------------------------|--------------------------------------------|------------|
+| data       | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The time series data with a DateTimeIndex. | _required_ |
+| perc_train | [float](`float`)                               | Fraction of data used for training.        | _required_ |
+| perc_val   | [float](`float`)                               | Fraction of data used for validation.      | _required_ |
+| verbose    | [bool](`bool`)                                 | Whether to print additional information.   | `False`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                                               | Description                                                                                                                                                 |
+|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | A tuple containing: - data_train (pd.DataFrame): The training set. - data_val (pd.DataFrame): The validation set. - data_test (pd.DataFrame): The test set. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data
+>>> from spotforecast2_safe.preprocessing.split import split_rel_train_val_test
+>>> data = fetch_data()
+>>> data_train, data_val, data_test = split_rel_train_val_test(
+...     data,
+...     perc_train=0.7,
+...     perc_val=0.2,
+...     verbose=True
+... )
+```

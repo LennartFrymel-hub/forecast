@@ -1,0 +1,352 @@
+# forecaster.base { #spotforecast2_safe.forecaster.base }
+
+`forecaster.base`
+
+ForecasterBase class.
+
+This module contains the base class for all forecasters in spotforecast2_safe and spotforecast.
+All forecasters should specify all the parameters that can be set at the
+class level in their __init__.
+
+## Examples {.doc-section .doc-section-examples}
+
+Create a custom forecaster inheriting from ForecasterBase:
+
+```python
+>>> from spotforecast2_safe.forecaster.base import ForecasterBase
+>>> import pandas as pd
+>>> import numpy as np
+>>> class MyForecaster(ForecasterBase):
+...     def __init__(self, estimator):
+...         self.estimator = estimator
+...         self.__spotforecast_tags__ = {'hide_lags': True}
+...     def create_train_X_y(self, y, exog=None):
+...         return pd.DataFrame(), pd.Series(dtype=float)
+...     def fit(self, y, exog=None):
+...         pass
+...     def predict(self, steps, last_window=None, exog=None):
+...         return pd.Series(np.zeros(steps))
+...     def set_params(self, params):
+...         pass
+>>> from sklearn.linear_model import Ridge
+>>> forecaster = MyForecaster(estimator=Ridge())
+>>> forecaster
+MyForecaster(estimator=Ridge())
+```
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [ForecasterBase](#spotforecast2_safe.forecaster.base.ForecasterBase) | Base class for all forecasters in spotforecast2. |
+
+### ForecasterBase { #spotforecast2_safe.forecaster.base.ForecasterBase }
+
+```python
+forecaster.base.ForecasterBase()
+```
+
+Base class for all forecasters in spotforecast2.
+
+All forecasters should specify all the parameters that can be set at
+the class level in their __init__.
+
+#### Attributes {.doc-section .doc-section-attributes}
+
+| Name                  | Type   | Description                                                                       |
+|-----------------------|--------|-----------------------------------------------------------------------------------|
+| __spotforecast_tags__ |        | Dictionary with forecaster tags that characterize the behavior of the forecaster. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+To see all abstract methods that need to be implemented:
+
+```python
+>>> import inspect
+>>> from spotforecast2_safe.forecaster.base import ForecasterBase
+>>> [m[0] for m in inspect.getmembers(ForecasterBase, predicate=inspect.isabstract)]
+['create_train_X_y', 'fit', 'predict', 'set_params']
+```
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [create_train_X_y](#spotforecast2_safe.forecaster.base.ForecasterBase.create_train_X_y) | Create training matrices from univariate time series and exogenous variables. |
+| [fit](#spotforecast2_safe.forecaster.base.ForecasterBase.fit) | Training Forecaster. |
+| [get_tags](#spotforecast2_safe.forecaster.base.ForecasterBase.get_tags) | Return the tags that characterize the behavior of the forecaster. |
+| [predict](#spotforecast2_safe.forecaster.base.ForecasterBase.predict) | Predict n steps ahead. |
+| [set_lags](#spotforecast2_safe.forecaster.base.ForecasterBase.set_lags) | Set new value to the attribute lags. |
+| [set_params](#spotforecast2_safe.forecaster.base.ForecasterBase.set_params) | Set new values to the parameters of the scikit-learn model stored in the forecaster. |
+| [set_window_features](#spotforecast2_safe.forecaster.base.ForecasterBase.set_window_features) | Set new value to the attribute window_features. |
+| [summary](#spotforecast2_safe.forecaster.base.ForecasterBase.summary) | Show forecaster information. |
+
+##### create_train_X_y { #spotforecast2_safe.forecaster.base.ForecasterBase.create_train_X_y }
+
+```python
+forecaster.base.ForecasterBase.create_train_X_y(y, exog=None)
+```
+
+Create training matrices from univariate time series and exogenous variables.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                               | Description                                                                                                                                        | Default    |
+|--------|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| y      | [pd](`pandas`).[Series](`pandas.Series`)                                                           | Training time series.                                                                                                                              | _required_ |
+| exog   | [pd](`pandas`).[Series](`pandas.Series`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) \| None | Exogenous variable(s) included as predictor(s). Must have the same number of observations as y and their indexes must be aligned. Default is None. | `None`     |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                         | Description                                                                 |
+|--------|--------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                               | Tuple containing X_train (training values/predictors with shape             |
+|        | [pd](`pandas`).[Series](`pandas.Series`)                                                                     | (len(y) - max_lag, len(lags))) and y_train (target values of the            |
+|        | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[Series](`pandas.Series`)\] | time series related to each row of X_train with shape (len(y) - max_lag,)). |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+>>> from sklearn.linear_model import Ridge
+>>> import pandas as pd
+>>> import numpy as np
+>>> forecaster = ForecasterRecursive(estimator=Ridge(), lags=3)
+>>> y = pd.Series(np.arange(10), name='y')
+>>> X_train, y_train = forecaster.create_train_X_y(y)
+>>> X_train.head(2)
+   lag_1  lag_2  lag_3
+3    2.0    1.0    0.0
+4    3.0    2.0    1.0
+>>> y_train.head(2)
+3    3
+4    4
+Name: y, dtype: int64
+```
+
+##### fit { #spotforecast2_safe.forecaster.base.ForecasterBase.fit }
+
+```python
+forecaster.base.ForecasterBase.fit(y, exog=None)
+```
+
+Training Forecaster.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                               | Description                                                                                                                                                                             | Default    |
+|--------|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| y      | [pd](`pandas`).[Series](`pandas.Series`)                                                           | Training time series.                                                                                                                                                                   | _required_ |
+| exog   | [pd](`pandas`).[Series](`pandas.Series`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) \| None | Exogenous variable(s) included as predictor(s). Must have the same number of observations as y and their indexes must be aligned so that y[i] is regressed on exog[i]. Default is None. | `None`     |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+>>> from sklearn.linear_model import Ridge
+>>> import pandas as pd
+>>> import numpy as np
+>>> forecaster = ForecasterRecursive(estimator=Ridge(), lags=3)
+>>> y = pd.Series(np.arange(10), name='y')
+>>> forecaster.fit(y)
+>>> forecaster.is_fitted
+True
+```
+
+##### get_tags { #spotforecast2_safe.forecaster.base.ForecasterBase.get_tags }
+
+```python
+forecaster.base.ForecasterBase.get_tags()
+```
+
+Return the tags that characterize the behavior of the forecaster.
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                | Description                                                           |
+|--------|-----------------------------------------------------|-----------------------------------------------------------------------|
+|        | [dict](`dict`)\[[str](`str`), [Any](`typing.Any`)\] | Dictionary with forecaster tags describing behavior and capabilities. |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+>>> from sklearn.linear_model import Ridge
+>>> forecaster = ForecasterRecursive(estimator=Ridge(), lags=3)
+>>> tags = forecaster.get_tags()
+>>> tags['forecaster_task']
+'regression'
+```
+
+##### predict { #spotforecast2_safe.forecaster.base.ForecasterBase.predict }
+
+```python
+forecaster.base.ForecasterBase.predict(steps, last_window=None, exog=None)
+```
+
+Predict n steps ahead.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                                                                                               | Description                                                                                                                                                                                                                                                               | Default    |
+|-------------|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| steps       | [int](`int`)                                                                                       | Number of steps to predict.                                                                                                                                                                                                                                               | _required_ |
+| last_window | [pd](`pandas`).[Series](`pandas.Series`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) \| None | Series values used to create the predictors (lags) needed in the first iteration of the prediction (t + 1). If None, the values stored in last_window are used to calculate the initial predictors, and the predictions start right after training data. Default is None. | `None`     |
+| exog        | [pd](`pandas`).[Series](`pandas.Series`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) \| None | Exogenous variable(s) included as predictor(s). Default is None.                                                                                                                                                                                                          | `None`     |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                     | Description                          |
+|--------|------------------------------------------|--------------------------------------|
+|        | [pd](`pandas`).[Series](`pandas.Series`) | Predicted values as a pandas Series. |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+>>> from sklearn.linear_model import Ridge
+>>> import pandas as pd
+>>> import numpy as np
+>>> forecaster = ForecasterRecursive(estimator=Ridge(), lags=3)
+>>> y = pd.Series(np.arange(10), name='y')
+>>> forecaster.fit(y)
+>>> forecaster.predict(steps=3)
+10    9.5
+11    9.0
+12    8.5
+Name: pred, dtype: float64
+```
+
+##### set_lags { #spotforecast2_safe.forecaster.base.ForecasterBase.set_lags }
+
+```python
+forecaster.base.ForecasterBase.set_lags(lags=None)
+```
+
+Set new value to the attribute lags.
+
+Attributes max_lag and window_size are also updated.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                                                                                   | Description                                                                                                                                                                                                                                                                           | Default   |
+|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| lags   | [int](`int`) \| [list](`list`)\[[int](`int`)\] \| [np](`numpy`).[ndarray](`numpy.ndarray`)\[[int](`int`)\] \| [range](`range`)\[[int](`int`)\] \| None | Lags used as predictors. Index starts at 1, so lag 1 is equal to t-1. If int: include lags from 1 to lags (included). If list, 1d numpy ndarray, or range: include only lags present in lags, all elements must be int. If None: no lags are included as predictors. Default is None. | `None`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+>>> from sklearn.linear_model import Ridge
+>>> forecaster = ForecasterRecursive(estimator=Ridge(), lags=3)
+>>> forecaster.set_lags(lags=5)
+>>> forecaster.lags
+array([1, 2, 3, 4, 5])
+```
+
+##### set_params { #spotforecast2_safe.forecaster.base.ForecasterBase.set_params }
+
+```python
+forecaster.base.ForecasterBase.set_params(params)
+```
+
+Set new values to the parameters of the scikit-learn model stored in the forecaster.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                               | Description                   | Default    |
+|--------|----------------------------------------------------|-------------------------------|------------|
+| params | [dict](`dict`)\[[str](`str`), [object](`object`)\] | Parameters values dictionary. | _required_ |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+>>> from sklearn.linear_model import Ridge
+>>> forecaster = ForecasterRecursive(estimator=Ridge(alpha=1.0), lags=3)
+>>> forecaster.set_params({'estimator__alpha': 0.5})
+>>> forecaster.estimator.alpha
+0.5
+```
+
+##### set_window_features { #spotforecast2_safe.forecaster.base.ForecasterBase.set_window_features }
+
+```python
+forecaster.base.ForecasterBase.set_window_features(window_features=None)
+```
+
+Set new value to the attribute window_features.
+
+Attributes max_size_window_features, window_features_names,
+window_features_class_names and window_size are also updated.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name            | Type                                                               | Description                                                                                                                                                              | Default   |
+|-----------------|--------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| window_features | [object](`object`) \| [list](`list`)\[[object](`object`)\] \| None | Instance or list of instances used to create window features. Window features are created from the original time series and are included as predictors. Default is None. | `None`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+>>> from spotforecast2_safe.forecaster.preprocessing import RollingFeatures
+>>> from sklearn.linear_model import Ridge
+>>> forecaster = ForecasterRecursive(estimator=Ridge(), lags=3)
+>>> window_feat = RollingFeatures(stats='mean', window_sizes=3)
+>>> forecaster.set_window_features(window_features=window_feat)
+>>> forecaster.window_features
+[RollingFeatures(stats=['mean'], window_sizes=[3])]
+```
+
+##### summary { #spotforecast2_safe.forecaster.base.ForecasterBase.summary }
+
+```python
+forecaster.base.ForecasterBase.summary()
+```
+
+Show forecaster information.
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+>>> from sklearn.linear_model import Ridge
+>>> forecaster = ForecasterRecursive(estimator=Ridge(), lags=3)
+>>> forecaster.summary()
+ForecasterRecursive
+===================
+Estimator: Ridge()
+Lags: [1 2 3]
+...
+```

@@ -1,0 +1,66 @@
+# utils.validation.check_interval { #spotforecast2_safe.utils.validation.check_interval }
+
+```python
+utils.validation.check_interval(
+    interval=None,
+    ensure_symmetric_intervals=False,
+    quantiles=None,
+    alpha=None,
+    alpha_literal='alpha',
+)
+```
+
+Validate that a confidence interval specification is valid.
+
+This function checks that interval values are properly formatted and within
+valid ranges for confidence interval prediction.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                       | Type                                                                                                                    | Description                                                                                                                     | Default   |
+|----------------------------|-------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|-----------|
+| interval                   | [Union](`typing.Union`)\[[List](`typing.List`)\[[float](`float`)\], [Tuple](`typing.Tuple`)\[[float](`float`)\], None\] | Confidence interval percentiles (0-100 inclusive). Should be [lower_bound, upper_bound]. Example: [2.5, 97.5] for 95% interval. | `None`    |
+| ensure_symmetric_intervals | [bool](`bool`)                                                                                                          | If True, ensure intervals are symmetric (lower + upper = 100).                                                                  | `False`   |
+| quantiles                  | [Union](`typing.Union`)\[[List](`typing.List`)\[[float](`float`)\], [Tuple](`typing.Tuple`)\[[float](`float`)\], None\] | Sequence of quantiles (0-1 inclusive). Currently not validated, reserved for future use.                                        | `None`    |
+| alpha                      | [Optional](`typing.Optional`)\[[float](`float`)\]                                                                       | Confidence level (1-alpha). Currently not validated, reserved for future use.                                                   | `None`    |
+| alpha_literal              | [Optional](`typing.Optional`)\[[str](`str`)\]                                                                           | Name used in error messages for alpha parameter.                                                                                | `'alpha'` |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                                                                                       |
+|--------|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+|        | [TypeError](`TypeError`)   | If interval is not a list or tuple.                                                                                               |
+|        | [ValueError](`ValueError`) | If interval doesn't have exactly 2 values, values out of range (0-100), lower >= upper, or intervals not symmetric when required. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.utils.validation import check_interval
+>>>
+>>> # Valid 95% confidence interval
+>>> check_interval(interval=[2.5, 97.5])  # No error
+>>>
+>>> # Valid symmetric interval
+>>> check_interval(interval=[2.5, 97.5], ensure_symmetric_intervals=True)  # No error
+>>>
+>>> # Invalid: not symmetric
+>>> try:
+...     check_interval(interval=[5, 90], ensure_symmetric_intervals=True)
+... except ValueError as e:
+...     print("Error: Interval not symmetric")
+Error: Interval not symmetric
+>>>
+>>> # Invalid: wrong number of values
+>>> try:
+...     check_interval(interval=[2.5, 50, 97.5])
+... except ValueError as e:
+...     print("Error: Must have exactly 2 values")
+Error: Must have exactly 2 values
+>>>
+>>> # Invalid: out of range
+>>> try:
+...     check_interval(interval=[-5, 105])
+... except ValueError as e:
+...     print("Error: Values out of range")
+Error: Values out of range
+```

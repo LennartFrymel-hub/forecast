@@ -1,0 +1,60 @@
+# preprocessing.outlier.get_outliers { #spotforecast2_safe.preprocessing.outlier.get_outliers }
+
+```python
+preprocessing.outlier.get_outliers(
+    data,
+    data_original=None,
+    contamination=0.01,
+    random_state=1234,
+)
+```
+
+Detect outliers in each column using Isolation Forest.
+
+This function uses scikit-learn's IsolationForest algorithm to detect outliers
+in each column of the input DataFrame. The original data (before any NaN values
+were introduced) can be provided to identify which values were marked as NaN due
+to outlier detection.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name          | Type                                                                            | Description                                                                                                                                      | Default    |
+|---------------|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| data          | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                  | The input DataFrame to check for outliers.                                                                                                       | _required_ |
+| data_original | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Optional original DataFrame before outlier marking. If provided, helps identify which values became NaN due to outlier detection. Default: None. | `None`     |
+| contamination | [float](`float`)                                                                | The estimated proportion of outliers in the dataset. Default: 0.01.                                                                              | `0.01`     |
+| random_state  | [int](`int`)                                                                    | Random seed for reproducibility. Default: 1234.                                                                                                  | `1234`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                            | Description                                                    |
+|--------|---------------------------------------------------------------------------------|----------------------------------------------------------------|
+|        | [Dict](`typing.Dict`)\[[str](`str`), [pd](`pandas`).[Series](`pandas.Series`)\] | A dictionary mapping column names to Series of outlier values. |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [pd](`pandas`).[Series](`pandas.Series`)\] | For columns without outliers, an empty Series is returned.     |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                              |
+|--------|----------------------------|------------------------------------------|
+|        | [ValueError](`ValueError`) | If data is empty or contains no columns. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.preprocessing.outlier import get_outliers
+>>>
+>>> # Create sample data with outliers
+>>> np.random.seed(42)
+>>> data = pd.DataFrame({
+...     'A': np.concatenate([np.random.normal(0, 1, 100), [10, 11, 12]]),
+...     'B': np.concatenate([np.random.normal(5, 2, 100), [100, 110, 120]])
+... })
+>>> data_original = data.copy()
+>>>
+>>> # Detect outliers
+>>> outliers = get_outliers(data_original, contamination=0.03)
+>>> for col, outlier_vals in outliers.items():
+...     print(f"{col}: {len(outlier_vals)} outliers detected")
+```

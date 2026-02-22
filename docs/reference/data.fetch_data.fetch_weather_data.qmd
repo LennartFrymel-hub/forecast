@@ -1,0 +1,57 @@
+# data.fetch_data.fetch_weather_data { #spotforecast2_safe.data.fetch_data.fetch_weather_data }
+
+```python
+data.fetch_data.fetch_weather_data(
+    cov_start,
+    cov_end,
+    latitude=51.5136,
+    longitude=7.4653,
+    timezone='UTC',
+    freq='h',
+    fallback_on_failure=True,
+    cached=True,
+)
+```
+
+Fetches weather data for the dataset period plus forecast horizon.
+    Create weather dataframe using API with optional caching.
+Args:
+    cov_start (str):
+        Start date for covariate data.
+    cov_end (str):
+        End date for covariate data.
+    latitude (float):
+        Latitude of the location for weather data. Default is 51.5136 (Dortmund).
+    longitude (float):
+        Longitude of the location for weather data. Default is 7.4653 (Dortmund).
+    timezone (str):
+        Timezone for the weather data.
+    freq (str):
+        Frequency of the weather data.
+    fallback_on_failure (bool):
+        Whether to use fallback data in case of failure.
+    cached (bool):
+        Whether to use cached data.
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                             |
+|--------|------------------------------------------------|---------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: DataFrame containing weather information. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_weather_data
+>>> weather_df = fetch_weather_data(
+...     cov_start='2023-01-01T00:00',
+...     cov_end='2023-01-11T00:00',
+...     latitude=51.5136,
+...     longitude=7.4653,
+...     timezone='UTC',
+...     freq='h',
+...     fallback_on_failure=True,
+...     cached=True
+... )
+>>> weather_df.head()
+```

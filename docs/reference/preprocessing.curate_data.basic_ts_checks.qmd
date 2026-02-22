@@ -1,0 +1,36 @@
+# preprocessing.curate_data.basic_ts_checks { #spotforecast2_safe.preprocessing.curate_data.basic_ts_checks }
+
+```python
+preprocessing.curate_data.basic_ts_checks(data, verbose=False)
+```
+
+Checks if the time series data has a datetime index and is sorted.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name    | Type                                           | Description                              | Default    |
+|---------|------------------------------------------------|------------------------------------------|------------|
+| data    | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The main dataset.                        | _required_ |
+| verbose | [bool](`bool`)                                 | Whether to print additional information. | `False`    |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data
+>>> from spotforecast2_safe.preprocessing.curate_data import basic_ts_checks
+>>> data = fetch_data()
+>>> basic_ts_checks(data)
+```
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                               |
+|--------|----------------------------|---------------------------------------------------------------------------|
+|        | [TypeError](`TypeError`)   | If the index is not a datetime index.                                     |
+|        | [ValueError](`ValueError`) | If the datetime index is not sorted in increasing order or is incomplete. |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type           | Description                                                |
+|--------|----------------|------------------------------------------------------------|
+| bool   | [bool](`bool`) | True if the datetime index is valid, sorted, and complete. |

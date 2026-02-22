@@ -1,0 +1,541 @@
+# exceptions { #spotforecast2_safe.exceptions }
+
+`exceptions`
+
+Custom exceptions and warnings for spotforecast2.
+
+This module contains all the custom warnings and error classes used
+across spotforecast2.
+
+## Examples {.doc-section .doc-section-examples}
+
+Using custom warnings::
+
+    import warnings
+    from spotforecast2_safe.exceptions import MissingValuesWarning
+
+    # Raise a warning
+    warnings.warn(
+        "Missing values detected in input data.",
+        MissingValuesWarning
+    )
+
+    # Suppress a specific warning
+    warnings.simplefilter('ignore', category=MissingValuesWarning)
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [DataTransformationWarning](#spotforecast2_safe.exceptions.DataTransformationWarning) | Warning for output data in transformed space. |
+| [DataTypeWarning](#spotforecast2_safe.exceptions.DataTypeWarning) | Warning for incompatible data types in exogenous data. |
+| [ExogenousInterpretationWarning](#spotforecast2_safe.exceptions.ExogenousInterpretationWarning) | Warning about implications when using exogenous variables. |
+| [FeatureOutOfRangeWarning](#spotforecast2_safe.exceptions.FeatureOutOfRangeWarning) | Warning for features out of training range. |
+| [IgnoredArgumentWarning](#spotforecast2_safe.exceptions.IgnoredArgumentWarning) | Warning for ignored arguments. |
+| [InputTypeWarning](#spotforecast2_safe.exceptions.InputTypeWarning) | Warning for inefficient input format. |
+| [LongTrainingWarning](#spotforecast2_safe.exceptions.LongTrainingWarning) | Warning for potentially long training processes. |
+| [MissingExogWarning](#spotforecast2_safe.exceptions.MissingExogWarning) | Warning for missing exogenous variables. |
+| [MissingValuesWarning](#spotforecast2_safe.exceptions.MissingValuesWarning) | Warning for missing values in data. |
+| [NotFittedError](#spotforecast2_safe.exceptions.NotFittedError) | Exception class to raise if estimator is used before fitting. |
+| [OneStepAheadValidationWarning](#spotforecast2_safe.exceptions.OneStepAheadValidationWarning) | Warning for one-step-ahead validation usage. |
+| [ResidualsUsageWarning](#spotforecast2_safe.exceptions.ResidualsUsageWarning) | Warning for incorrect residuals usage. |
+| [SaveLoadSkforecastWarning](#spotforecast2_safe.exceptions.SaveLoadSkforecastWarning) | Warning for save/load operations. |
+| [SpotforecastVersionWarning](#spotforecast2_safe.exceptions.SpotforecastVersionWarning) | Warning for version mismatch. |
+| [UnknownLevelWarning](#spotforecast2_safe.exceptions.UnknownLevelWarning) | Warning for unknown levels in prediction. |
+
+### DataTransformationWarning { #spotforecast2_safe.exceptions.DataTransformationWarning }
+
+```python
+exceptions.DataTransformationWarning(message)
+```
+
+Warning for output data in transformed space.
+
+Used to notify that the output data is in the transformed space.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Output is in transformed space.",
+...     DataTransformationWarning
+... )
+```
+
+### DataTypeWarning { #spotforecast2_safe.exceptions.DataTypeWarning }
+
+```python
+exceptions.DataTypeWarning(message)
+```
+
+Warning for incompatible data types in exogenous data.
+
+Used to notify there are dtypes in the exogenous data that are not
+'int', 'float', 'bool' or 'category'. Most machine learning models do not
+accept other data types, therefore the forecaster `fit` and `predict` may fail.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Exogenous data contains unsupported dtypes.",
+...     DataTypeWarning
+... )
+```
+
+### ExogenousInterpretationWarning { #spotforecast2_safe.exceptions.ExogenousInterpretationWarning }
+
+```python
+exceptions.ExogenousInterpretationWarning(message)
+```
+
+Warning about implications when using exogenous variables.
+
+Used to notify about important implications when using exogenous
+variables with models that use a two-step approach (e.g., regression + ARAR).
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Exogenous variables may not be used as expected.",
+...     ExogenousInterpretationWarning
+... )
+```
+
+### FeatureOutOfRangeWarning { #spotforecast2_safe.exceptions.FeatureOutOfRangeWarning }
+
+```python
+exceptions.FeatureOutOfRangeWarning(message)
+```
+
+Warning for features out of training range.
+
+Used to notify that a feature is out of the range seen during training.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Feature value exceeds training range.",
+...     FeatureOutOfRangeWarning
+... )
+```
+
+### IgnoredArgumentWarning { #spotforecast2_safe.exceptions.IgnoredArgumentWarning }
+
+```python
+exceptions.IgnoredArgumentWarning(message)
+```
+
+Warning for ignored arguments.
+
+Used to notify that an argument is ignored when using a method
+or a function.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Argument 'x' is ignored in this context.",
+...     IgnoredArgumentWarning
+... )
+```
+
+### InputTypeWarning { #spotforecast2_safe.exceptions.InputTypeWarning }
+
+```python
+exceptions.InputTypeWarning(message)
+```
+
+Warning for inefficient input format.
+
+Used to notify that input format is not the most efficient or
+recommended for the forecaster.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Input format is not optimal for this forecaster.",
+...     InputTypeWarning
+... )
+```
+
+### LongTrainingWarning { #spotforecast2_safe.exceptions.LongTrainingWarning }
+
+```python
+exceptions.LongTrainingWarning(message)
+```
+
+Warning for potentially long training processes.
+
+Used to notify that a large number of models will be trained and the
+the process may take a while to run.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Training may take a long time.",
+...     LongTrainingWarning
+... )
+```
+
+### MissingExogWarning { #spotforecast2_safe.exceptions.MissingExogWarning }
+
+```python
+exceptions.MissingExogWarning(message)
+```
+
+Warning for missing exogenous variables.
+
+Used to indicate that there are missing exogenous variables in the
+data. Most machine learning models do not accept missing values, so the
+Forecaster's `fit' and `predict' methods may fail.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Missing exogenous variables detected.",
+...     MissingExogWarning
+... )
+```
+
+### MissingValuesWarning { #spotforecast2_safe.exceptions.MissingValuesWarning }
+
+```python
+exceptions.MissingValuesWarning(message)
+```
+
+Warning for missing values in data.
+
+Used to indicate that there are missing values in the data. This
+warning occurs when the input data contains missing values, or the training
+matrix generates missing values. Most machine learning models do not accept
+missing values, so the Forecaster's `fit' and `predict' methods may fail.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name    | Type         | Description             | Default    |
+|---------|--------------|-------------------------|------------|
+| message | [str](`str`) | The message to display. | _required_ |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> from spotforecast2_safe.exceptions import MissingValuesWarning
+>>> warnings.warn(
+...     "Missing values detected in input data.",
+...     MissingValuesWarning
+... )
+```
+
+### NotFittedError { #spotforecast2_safe.exceptions.NotFittedError }
+
+```python
+exceptions.NotFittedError()
+```
+
+Exception class to raise if estimator is used before fitting.
+
+This class inherits from both ValueError and AttributeError to help with
+exception handling and backward compatibility.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.exceptions import NotFittedError
+>>> try:
+...     raise NotFittedError("Forecaster not fitted")
+... except NotFittedError as e:
+...     print(e)
+Forecaster not fitted
+```
+
+### OneStepAheadValidationWarning { #spotforecast2_safe.exceptions.OneStepAheadValidationWarning }
+
+```python
+exceptions.OneStepAheadValidationWarning(message)
+```
+
+Warning for one-step-ahead validation usage.
+
+Used to notify that the one-step-ahead validation is being used.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Using one-step-ahead validation.",
+...     OneStepAheadValidationWarning
+... )
+```
+
+### ResidualsUsageWarning { #spotforecast2_safe.exceptions.ResidualsUsageWarning }
+
+```python
+exceptions.ResidualsUsageWarning(message)
+```
+
+Warning for incorrect residuals usage.
+
+Used to notify that a residual are not correctly used in the
+probabilistic forecasting process.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Residuals are not properly used.",
+...     ResidualsUsageWarning
+... )
+```
+
+### SaveLoadSkforecastWarning { #spotforecast2_safe.exceptions.SaveLoadSkforecastWarning }
+
+```python
+exceptions.SaveLoadSkforecastWarning(message)
+```
+
+Warning for save/load operations.
+
+Used to notify any issues that may arise when saving or loading
+a forecaster.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Issues detected when saving forecaster.",
+...     SaveLoadSkforecastWarning
+... )
+```
+
+### SpotforecastVersionWarning { #spotforecast2_safe.exceptions.SpotforecastVersionWarning }
+
+```python
+exceptions.SpotforecastVersionWarning(message)
+```
+
+Warning for version mismatch.
+
+Used to notify that the version installed in the
+environment differs from the version used to initialize the forecaster.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Version mismatch detected.",
+...     SpotforecastVersionWarning
+... )
+```
+
+### UnknownLevelWarning { #spotforecast2_safe.exceptions.UnknownLevelWarning }
+
+```python
+exceptions.UnknownLevelWarning(message)
+```
+
+Warning for unknown levels in prediction.
+
+Used to notify that a level being predicted was not part of the
+training data.
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import warnings
+>>> warnings.warn(
+...     "Predicting for an unknown level.",
+...     UnknownLevelWarning
+... )
+```
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [format_warning_handler](#spotforecast2_safe.exceptions.format_warning_handler) | Custom warning handler to format warnings in a box. |
+| [rich_warning_handler](#spotforecast2_safe.exceptions.rich_warning_handler) | Custom handler for warnings that uses rich to display formatted panels. |
+| [runtime_deprecated](#spotforecast2_safe.exceptions.runtime_deprecated) | Decorator to mark functions or classes as deprecated. |
+| [set_skforecast_warnings](#spotforecast2_safe.exceptions.set_skforecast_warnings) | Suppress spotforecast warnings. |
+| [set_warnings_style](#spotforecast2_safe.exceptions.set_warnings_style) | Set the warning handler based on the provided style. |
+
+### format_warning_handler { #spotforecast2_safe.exceptions.format_warning_handler }
+
+```python
+exceptions.format_warning_handler(
+    message,
+    category,
+    filename,
+    lineno,
+    file=None,
+    line=None,
+)
+```
+
+Custom warning handler to format warnings in a box.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type               | Description                               | Default    |
+|----------|--------------------|-------------------------------------------|------------|
+| message  | [str](`str`)       | Warning message.                          | _required_ |
+| category | [str](`str`)       | Warning category.                         | _required_ |
+| filename | [str](`str`)       | Filename where the warning was raised.    | _required_ |
+| lineno   | [str](`str`)       | Line number where the warning was raised. | _required_ |
+| file     | [object](`object`) | File where the warning was raised.        | `None`     |
+| line     | [str](`str`)       | Line where the warning was raised.        | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> # This is used internally by the warnings module
+>>> set_warnings_style('skforecast')
+```
+
+### rich_warning_handler { #spotforecast2_safe.exceptions.rich_warning_handler }
+
+```python
+exceptions.rich_warning_handler(
+    message,
+    category,
+    filename,
+    lineno,
+    file=None,
+    line=None,
+)
+```
+
+Custom handler for warnings that uses rich to display formatted panels.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type               | Description                               | Default    |
+|----------|--------------------|-------------------------------------------|------------|
+| message  | [str](`str`)       | Warning message.                          | _required_ |
+| category | [str](`str`)       | Warning category.                         | _required_ |
+| filename | [str](`str`)       | Filename where the warning was raised.    | _required_ |
+| lineno   | [str](`str`)       | Line number where the warning was raised. | _required_ |
+| file     | [object](`object`) | File where the warning was raised.        | `None`     |
+| line     | [str](`str`)       | Line where the warning was raised.        | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> # This is used internally when rich is available
+>>> set_warnings_style('skforecast')
+```
+
+### runtime_deprecated { #spotforecast2_safe.exceptions.runtime_deprecated }
+
+```python
+exceptions.runtime_deprecated(
+    replacement=None,
+    version=None,
+    removal=None,
+    category=FutureWarning,
+)
+```
+
+Decorator to mark functions or classes as deprecated.
+
+Works for both function and class targets, and ensures warnings are visible
+even inside Jupyter notebooks.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                                   | Description                                            | Default         |
+|-------------|----------------------------------------|--------------------------------------------------------|-----------------|
+| replacement | [str](`str`)                           | Name of the replacement function/class to use instead. | `None`          |
+| version     | [str](`str`)                           | Version in which the function/class was deprecated.    | `None`          |
+| removal     | [str](`str`)                           | Version in which the function/class will be removed.   | `None`          |
+| category    | [type](`type`)\[[Warning](`Warning`)\] | Warning category to use. Default is FutureWarning.     | `FutureWarning` |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type               | Description         |
+|--------|--------------------|---------------------|
+|        | [object](`object`) | Decorator function. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> @runtime_deprecated(replacement='new_function', version='0.5', removal='1.0')
+... def old_function():
+...     pass
+>>> old_function()
+FutureWarning: old_function() is deprecated since version 0.5; use new_function instead...
+```
+
+### set_skforecast_warnings { #spotforecast2_safe.exceptions.set_skforecast_warnings }
+
+```python
+exceptions.set_skforecast_warnings(suppress_warnings, action='ignore')
+```
+
+Suppress spotforecast warnings.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name              | Type           | Description                                                  | Default    |
+|-------------------|----------------|--------------------------------------------------------------|------------|
+| suppress_warnings | [bool](`bool`) | bool If True, spotforecast warnings will be suppressed.      | _required_ |
+| action            | [str](`str`)   | str, default 'ignore' Action to take regarding the warnings. | `'ignore'` |
+
+### set_warnings_style { #spotforecast2_safe.exceptions.set_warnings_style }
+
+```python
+exceptions.set_warnings_style(style='skforecast')
+```
+
+Set the warning handler based on the provided style.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type         | Description                                                         | Default        |
+|--------|--------------|---------------------------------------------------------------------|----------------|
+| style  | [str](`str`) | The style of the warning handler. Either 'skforecast' or 'default'. | `'skforecast'` |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> set_warnings_style('skforecast')
+>>> # Now warnings will be displayed with formatting
+>>> set_warnings_style('default')
+>>> # Back to default Python warning format
+```

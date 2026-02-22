@@ -1,0 +1,62 @@
+# downloader.entsoe.merge_build_manual { #spotforecast2_safe.downloader.entsoe.merge_build_manual }
+
+```python
+downloader.entsoe.merge_build_manual(output_file='energy_load.csv')
+```
+
+Merge all raw CSV files from the 'raw' directory into a single interim file.
+
+This function looks for all `.csv` files in `get_data_home() / "raw"`,
+sorts them by time index, and saves the unique combined data to
+`get_data_home() / "interim" / output_file`.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type         | Description                                                          | Default             |
+|-------------|--------------|----------------------------------------------------------------------|---------------------|
+| output_file | [str](`str`) | The name of the combined output file. Defaults to "energy_load.csv". | `'energy_load.csv'` |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                                     | Description                                  |
+|--------|------------------------------------------|----------------------------------------------|
+|        | [FileNotFoundError](`FileNotFoundError`) | If the raw directory does not exist.         |
+|        | [ValueError](`ValueError`)               | If no valid CSV files are found for merging. |
+
+## Notes {.doc-section .doc-section-notes}
+
+Logging information can be selected by setting the log level for the
+`spotforecast2_safe.downloader.entsoe` logger. Common levels are
+`DEBUG`, `INFO`, `WARNING`, `ERROR`, and `CRITICAL`.
+
+Examples:
+    # Show only warnings and errors (default)
+    >>> import logging
+    >>> logging.getLogger("spotforecast2_safe.downloader.entsoe").setLevel(logging.WARNING)
+
+    # Show informative messages about the merging process
+    >>> logging.getLogger("spotforecast2_safe.downloader.entsoe").setLevel(logging.INFO)
+
+    # Show detailed debug information
+    >>> logging.getLogger("spotforecast2_safe.downloader.entsoe").setLevel(logging.DEBUG)
+
+## Examples {.doc-section .doc-section-examples}
+
+# Example 1: Merge with default output file (if raw data exists)
+
+```python
+>>> from spotforecast2_safe.downloader.entsoe import merge_build_manual
+>>> try:
+...     merge_build_manual()
+... except Exception:
+...     pass  # Ignore errors if no raw data exists
+```
+
+# Example 2: Merge with a custom output file name
+
+```python
+>>> try:
+...     merge_build_manual(output_file="custom_energy_load.csv")
+... except Exception:
+...     pass
+```

@@ -1,0 +1,32 @@
+# preprocessing.imputation.custom_weights { #spotforecast2_safe.preprocessing.imputation.custom_weights }
+
+```python
+preprocessing.imputation.custom_weights(index, weights_series)
+```
+
+Return 0 if index is in or near any gap.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name           | Type                                     | Description                | Default    |
+|----------------|------------------------------------------|----------------------------|------------|
+| index          | [pd](`pandas`).[Index](`pandas.Index`)   | The index to check.        | _required_ |
+| weights_series | [pd](`pandas`).[Series](`pandas.Series`) | Series containing weights. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type             | Description                            |
+|--------|------------------|----------------------------------------|
+| float  | [float](`float`) | The weight corresponding to the index. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data
+>>> from spotforecast2_safe.preprocessing.imputation import custom_weights
+>>> data = fetch_data()
+>>> _, missing_weights = get_missing_weights(data, window_size=72, verbose=False)
+>>> for idx in data.index[:5]:
+...     weight = custom_weights(idx, missing_weights)
+...     print(f"Index: {idx}, Weight: {weight}")
+```

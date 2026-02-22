@@ -1,0 +1,62 @@
+# utils.validation.check_exog { #spotforecast2_safe.utils.validation.check_exog }
+
+```python
+utils.validation.check_exog(exog, allow_nan=True, series_id='`exog`')
+```
+
+Validate that exog is a pandas Series or DataFrame.
+
+This function ensures that exogenous variables meet basic requirements:
+- Must be a pandas Series or DataFrame
+- If Series, must have a name
+- Optionally warns if NaN values are present
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type                                                                                                                | Description                                                                                                      | Default    |
+|-----------|---------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|------------|
+| exog      | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Exogenous variable/s included as predictor/s.                                                                    | _required_ |
+| allow_nan | [bool](`bool`)                                                                                                      | If True, allows NaN values but issues a warning. If False, raises no warning about NaN values. Defaults to True. | `True`     |
+| series_id | [str](`str`)                                                                                                        | Identifier of the series used in error messages. Defaults to "`exog`".                                           | `'`exog`'` |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                  |
+|--------|----------------------------|----------------------------------------------|
+|        | [TypeError](`TypeError`)   | If exog is not a pandas Series or DataFrame. |
+|        | [ValueError](`ValueError`) | If exog is a Series without a name.          |
+
+## Warns {.doc-section .doc-section-warns}
+
+If allow_nan=True and exog contains NaN values.
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.utils.validation import check_exog
+>>>
+>>> # Valid DataFrame
+>>> exog_df = pd.DataFrame({"temp": [20, 21, 22], "humidity": [50, 55, 60]})
+>>> check_exog(exog_df)  # No error
+>>>
+>>> # Valid Series with name
+>>> exog_series = pd.Series([1, 2, 3], name="temperature")
+>>> check_exog(exog_series)  # No error
+>>>
+>>> # Invalid: Series without name
+>>> exog_no_name = pd.Series([1, 2, 3])
+>>> try:
+...     check_exog(exog_no_name)
+... except ValueError as e:
+...     print(f"Error: {e}")
+Error: When `exog` is a pandas Series, it must have a name.
+>>>
+>>> # Invalid: not a Series/DataFrame
+>>> try:
+...     check_exog([1, 2, 3])
+... except TypeError as e:
+...     print(f"Error: {e}")
+Error: `exog` must be a pandas Series or DataFrame. Got <class 'list'>.
+```

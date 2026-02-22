@@ -1,0 +1,38 @@
+# forecaster.metrics.symmetric_mean_absolute_percentage_error { #spotforecast2_safe.forecaster.metrics.symmetric_mean_absolute_percentage_error }
+
+```python
+forecaster.metrics.symmetric_mean_absolute_percentage_error(y_true, y_pred)
+```
+
+Compute the Symmetric Mean Absolute Percentage Error (SMAPE).
+
+SMAPE is a relative error metric used to measure the accuracy
+of forecasts. Unlike MAPE, it is symmetric and prevents division
+by zero by averaging the absolute values of actual and predicted values.
+
+The result is expressed as a percentage and ranges from 0%
+(perfect prediction) to 200% (maximum error).
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                 | Description                              | Default    |
+|--------|--------------------------------------------------------------------------------------|------------------------------------------|------------|
+| y_true | [np](`numpy`).[ndarray](`numpy.ndarray`) \| [pd](`pandas`).[Series](`pandas.Series`) | True values of the target variable.      | _required_ |
+| y_pred | [np](`numpy`).[ndarray](`numpy.ndarray`) \| [pd](`pandas`).[Series](`pandas.Series`) | Predicted values of the target variable. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type             | Description                  |
+|--------|------------------|------------------------------|
+|        | [float](`float`) | SMAPE value as a percentage. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2.forecaster.metrics import symmetric_mean_absolute_percentage_error
+>>> y_true = np.array([100, 200, 0])
+>>> y_pred = np.array([110, 180, 10])
+>>> result = symmetric_mean_absolute_percentage_error(y_true, y_pred)
+>>> 0 <= result <= 200
+True
+```
