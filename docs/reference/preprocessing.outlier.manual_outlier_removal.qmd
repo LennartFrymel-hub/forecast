@@ -1,0 +1,46 @@
+# preprocessing.outlier.manual_outlier_removal { #spotforecast2_safe.preprocessing.outlier.manual_outlier_removal }
+
+```python
+preprocessing.outlier.manual_outlier_removal(
+    data,
+    column,
+    lower_threshold=None,
+    upper_threshold=None,
+    verbose=False,
+)
+```
+
+Manual outlier removal function.
+Args:
+    data (pd.DataFrame):
+        The input dataset.
+    column (str):
+        The column name in which to perform manual outlier removal.
+    lower_threshold (float | None):
+        The lower threshold below which values are considered outliers.
+        If None, no lower threshold is applied.
+    upper_threshold (float | None):
+        The upper threshold above which values are considered outliers.
+        If None, no upper threshold is applied.
+    verbose (bool):
+        Whether to print additional information.
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                             | Description                                                                                                                      |
+|--------|----------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+|        | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [int](`int`)\] | tuple[pd.DataFrame, int]: A tuple containing the modified dataset with outliers marked as NaN and the number of outliers marked. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data
+>>> from spotforecast2_safe.preprocessing.outlier import manual_outlier_removal
+>>> data = fetch_data()
+>>> data, n_manual_outliers = manual_outlier_removal(
+...     data,
+...     column='ABC',
+...     lower_threshold=50,
+...     upper_threshold=700,
+...     verbose=True
+```

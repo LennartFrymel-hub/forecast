@@ -1,0 +1,34 @@
+# forecaster.metrics.crps_from_predictions { #spotforecast2_safe.forecaster.metrics.crps_from_predictions }
+
+```python
+forecaster.metrics.crps_from_predictions(y_true, y_pred)
+```
+
+Compute the Continuous Ranked Probability Score (CRPS) from predictions.
+
+The CRPS compares the empirical distribution of a set of forecasted values
+to a scalar observation. The smaller the CRPS, the better.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                     | Description                                                                                                     | Default    |
+|--------|------------------------------------------|-----------------------------------------------------------------------------------------------------------------|------------|
+| y_true | [float](`float`)                         | The true value of the random variable.                                                                          | _required_ |
+| y_pred | [np](`numpy`).[ndarray](`numpy.ndarray`) | The predicted values of the random variable. These are the multiple forecasted values for a single observation. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type             | Description     |
+|--------|------------------|-----------------|
+|        | [float](`float`) | The CRPS score. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2.forecaster.metrics import crps_from_predictions
+>>> y_true = 5.0
+>>> y_pred = np.array([4.5, 5.1, 4.9, 5.3, 4.7])
+>>> crps = crps_from_predictions(y_true, y_pred)
+>>> crps >= 0
+True
+```

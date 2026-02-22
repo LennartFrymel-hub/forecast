@@ -1,0 +1,4 @@
+# forecaster.recursive { #spotforecast2_safe.forecaster.recursive }
+
+`forecaster.recursive`
+

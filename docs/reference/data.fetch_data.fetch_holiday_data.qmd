@@ -1,0 +1,47 @@
+# data.fetch_data.fetch_holiday_data { #spotforecast2_safe.data.fetch_data.fetch_holiday_data }
+
+```python
+data.fetch_data.fetch_holiday_data(
+    start,
+    end,
+    tz='UTC',
+    freq='h',
+    country_code='DE',
+    state='NW',
+)
+```
+
+Fetches holiday data for the dataset period.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type                                                           | Description                       | Default    |
+|--------------|----------------------------------------------------------------|-----------------------------------|------------|
+| start        | [str](`str`) or [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | Start date of the dataset period. | _required_ |
+| end          | [str](`str`) or [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | End date of the dataset period.   | _required_ |
+| tz           | [str](`str`)                                                   | Timezone for the holiday data.    | `'UTC'`    |
+| freq         | [str](`str`)                                                   | Frequency of the holiday data.    | `'h'`      |
+| country_code | [str](`str`)                                                   | Country code for the holidays.    | `'DE'`     |
+| state        | [str](`str`)                                                   | State code for the holidays.      | `'NW'`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                             |
+|--------|------------------------------------------------|---------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: DataFrame containing holiday information. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_holiday_data
+>>> holiday_df = fetch_holiday_data(
+...     start='2023-01-01T00:00',
+...     end='2023-01-10T00:00',
+...     tz='UTC',
+...     freq='h',
+...     country_code='DE',
+...     state='NW'
+... )
+>>> holiday_df.head()
+                is_holiday
+```

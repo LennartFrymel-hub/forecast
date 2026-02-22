@@ -1,0 +1,54 @@
+# data.fetch_data.fetch_data { #spotforecast2_safe.data.fetch_data.fetch_data }
+
+```python
+data.fetch_data.fetch_data(
+    filename=None,
+    dataframe=None,
+    columns=None,
+    index_col=0,
+    parse_dates=True,
+    dayfirst=False,
+    timezone='UTC',
+)
+```
+
+Fetches the integrated raw dataset from a CSV file or processes a DataFrame.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                                           | Description                                                                                                                                                       | Default   |
+|-------------|------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| filename    | [str](`str`)                                   | Filename of the CSV file containing the dataset. Must be located in the data home directory. This is required if dataframe is None.                               | `None`    |
+| dataframe   | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | A pandas DataFrame to process. If provided, it will be processed with proper timezone handling. Mutually exclusive with filename.                                 | `None`    |
+| columns     | [list](`list`)                                 | List of columns to be included in the dataset. If None, all columns are included. If an empty list is provided, a ValueError is raised. Default: None.            | `None`    |
+| index_col   | [int](`int`)                                   | Column index to be used as the index (only used when loading from CSV). Default: 0.                                                                               | `0`       |
+| parse_dates | [bool](`bool`)                                 | Whether to parse dates in the index column (only used when loading from CSV). Default: True.                                                                      | `True`    |
+| dayfirst    | [bool](`bool`)                                 | Whether the day comes first in date parsing (only used when loading from CSV). Default: False.                                                                    | `False`   |
+| timezone    | [str](`str`)                                   | Timezone to set for the datetime index. If a DataFrame with naive index is provided, it will be localized to this timezone then converted to UTC. Default: "UTC". | `'UTC'`   |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                 |
+|--------|------------------------------------------------|-------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: The integrated raw dataset with UTC timezone. |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                                     | Description                                                                                                                 |
+|--------|------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`)               | If columns is an empty list, if both filename and dataframe are provided, or if neither filename nor dataframe is provided. |
+|        | [FileNotFoundError](`FileNotFoundError`) | If CSV file does not exist.                                                                                                 |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
+>>> # demo01.csv is included in the package datasets
+>>> path_demo = get_package_data_home() / "demo01.csv"
+>>> df = fetch_data(filename=path_demo)
+>>> df.head()
+                          Forecasted Load  Actual Load
+Time (UTC)
+2022-01-01 00:00:00+00:00  306.73           317.27
+2022-01-01 00:15:00+00:00  306.73           317.27
+```

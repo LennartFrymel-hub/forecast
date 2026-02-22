@@ -1,0 +1,36 @@
+# preprocessing.outlier.mark_outliers { #spotforecast2_safe.preprocessing.outlier.mark_outliers }
+
+```python
+preprocessing.outlier.mark_outliers(
+    data,
+    contamination=0.1,
+    random_state=1234,
+    verbose=False,
+)
+```
+
+Marks outliers as NaN in the dataset using Isolation Forest.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name          | Type                                           | Description                                            | Default    |
+|---------------|------------------------------------------------|--------------------------------------------------------|------------|
+| data          | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The input dataset.                                     | _required_ |
+| contamination | [float](`float`)                               | The (estimated) proportion of outliers in the dataset. | `0.1`      |
+| random_state  | [int](`int`)                                   | Random seed for reproducibility. Default is 1234.      | `1234`     |
+| verbose       | [bool](`bool`)                                 | Whether to print additional information.               | `False`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                         | Description                                                                                                                  |
+|--------|--------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+|        | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [np](`numpy`).[ndarray](`numpy.ndarray`)\] | tuple[pd.DataFrame, np.ndarray]: A tuple containing the modified dataset with outliers marked as NaN and the outlier labels. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data
+>>> from spotforecast2_safe.preprocessing.outlier import mark_outliers
+>>> data = fetch_data()
+>>> cleaned_data, outlier_labels = mark_outliers(data, contamination=0.1, random_state=42, verbose=True)
+```

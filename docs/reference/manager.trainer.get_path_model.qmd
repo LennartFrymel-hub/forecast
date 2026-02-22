@@ -1,0 +1,33 @@
+# manager.trainer.get_path_model { #spotforecast2_safe.manager.trainer.get_path_model }
+
+```python
+manager.trainer.get_path_model(name, iteration, model_dir=None)
+```
+
+Yield the path to a model file for a given iteration and model name.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type                                                                                             | Description                                                                       | Default    |
+|-----------|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|------------|
+| name      | [str](`str`)                                                                                     | Model name (e.g. ``"lgbm"``, ``"xgb"``).                                          | _required_ |
+| iteration | [int](`int`)                                                                                     | Iteration of the model.                                                           | _required_ |
+| model_dir | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[str](`str`), [Path](`pathlib.Path`)\]\] | Directory where models are stored. If *None*, defaults to :func:`get_cache_home`. | `None`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                   | Description                                      |
+|--------|------------------------|--------------------------------------------------|
+| Path   | [Path](`pathlib.Path`) | Full path where the model file should be stored. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import tempfile
+>>> from pathlib import Path
+>>> from spotforecast2_safe.manager.trainer import get_path_model
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     p = get_path_model("lgbm", 3, model_dir=tmpdir)
+...     p.name
+'lgbm_forecaster_3.joblib'
+```

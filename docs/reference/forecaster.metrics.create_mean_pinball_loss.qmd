@@ -1,0 +1,34 @@
+# forecaster.metrics.create_mean_pinball_loss { #spotforecast2_safe.forecaster.metrics.create_mean_pinball_loss }
+
+```python
+forecaster.metrics.create_mean_pinball_loss(alpha)
+```
+
+Create pinball loss for a given quantile.
+
+Also known as quantile loss. Internally, it uses the `mean_pinball_loss`
+function from scikit-learn.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type             | Description                                                                            | Default    |
+|--------|------------------|----------------------------------------------------------------------------------------|------------|
+| alpha  | [float](`float`) | Quantile for which the Pinball loss is calculated. Must be between 0 and 1, inclusive. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                   | Description                                        |
+|--------|------------------------|----------------------------------------------------|
+|        | [callable](`callable`) | Mean Pinball loss function for the given quantile. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2.forecaster.metrics import create_mean_pinball_loss
+>>> pinball_loss_50 = create_mean_pinball_loss(alpha=0.5)
+>>> y_true = np.array([1, 2, 3, 4, 5])
+>>> y_pred = np.array([1.1, 1.9, 3.2, 3.8, 5.1])
+>>> loss = pinball_loss_50(y_true, y_pred)
+>>> loss >= 0
+True
+```

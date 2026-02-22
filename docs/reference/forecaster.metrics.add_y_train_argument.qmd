@@ -1,0 +1,29 @@
+# forecaster.metrics.add_y_train_argument { #spotforecast2_safe.forecaster.metrics.add_y_train_argument }
+
+```python
+forecaster.metrics.add_y_train_argument(func)
+```
+
+Add `y_train` argument to a function if it is not already present.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                          | Description                              | Default    |
+|--------|-------------------------------|------------------------------------------|------------|
+| func   | [Callable](`typing.Callable`) | Function to which the argument is added. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                          | Description                             |
+|--------|-------------------------------|-----------------------------------------|
+|        | [Callable](`typing.Callable`) | Function with `y_train` argument added. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> def my_metric(y_true, y_pred):
+...     return np.mean(np.abs(y_true - y_pred))
+>>> enhanced_metric = add_y_train_argument(my_metric)
+>>> # Now the function accepts y_train parameter
+>>> result = enhanced_metric(np.array([1,2,3]), np.array([1,2,3]), y_train=None)
+```

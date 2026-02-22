@@ -1,0 +1,84 @@
+---
+# SPDX-FileCopyrightText: 2024-2026 bartzbeielstein
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Root home page for the Quarto website.
+# All links use docs/-prefixed paths since this file is at the project root.
+title: "Welcome to spotforecast2-safe (Core)"
+---
+
+[![Version](https://img.shields.io/badge/version-{{< var version_badge >}}-blue.svg)](https://github.com/sequential-parameter-optimization/spotforecast2-safe/releases)
+[![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Ready-success)](docs/safe/spotforecast2-safe.qmd)
+[![Audit](https://img.shields.io/badge/audit-whitebox-brightgreen)](docs/safe/MODEL_CARD.qmd)
+[![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+
+spotforecast2-safe is a specialized, hardened Python package for time series
+forecasting in safety-critical production environments. It provides a minimal,
+auditable core for feature engineering and recursive forecasting.
+
+## Quick Links
+
+- 📦 [GitHub Repository](https://github.com/sequential-parameter-optimization/spotforecast2-safe)
+- 📚 [API Reference](docs/reference/index.qmd)
+- 🛡️ [Safety & Compliance](docs/safe/spotforecast2-safe.qmd)
+- 📊 [Model/Method Card](docs/safe/MODEL_CARD.qmd)
+- 🚀 Current Version: {{< var version >}}
+
+## Software Identification (CPE)
+
+For vulnerability tracking, supply chain management, and SBOM (Software Bill
+of Materials) generation:
+
+```
+cpe:2.3:a:sequential_parameter_optimization:spotforecast2_safe:*:*:*:*:*:*:*:*
+```
+
+Current release identifier:
+
+```
+cpe:2.3:a:sequential_parameter_optimization:spotforecast2_safe:{{< var version >}}:*:*:*:*:*:*:*
+```
+
+See [Model/Method Card](docs/safe/MODEL_CARD.qmd#1-system-details) for
+additional compliance details.
+
+## Installation
+
+```bash
+git clone https://github.com/sequential-parameter-optimization/spotforecast2-safe.git
+cd spotforecast2-safe
+uv sync
+```
+
+## Safety-Critical Features
+
+- **Zero Dead Code** — No GUI, plotting, or AutoML dependencies (No Plotly, No Optuna).
+- **Deterministic Transformations** — Mathematical logic that ensures bit-level reproducibility.
+- **Fail-Safe Processing** — Explicit failure on dirty or incomplete data (NaNs/Infs) instead of silent imputation.
+- **Minimal Footprint** — Reduced attack surface for high-security deployment targets.
+
+## Core Capabilities
+
+- **Data Service** — Robust fetching of time series, weather, and holiday data.
+- **Preprocessing** — Hardened tools for data curation, resampling, and temporal splitting.
+- **Forecasting Engine** — Simplified recursive forecasting and seasonal baselines.
+
+::: {.callout-warning}
+## Disclaimer & Liability
+
+**IMPORTANT:** This software is provided "as is" and any express or implied
+warranties are disclaimed. The use of this software in safety-critical systems
+is at the sole risk of the user. For full details, see the
+[Disclaimer in the Model Card](docs/safe/MODEL_CARD.qmd#8-disclaimer-liability).
+:::
+
+## Links
+
+- [spotforecast2](https://sequential-parameter-optimization.github.io/spotforecast2/)
+- [spotoptim](https://sequential-parameter-optimization.github.io/spotoptim/)
+
+## Attributions
+
+Parts of the code are ported from `skforecast` to reduce external dependencies.
+Many thanks to the [skforecast team](https://skforecast.org/0.20.0/more/about-skforecast.htm)
+for their great work!

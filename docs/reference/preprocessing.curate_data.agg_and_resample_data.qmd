@@ -1,0 +1,47 @@
+# preprocessing.curate_data.agg_and_resample_data { #spotforecast2_safe.preprocessing.curate_data.agg_and_resample_data }
+
+```python
+preprocessing.curate_data.agg_and_resample_data(
+    data,
+    rule='h',
+    closed='left',
+    label='left',
+    by='mean',
+    verbose=False,
+)
+```
+
+Aggregates and resamples the data to (e.g.,hourly) frequency by computing the specified aggregation (e.g. for each hour).
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name    | Type                                           | Description                                                                                                                                                                                                                                                                                                                                                                                                                 | Default    |
+|---------|------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| data    | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The dataset with a datetime index.                                                                                                                                                                                                                                                                                                                                                                                          | _required_ |
+| rule    | [str](`str`)                                   | The resample rule (e.g., 'h' for hourly, 'D' for daily). Default is 'h' which creates an hourly grid.                                                                                                                                                                                                                                                                                                                       | `'h'`      |
+| closed  | [str](`str`)                                   | Which side of bin interval is closed. Default is 'left'. Using `closed="left", label="left"` specifies that a time interval (e.g., 10:00 to 11:00) is labeled with the start timestamp (10:00). For consumption data, a different representation is usually more common: `closed="left", label="right"`, so the interval is labeled with the end timestamp (11:00), since consumption is typically reported after one hour. | `'left'`   |
+| label   | [str](`str`)                                   | Which bin edge label to use. Default is 'left'. See 'closed' parameter for details on labeling behavior.                                                                                                                                                                                                                                                                                                                    | `'left'`   |
+| by      | [str](`str`) or [callable](`callable`)         | Aggregation method to apply (e.g., 'mean', 'sum', 'median'). Default is 'mean'. The aggregation serves robustness: if the data were more finely resolved (e.g., quarter-hourly), asfreq would only pick one value (sampling), while .agg("mean") forms the correct average over the hour. If the data is already hourly, .agg doesn't change anything but ensures that no duplicates exist.                                 | `'mean'`   |
+| verbose | [bool](`bool`)                                 | Whether to print additional information.                                                                                                                                                                                                                                                                                                                                                                                    | `False`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                       |
+|--------|------------------------------------------------|---------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Resampled and aggregated dataframe. |
+
+## Notes {.doc-section .doc-section-notes}
+
+- resample(rule="h"): Creates an hourly grid
+- closed/label: Control how time intervals are labeled
+- .agg({...: by}): Aggregates values within each time bin
+
+Examples::
+    >>> from spotforecast2_safe.preprocessing.curate_data import agg_and_resample_data
+    >>> import pandas as pd
+    >>> date_rng = pd.date_range(start='2023-01-01', end='2023-01-02', freq='15T')
+    >>> data = pd.DataFrame(date_rng, columns=['date'])
+    >>> data.set_index('date', inplace=True)
+    >>> data['value'] = range(len(data))
+    >>> resampled_data = agg_and_resample_data(data, rule='h', by='mean')
+    >>> print(resampled_data.head())

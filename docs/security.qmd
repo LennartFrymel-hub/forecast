@@ -1,0 +1,205 @@
+# Security Policy & Vulnerability Reporting
+
+This page documents the security measures and vulnerability reporting process for spotforecast2-safe.
+
+## Reporting a Vulnerability
+
+If you discover a security vulnerability, DO NOT create a public GitHub issue. This puts all users at risk.
+
+### Primary: Private Security Advisory
+
+Use GitHub's Private Security Advisory feature:
+
+1. Go to: https://github.com/sequential-parameter-optimization/spotforecast2-safe/security/advisories
+2. Click "Report a vulnerability"
+3. Provide details about the vulnerability
+
+### Alternative: Email Reporting
+
+Email your findings to:
+
+```
+bartzbeielstein@users.noreply.github.com
+```
+
+Subject line: `[SECURITY] spotforecast2-safe Vulnerability Report`
+
+### What to Include
+
+Provide as much detail as possible:
+
+- Description of the vulnerability
+- Affected version(s)
+- Steps to reproduce (if applicable)
+- Potential impact and severity
+- Suggested fix (if available)
+
+## Response Timeline
+
+We aim to respond to all vulnerability reports promptly:
+
+- Acknowledgment: Within 24 hours
+- Initial assessment: Within 3 business days
+- Fix and patch: Varies based on severity (critical issues prioritized)
+- Public disclosure: Coordinated after patch is available
+
+## Security Advisories
+
+Published security advisories are available at:
+
+https://github.com/sequential-parameter-optimization/spotforecast2-safe/security/advisories
+
+## Supported Versions
+
+The following versions receive security updates:
+
+| Version | Status | End of Support |
+|---------|--------|----------------|
+| 0.3.x   | Supported (Current) | October 2027 |
+| 0.2.x   | Limited Support | February 2026 |
+| < 0.2.0 | Unsupported | N/A |
+
+We recommend using the latest version. Check [PyPI](https://pypi.org/project/spotforecast2-safe/) for the current release.
+
+## Security Features & Design Goals
+
+spotforecast2-safe is designed with security in mind:
+
+Zero Dead Code
+- No GUI components, plotting libraries, or AutoML frameworks
+- Minimal external dependencies (see below)
+- Reduced attack surface for supply chain security
+
+Deterministic Operations
+- All transformations are bit-level reproducible
+- Predictable behavior enables auditing
+- No hidden randomness or stochastic operations
+
+Fail-Safe Processing
+- All transformations validate input data
+- Invalid data raises explicit errors
+- No silent failures or data imputation
+- NaNs and Infs are rejected immediately
+
+Minimal Dependencies
+
+Core dependencies are carefully selected to minimize the CVE surface:
+
+- astral - Solar position calculations
+- feature-engine - Feature preprocessing
+- flake8 - Code linting
+- holidays - Holiday calendars
+- lightgbm - Gradient boosting (optional)
+- numba - JIT compilation
+- pandas - Data handling
+- pyarrow - Parquet/Arrow support
+- requests - HTTP client
+- scikit-learn - ML utilities
+- tqdm - Progress bars
+
+Supply Chain Security Measures
+
+- ✅ Dependencies pinned with compatible release specifiers
+- ✅ Dependabot enabled for automated dependency updates
+- ✅ GitHub Actions pinned to specific commit hashes
+- ✅ REUSE compliance for license tracking of all code
+- ✅ Regular security scanning via bandit and Safety
+- ✅ CPE identifiers for vulnerability tracking
+
+## Security Best Practices for Users
+
+### Using Current Version
+
+1. Always use the latest available version from [PyPI](https://pypi.org/project/spotforecast2-safe/)
+2. Review CHANGELOG.md for security patches (in repository)
+3. Monitor [GitHub Releases](https://github.com/sequential-parameter-optimization/spotforecast2-safe/releases) for updates
+4. Subscribe to security advisories at the GitHub link above
+
+### Production Deployment
+
+1. Pin exact versions in `requirements.txt` or `pyproject.toml`
+2. Use virtual environments (venv or conda)
+3. Keep dependencies updated
+4. Review [MODEL_CARD.md](safe/MODEL_CARD.qmd) for safety-critical considerations
+5. Enable automatic dependency updates (Dependabot)
+
+### Development
+
+1. Clone only from the official GitHub repository
+2. Verify GPG signatures on releases (recommended)
+3. Use `pre-commit` hooks for code quality
+4. Run security checks locally (bandit, Safety)
+5. Follow contribution guidelines in [CONTRIBUTING.md](contributing.qmd)
+
+## Dependency Management
+
+### Monitoring Dependencies
+
+To check for known vulnerabilities in your environment:
+
+```bash
+# Install Safety
+pip install safety
+
+# Check installed packages
+safety check
+```
+
+This project uses:
+- Dependabot: Automated checks for outdated and vulnerable dependencies
+- bandit: Code security analysis
+- Safety: Dependency vulnerability scanning
+
+### Pinned Versions
+
+All dependencies use compatible release specifiers to allow patch updates while preventing breaking changes:
+
+```
+dependency>=1.2.3,<2.0
+```
+
+This approach ensures:
+- Security patches are automatically available
+- Breaking changes are avoided
+- Supply chain integrity is maintained
+
+## CI/CD Security
+
+All commits to main and develop branches undergo automated security checks:
+
+1. REUSE Compliance: License header verification for all files
+2. Code Quality: Black, isort, ruff, mypy formatting and linting
+3. Security Scanning: bandit for code vulnerabilities, Safety for dependencies
+4. Test Coverage: pytest with minimum coverage thresholds
+5. Dependency Analysis: Dependabot for outdated packages
+6. Build Artifacts: Verified and scanned before deployment
+
+## Compliance Standards
+
+spotforecast2-safe follows these compliance standards:
+
+- REUSE Compliant: All files have SPDX license identifiers
+- SPDX: Standards-based license tracking
+- EU AI Act Ready: Support for compliance via [MODEL_CARD.md](safe/MODEL_CARD.qmd)
+- OpenSSF Scorecard: Monitored for security practices
+- Python 3.13+: Requires latest Python version for security patches
+
+## Contact
+
+For security inquiries:
+
+- Vulnerability Reports: Use [Private Security Advisory](https://github.com/sequential-parameter-optimization/spotforecast2-safe/security/advisories)
+- Alternative Email: bartzbeielstein@users.noreply.github.com
+- General Inquiries: https://github.com/sequential-parameter-optimization
+- Security Advisories: https://github.com/sequential-parameter-optimization/spotforecast2-safe/security/advisories
+
+## See Also
+
+- [Model/Method Card](safe/MODEL_CARD.qmd) - System design and compliance documentation
+- [Contributing Guide](contributing.qmd) - How to contribute safely
+- CHANGELOG.md - Release notes and security patches (in repository)
+- [GitHub Security Advisories](https://github.com/sequential-parameter-optimization/spotforecast2-safe/security/advisories) - Published advisories
+
+---
+
+Last Updated: February 2026

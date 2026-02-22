@@ -1,0 +1,90 @@
+# downloader.entsoe.download_new_data { #spotforecast2_safe.downloader.entsoe.download_new_data }
+
+```python
+downloader.entsoe.download_new_data(
+    api_key,
+    country_code='FR',
+    start=None,
+    end=None,
+    force=False,
+)
+```
+
+Download new load and forecast data from ENTSO-E.
+
+This function queries the ENTSO-E Transparency Platform for a given period.
+If no start date is provided, it automatically resumes from the last
+available data point.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type                                          | Description                                                     | Default    |
+|--------------|-----------------------------------------------|-----------------------------------------------------------------|------------|
+| api_key      | [str](`str`)                                  | The ENTSO-E API key.                                            | _required_ |
+| country_code | [str](`str`)                                  | The country code to query (e.g., 'FR', 'DE'). Defaults to "FR". | `'FR'`     |
+| start        | [Optional](`typing.Optional`)\[[str](`str`)\] | Start date in 'YYYYMMDDHH00' format.                            | `None`     |
+| end          | [Optional](`typing.Optional`)\[[str](`str`)\] | End date in 'YYYYMMDDHH00' format.                              | `None`     |
+| force        | [bool](`bool`)                                | If True, bypass the 24h cooldown check.                         | `False`    |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                         | Description                                         |
+|--------|------------------------------|-----------------------------------------------------|
+|        | [ImportError](`ImportError`) | If the Python package 'entsoe-py' is not installed. |
+|        | [ValueError](`ValueError`)   | If data fetching fails after retries.               |
+
+## Notes {.doc-section .doc-section-notes}
+
+Logging information can be selected by setting the log level for the
+`spotforecast2_safe.downloader.entsoe` logger. Common levels are
+`DEBUG`, `INFO`, `WARNING`, `ERROR`, and `CRITICAL`. For example, to
+show only warnings and errors (default):
+import logging;
+logging.getLogger("spotforecast2_safe.downloader.entsoe").setLevel(logging.WARNING)
+to show informative messages about the merging process
+import logging;
+logging.getLogger("spotforecast2_safe.downloader.entsoe").setLevel(logging.INFO)
+to show detailed debug information:
+import logging;
+logging.getLogger("spotforecast2_safe.downloader.entsoe").setLevel(logging.DEBUG)
+
+## Examples {.doc-section .doc-section-examples}
+
+# Example 1: Basic download for Germany with specific start/end dates
+
+```python
+>>> from spotforecast2_safe.downloader.entsoe import download_new_data
+>>> try:
+...     download_new_data(
+...         api_key="YOUR_API_KEY",
+...         country_code="DE",
+...         start="202301010000",
+...         end="202301020000",
+...         force=True
+...     )
+... except (ImportError, ValueError, Exception):
+...     # In a real scenario, handle errors appropriately
+...     pass
+```
+
+# Example 2: Incremental download (automatically resumes from last data point)
+
+```python
+>>> try:
+...     download_new_data(api_key="YOUR_API_KEY", country_code="FR")
+... except (ImportError, Exception):
+...     pass
+```
+
+# Example 3: Forced download bypassing the 24h cooldown check
+
+```python
+>>> try:
+...     download_new_data(
+...         api_key="YOUR_API_KEY",
+...         country_code="DE",
+...         force=True
+...     )
+... except (ImportError, Exception):
+...     pass
+```

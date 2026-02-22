@@ -1,0 +1,53 @@
+# Model Persistence
+
+Guide for saving and loading trained forecasting models.
+
+## Overview
+
+The model persistence functionality enables you to:
+- Save trained forecasters to disk
+- Load previously trained models
+- Manage model caching
+- Handle batch model operations
+
+## Functions
+
+::: {.callout-tip}
+## API Reference
+Full API documentation for all model persistence functions
+(`_save_forecasters`, `_load_forecasters`, `_ensure_model_dir`,
+`_model_directory_exists`) is auto-generated in the
+[Processing Reference](../reference/processing.qmd).
+:::
+
+### Saving Models
+
+See [`_save_forecasters`](../reference/processing.qmd) in the API reference.
+
+### Loading Models
+
+See [`_load_forecasters`](../reference/processing.qmd) in the API reference.
+
+### Model Directory Management
+
+See [`_ensure_model_dir`](../reference/processing.qmd) and
+[`_model_directory_exists`](../reference/processing.qmd) in the API reference.
+
+## Examples
+
+```python
+from spotforecast2_safe.manager.persistence import (
+    _save_forecasters,
+    _load_forecasters,
+)
+
+# Save trained models
+trained_forecasters = {...}  # Your trained forecasters
+_save_forecasters(trained_forecasters, model_dir="models/")
+
+# Load previously trained models
+forecasters, missing = _load_forecasters(
+    target_columns=["power"], 
+    model_dir="models/"
+)
+```

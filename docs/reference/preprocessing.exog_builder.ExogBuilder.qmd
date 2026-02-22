@@ -1,0 +1,84 @@
+# preprocessing.exog_builder.ExogBuilder { #spotforecast2_safe.preprocessing.exog_builder.ExogBuilder }
+
+```python
+preprocessing.exog_builder.ExogBuilder(periods=None, country_code=None)
+```
+
+Builds a set of exogenous features for a given date range.
+
+This builder combines temporal features (day of year, day of week, hour, etc.)
+with cyclical features encoded via RepeatingBasisFunctions and optional
+holiday indicators.
+
+## Attributes {.doc-section .doc-section-attributes}
+
+| Name          | Type                                                                                          | Description                                 |
+|---------------|-----------------------------------------------------------------------------------------------|---------------------------------------------|
+| periods       | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.data.Period`)\]                      | List of periodic features to encode.        |
+| country_code  | [Optional](`typing.Optional`)\[[str](`str`)\]                                                 | Country code for holiday lookups.           |
+| holidays_list | [Optional](`typing.Optional`)\[[holidays](`holidays`).[HolidayBase](`holidays.HolidayBase`)\] | List of holidays for the specified country. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> from spotforecast2_safe.data.data import Period
+>>> from spotforecast2_safe.preprocessing.exog_builder import ExogBuilder
+>>> periods = [Period(name="hour", n_periods=24, column="hour", input_range=(0, 23))]
+>>> builder = ExogBuilder(periods=periods, country_code="DE")
+>>> start = pd.Timestamp("2025-01-01", tz="UTC")
+>>> end = pd.Timestamp("2025-01-02", tz="UTC")
+>>> exog = builder.build(start, end)
+>>> exog.shape[1] > 0
+True
+```
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [build](#spotforecast2_safe.preprocessing.exog_builder.ExogBuilder.build) | Build the exogenous feature DataFrame for a date range. |
+
+### build { #spotforecast2_safe.preprocessing.exog_builder.ExogBuilder.build }
+
+```python
+preprocessing.exog_builder.ExogBuilder.build(start_date, end_date)
+```
+
+Build the exogenous feature DataFrame for a date range.
+
+The generated DataFrame has an hourly frequency.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type                                           | Description                          | Default    |
+|------------|------------------------------------------------|--------------------------------------|------------|
+| start_date | [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | Start of the date range (inclusive). | _required_ |
+| end_date   | [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | End of the date range (inclusive).   | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                            |
+|--------|------------------------------------------------|--------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: DataFrame containing exogenous features. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                   |
+|--------|----------------------------|-------------------------------|
+|        | [ValueError](`ValueError`) | If the date range is invalid. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> from spotforecast2_safe.data.data import Period
+>>> from spotforecast2_safe.preprocessing.exog_builder import ExogBuilder
+>>> periods = [Period(name="hour", n_periods=24, column="hour", input_range=(0, 23))]
+>>> builder = ExogBuilder(periods=periods, country_code="DE")
+>>> start = pd.Timestamp("2025-01-01", tz="UTC")
+>>> end = pd.Timestamp("2025-01-02", tz="UTC")
+>>> exog = builder.build(start, end)
+>>> exog.shape[1] > 0
+True
+```

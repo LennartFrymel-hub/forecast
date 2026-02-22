@@ -1,0 +1,43 @@
+# preprocessing.curate_data.curate_holidays { #spotforecast2_safe.preprocessing.curate_data.curate_holidays }
+
+```python
+preprocessing.curate_data.curate_holidays(holiday_df, data, forecast_horizon)
+```
+
+Checks if the holiday dataframe has the correct shape.
+Args:
+    holiday_df (pd.DataFrame):
+        DataFrame containing holiday information.
+    data (pd.DataFrame):
+        The main dataset.
+    forecast_horizon (int):
+        The forecast horizon in hours.
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data, fetch_holiday_data
+>>> from spotforecast2_safe.preprocessing.curate_data import get_start_end, curate_holidays
+>>> data = fetch_data()
+>>> START, END, COV_START, COV_END = get_start_end(
+...     data=data,
+...     forecast_horizon=24,
+...     verbose=False
+... )
+>>> holiday_df = fetch_holiday_data(
+...     start='2023-01-01T00:00',
+...     end='2023-01-10T00:00',
+...     tz='UTC',
+...     freq='h',
+...     country_code='DE',
+...     state='NW'
+... )
+>>> FORECAST_HORIZON = 24
+>>> curate_holidays(holiday_df, data, forecast_horizon=FORECAST_HORIZON)
+```
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                               | Description                                                        |
+|--------|------------------------------------|--------------------------------------------------------------------|
+|        | [AssertionError](`AssertionError`) | If the holiday dataframe does not have the correct number of rows. |

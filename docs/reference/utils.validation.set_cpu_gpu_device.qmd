@@ -1,0 +1,20 @@
+# utils.validation.set_cpu_gpu_device { #spotforecast2_safe.utils.validation.set_cpu_gpu_device }
+
+```python
+utils.validation.set_cpu_gpu_device(estimator, device='cpu')
+```
+
+Set the device for the estimator to either 'cpu', 'gpu', 'cuda', or None.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type                 | Description                                                                  | Default    |
+|-----------|----------------------|------------------------------------------------------------------------------|------------|
+| estimator | [object](`object`)   | Estimator compatible with the scikit-learn API.                              | _required_ |
+| device    | [str](`str`) \| None | Device to set. Options are 'cpu', 'gpu', 'cuda', or None. Defaults to 'cpu'. | `'cpu'`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                 | Description                                                              |
+|--------|----------------------|--------------------------------------------------------------------------|
+|        | [str](`str`) \| None | The device that was set on the estimator before the function was called. |

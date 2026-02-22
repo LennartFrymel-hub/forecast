@@ -1,0 +1,96 @@
+# model_selection.validation.backtesting_forecaster_one_step { #spotforecast2_safe.model_selection.validation.backtesting_forecaster_one_step }
+
+```python
+model_selection.validation.backtesting_forecaster_one_step(
+    forecaster,
+    y,
+    cv,
+    metric,
+    exog=None,
+    interval=None,
+    interval_method='bootstrapping',
+    n_boot=250,
+    use_in_sample_residuals=True,
+    use_binned_residuals=True,
+    random_state=123,
+    return_predictors=False,
+    n_jobs='auto',
+    verbose=False,
+    show_progress=True,
+    suppress_warnings=False,
+)
+```
+
+Backtesting of forecaster model using one-step-ahead predictions.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                    | Type                                                                                                                                           | Description                                                                       | Default           |
+|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|-------------------|
+| forecaster              | ([ForecasterRecursive](`ForecasterRecursive`), [ForecasterDirect](`ForecasterDirect`), [ForecasterEquivalentDate](`ForecasterEquivalentDate`)) | Forecaster model.                                                                 | _required_        |
+| y                       | [pd](`pandas`).[Series](`pandas.Series`)                                                                                                       | Training time series.                                                             | _required_        |
+| cv                      | [OneStepAheadFold](`spotforecast2_safe.model_selection.split_one_step.OneStepAheadFold`)                                                       | OneStepAheadFold object with the information needed to split the data into folds. | _required_        |
+| metric                  | [str](`str`) \| [Callable](`typing.Callable`) \| [list](`list`)                                                                                | Metric used to quantify the goodness of fit of the model.                         | _required_        |
+| exog                    | [pd](`pandas`).[Series](`pandas.Series`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                     | Exogenous variable/s included as predictor/s. Defaults to None.                   | `None`            |
+| interval                | [float](`float`) \| [list](`list`) \| [tuple](`tuple`) \| [str](`str`) \| [object](`object`)                                                   | Specifies whether probabilistic predictions should be estimated.                  | `None`            |
+| interval_method         | [str](`str`)                                                                                                                                   | Technique used to estimate prediction intervals.                                  | `'bootstrapping'` |
+| n_boot                  | [int](`int`)                                                                                                                                   | Number of bootstrapping iterations.                                               | `250`             |
+| use_in_sample_residuals | [bool](`bool`)                                                                                                                                 | Use residuals from training data.                                                 | `True`            |
+| use_binned_residuals    | [bool](`bool`)                                                                                                                                 | Use binned residuals for intervals.                                               | `True`            |
+| random_state            | [int](`int`)                                                                                                                                   | Seed for reproducibility.                                                         | `123`             |
+| return_predictors       | [bool](`bool`)                                                                                                                                 | Return predictors used for each prediction.                                       | `False`           |
+| n_jobs                  | [int](`int`) \| [str](`str`)                                                                                                                   | Number of jobs to run in parallel.                                                | `'auto'`          |
+| verbose                 | [bool](`bool`)                                                                                                                                 | Print information about the process.                                              | `False`           |
+| show_progress           | [bool](`bool`)                                                                                                                                 | Whether to show a progress bar.                                                   | `True`            |
+| suppress_warnings       | [bool](`bool`)                                                                                                                                 | Suppress spotforecast warnings.                                                   | `False`           |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                             | Description                                                                               |
+|--------|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| tuple  | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)) | - metric_values: Value(s) of the metric(s). - backtest_predictions: Value of predictions. |
+
+## Notes {.doc-section .doc-section-notes}
+
+This function is designed for one-step-ahead backtesting,
+where predictions are made for the next time step using the most recent data. The function handles the fitting and
+prediction process for each fold defined in the `OneStepAheadFold` object,
+and calculates the specified metric(s) based on the true and predicted values.
+Depending on the `interval` and `interval_method` parameters, it can also generate probabilistic predictions.
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.forecaster import ForecasterRecursive
+>>> from spotforecast2_safe.model_selection.split_one_step import OneStepAheadFold
+>>> from spotforecast2_safe.model_selection.validation import backtesting_forecaster_one_step
+>>> # Create a forecaster and a one-step-ahead fold
+>>> import numpy as np
+>>> import pandas as pd
+>>> from sklearn.linear_model import LinearRegression
+>>> y = pd.Series(np.random.randn(100), name='y')
+>>> forecaster = ForecasterRecursive(estimator=LinearRegression(), lags=5)
+>>> cv = OneStepAheadFold(initial_train_size=20, window_size=5)
+>>> # Perform backtesting
+>>> metric_values, backtest_predictions = backtesting_forecaster_one_step(
+...     forecaster=forecaster,
+...     y=y,
+...     cv=cv,
+...     metric='mean_squared_error',
+...     exog=None,
+...     interval=0.95,
+...     interval_method='bootstrapping',
+...     n_boot=20,
+...     use_in_sample_residuals=True,
+...     use_binned_residuals=False,
+...     random_state=42,
+...     return_predictors=False,
+...     n_jobs=1,
+...     verbose=True,
+...     show_progress=True,
+...     suppress_warnings=False
+... )
+# Note: For reliable bootstrapping with binned residuals, use a sufficiently large series and value spread.
+# For random data, use_binned_residuals=False.
+# TODO: Setting return_predictors=True requires ForecasterRecursive.create_predict_X().
+```

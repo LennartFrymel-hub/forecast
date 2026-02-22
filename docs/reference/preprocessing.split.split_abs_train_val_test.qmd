@@ -1,0 +1,42 @@
+# preprocessing.split.split_abs_train_val_test { #spotforecast2_safe.preprocessing.split.split_abs_train_val_test }
+
+```python
+preprocessing.split.split_abs_train_val_test(
+    data,
+    end_train,
+    end_validation,
+    verbose=False,
+)
+```
+
+Splits a time series DataFrame into training, validation, and test sets based on absolute timestamps.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name           | Type                                           | Description                                | Default    |
+|----------------|------------------------------------------------|--------------------------------------------|------------|
+| data           | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The time series data with a DateTimeIndex. | _required_ |
+| end_train      | [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | The end date for the training set.         | _required_ |
+| end_validation | [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | The end date for the validation set.       | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                                               | Description                                                                                                                                                 |
+|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | A tuple containing: - data_train (pd.DataFrame): The training set. - data_val (pd.DataFrame): The validation set. - data_test (pd.DataFrame): The test set. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.data.fetch_data import fetch_data
+>>> from spotforecast2_safe.preprocessing.split import split_train_val_test
+>>> data = fetch_data()
+>>> end_train = pd.Timestamp('2020-12-31 23:00:00')
+>>> end_validation = pd.Timestamp('2021-06-30 23:00:00')
+>>> data_train, data_val, data_test = split_train_val_test(
+...     data,
+...     end_train=end_train,
+...     end_validation=end_validation,
+...     verbose=True
+... )
+```

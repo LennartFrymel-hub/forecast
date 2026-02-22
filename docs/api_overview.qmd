@@ -1,0 +1,300 @@
+# API Overview & Getting Started
+
+This page provides a high-level introduction to spotforecast2-safe's public API and key concepts. For detailed API documentation, see the [API Reference](reference/data.fetch_data.fetch_data.qmd).
+
+## Main Entry Points
+
+The spotforecast2-safe library organizes functionality into six major modules:
+
+- Data: Fetching and managing time series, weather, and holiday data
+- Preprocessing: Feature engineering, data curation, and transformation
+- Processing: Utilities for handling timestamps and temporal conversions
+- Forecaster: Recursive forecasting models (ForecasterRecursive, ForecasterEquivalentDate)
+- Utils: CPE generation, configuration, validation, and helper functions
+- Weather: Climate data integration
+
+## Quick Start
+
+### 1. Import Core Components
+
+```python
+from spotforecast2_safe.data import Period
+from spotforecast2_safe.preprocessing import (
+    ExogBuilder,
+    RollingFeatures,
+)
+from spotforecast2_safe.manager.models import (
+    ForecasterRecursiveXGB,
+    ForecasterRecursiveLGBM,
+    ForecasterRecursiveModel,
+)
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+from spotforecast2_safe.utils import generate_holiday
+```
+
+### 2. Load & Prepare Data
+
+```python
+import pandas as pd
+import numpy as np
+
+# Create sample time series data
+dates = pd.date_range('2020-01-01', periods=100, freq='D')
+values = np.random.randn(100).cumsum()
+df = pd.DataFrame({'date': dates, 'value': values})
+df.set_index('date', inplace=True)
+```
+
+### 3. Define Forecasting Period
+
+```python
+# Define train/test split for temporal validation
+period = Period(
+    train_end='2022-12-31',
+    test_start='2023-01-01',
+    test_end='2023-12-31'
+)
+```
+
+### 4. Create Rolling Features
+
+```python
+# Transform time series into lag features for supervised learning
+rolling_features = RollingFeatures(
+    window_size=7,  # Use 7-day history
+    include_autocorrelated_features=True
+)
+
+X, y = rolling_features.fit_transform(df['value'])
+```
+
+### 5. Train Recursive Forecaster
+
+```python
+# Initialize forecaster with LightGBM backend
+forecaster = ForecasterRecursiveLGBM(
+    steps_ahead=30,  # Forecast 30 days ahead
+    window_size=7,   # Use 7-day history
+)
+
+# Train on historical data
+forecaster.fit(X_train, y_train)
+
+# Forecast future values
+y_pred = forecaster.predict(steps=30)
+```
+
+## Key Concepts
+
+### Period Management
+
+The `Period` class encapsulates temporal information for train/test splits:
+
+```python
+from spotforecast2_safe.data import Period
+
+period = Period(
+    train_end='2023-06-30',
+    test_start='2023-07-01',
+    test_end='2023-12-31'
+)
+```
+
+See [Period API](reference/data.fetch_data.fetch_data.qmd) for details.
+
+### Recursive Forecasting
+
+Recursive forecasting predicts multiple steps ahead by feeding model predictions back as inputs. The main classes are:
+
+- `ForecasterRecursive`: Base class for recursive forecasters
+- `ForecasterRecursiveLGBM`: LightGBM implementation (recommended for most use cases)
+- `ForecasterRecursiveXGB`: XGBoost implementation
+
+```python
+from spotforecast2_safe.preprocessing import ForecasterRecursiveLGBM
+
+forecaster = ForecasterRecursiveLGBM(
+    steps_ahead=30,
+    window_size=7,
+    verbose=True
+)
+forecaster.fit(X_train, y_train)
+forecast = forecaster.predict(steps=30)
+```
+
+See [ForecasterRecursive Guide](recursive/ForecasterRecursive.qmd) for detailed examples.
+
+### Feature Engineering
+
+The `ExogBuilder` class constructs exogenous (external) features:
+
+```python
+from spotforecast2_safe.preprocessing import ExogBuilder
+
+builder = ExogBuilder(
+    df_exog=weather_data,  # External variables (e.g., temperature)
+    include_lag_features=True
+)
+
+X_with_exog = builder.transform(X)
+```
+
+### Holiday Integration
+
+Generate holiday calendars for demand forecasting:
+
+```python
+from spotforecast2_safe.utils import generate_holiday
+
+holidays = generate_holiday(
+    country='US',
+    year=2023
+)
+```
+
+See [Holiday Generation API](reference/utils.qmd) for details.
+
+## Model Persistence (Saving/Loading)
+
+Save trained models for production deployment:
+
+```python
+from spotforecast2_safe.manager.persistence import save_model, load_model
+
+# Save model and metadata
+save_model(forecaster, 'my_forecaster.pkl')
+
+# Load in production
+forecaster = load_model('my_forecaster.pkl')
+```
+
+See [Model Persistence Guide](processing/model_persistence.qmd) for details.
+
+## Safety-Critical Properties
+
+All spotforecast2-safe operations maintain these critical properties:
+
+### Determinism
+
+Same input always produces identical output (bit-level reproducible):
+
+```python
+X, y1 = rolling_features.fit_transform(df['value'])
+X, y2 = rolling_features.fit_transform(df['value'])
+assert np.array_equal(y1, y2)  # True
+```
+
+### Fail-Safe Operation
+
+Invalid data raises explicit errors instead of silent failures:
+
+```python
+# This raises ValueError, not NaN propagation
+df_with_nans = pd.DataFrame({'value': [1, np.nan, 3]})
+try:
+    X, y = rolling_features.fit_transform(df_with_nans['value'])
+except ValueError as e:
+    print(f"Data validation error: {e}")
+```
+
+### Auditability
+
+All transformations are traceable with clear, white-box code:
+
+```python
+# Source code is visible via:
+# 1. Docstrings (in editor)
+# 2. Automatic API documentation (mkdocs)
+# 3. GitHub repository
+```
+
+## Complete Example: End-to-End Forecasting
+
+```python
+import pandas as pd
+import numpy as np
+from spotforecast2_safe.preprocessing import ForecasterRecursiveLGBM, RollingFeatures
+from spotforecast2_safe.data import Period
+from spotforecast2_safe.utils import generate_holiday
+
+# 1. Prepare data
+dates = pd.date_range('2020-01-01', periods=365*3, freq='D')
+values = np.sin(np.arange(len(dates))*2*np.pi/365) + np.random.randn(len(dates))*0.1
+df = pd.DataFrame({'date': dates, 'value': values})
+df.set_index('date', inplace=True)
+
+# 2. Define periods
+period = Period(
+    train_end='2022-12-31',
+    test_start='2023-01-01',
+    test_end='2023-12-31'
+)
+
+# 3. Create features
+rolling = RollingFeatures(window_size=14)
+X, y = rolling.fit_transform(df['value'])
+
+# 4. Split data
+train_mask = df.index <= period.train_end
+X_train, y_train = X[train_mask], y[train_mask]
+X_test, y_test = X[~train_mask], y[~train_mask]
+
+# 5. Train forecaster
+forecaster = ForecasterRecursiveLGBM(steps_ahead=30, window_size=14)
+forecaster.fit(X_train, y_train)
+
+# 6. Generate forecast
+forecast = forecaster.predict(steps=30)
+print(f"30-day forecast: {forecast}")
+```
+
+## Documentation Organization
+
+The complete documentation is organized as follows:
+
+- Home (this page): High-level overview
+- API Reference: Detailed API documentation by module
+  - [Data Module](reference/data.fetch_data.fetch_data.qmd): Data fetching and Period management
+  - [Preprocessing Module](reference/preprocessing.qmd): Feature engineering and forecasters
+  - [Processing Module](reference/processing.qmd): Utilities for timestamps and conversions
+  - [Utils Module](reference/utils.qmd): Helper functions and CPE generation
+  - [Weather Module](reference/weather.qmd): Climate data integration
+  - [Exceptions](reference/exceptions.qmd): Error types and documentation
+- Guides: Practical examples and workflows
+  - [ForecasterRecursive Guide](recursive/ForecasterRecursive.qmd): Advanced forecasting techniques
+  - [Model Persistence](processing/model_persistence.qmd): Production deployment
+- Safety & Compliance: Documentation for auditors and compliance
+  - [Model/Method Card](safe/MODEL_CARD.qmd): Compliance and safety design
+  - [Contributing Guide](contributing.qmd): How to contribute to the project
+
+## Next Steps
+
+1. Quick Start: Follow the [Quick Start](#quick-start) example above
+2. Learn Core Concepts: Read about [Period Management](#period-management) and [Recursive Forecasting](#recursive-forecasting)
+3. Explore Examples: Check out [ForecasterRecursive Guide](recursive/ForecasterRecursive.qmd)
+4. API Reference: Dive into specific modules in [API Documentation](reference/data.fetch_data.fetch_data.qmd)
+5. Contribute: See [Contributing Guide](contributing.qmd) to contribute improvements
+
+## Troubleshooting
+
+For common issues and solutions:
+
+- Data validation errors: Ensure all input data is clean (no NaNs or Infs)
+- Import errors: Verify the package is installed with `uv sync`
+- Version compatibility: Check you're using Python 3.13 or later
+
+Before reporting a new issue, search the publicly available archives:
+
+- [Issues Archive](https://github.com/sequential-parameter-optimization/spotforecast2-safe/issues): Browse all reported bugs, feature requests, and their resolutions. Use the search feature to find similar problems.
+- [Discussions Archive](https://github.com/sequential-parameter-optimization/spotforecast2-safe/discussions): Search community questions and answers for help with common tasks.
+
+If you don't find a solution, see the [Reporting Issues guide](contributing.qmd#reporting-issues) to submit a new bug report.
+For more help, see the project's [GitHub Issues](https://github.com/sequential-parameter-optimization/spotforecast2-safe/issues).
+
+## See Also
+
+- [Complete API Reference](reference/data.fetch_data.fetch_data.qmd)
+- [Model/Method Card](safe/MODEL_CARD.qmd)
+- [Security Policy](security.qmd) - Vulnerability reporting and security best practices
+- [Contributing Guide](contributing.qmd)
+- [GitHub Repository](https://github.com/sequential-parameter-optimization/spotforecast2-safe)

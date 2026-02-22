@@ -1,0 +1,69 @@
+# utils.cpe.get_cpe_identifier { #spotforecast2_safe.utils.cpe.get_cpe_identifier }
+
+```python
+utils.cpe.get_cpe_identifier(version='*')
+```
+
+Generates the CPE 2.3 identifier for the spotforecast2-safe project.
+
+This function constructs a Common Platform Enumeration (CPE) 2.3 formatted
+string that uniquely identifies the spotforecast2-safe software. CPE
+identifiers are standardized by NIST and are essential for vulnerability
+tracking, software inventory management, and compliance documentation
+(e.g., EU AI Act, SBOM generation).
+
+## The returned CPE follows the format {.doc-section .doc-section-the-returned-cpe-follows-the-format}
+
+cpe:2.3:part:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name    | Type         | Description                                                                                                                                                        | Default   |
+|---------|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| version | [str](`str`) | The specific version of the software. Use wildcard "*" to match all versions, or provide a semantic version string (e.g., "0.8.0", "0.8.0-rc.1"). Defaults to "*". | `'*'`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type         | Description                                           |
+|--------|--------------|-------------------------------------------------------|
+| str    | [str](`str`) | The formatted Common Platform Enumeration 2.3 string. |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                     | Description                 |
+|--------|--------------------------|-----------------------------|
+|        | [TypeError](`TypeError`) | If version is not a string. |
+
+## Examples {.doc-section .doc-section-examples}
+
+Generate a CPE identifier for all versions of spotforecast2-safe:
+
+```python
+>>> get_cpe_identifier()
+'cpe:2.3:a:sequential_parameter_optimization:spotforecast2_safe:*:*:*:*:*:*:*:*'
+```
+
+Generate a CPE identifier for a specific release version:
+
+```python
+>>> get_cpe_identifier("0.8.0")
+'cpe:2.3:a:sequential_parameter_optimization:spotforecast2_safe:0.8.0:*:*:*:*:*:*:*'
+```
+
+Generate a CPE identifier for a release candidate version:
+
+```python
+>>> get_cpe_identifier("0.8.0-rc.1")
+'cpe:2.3:a:sequential_parameter_optimization:spotforecast2_safe:0.8.0-rc.1:*:*:*:*:*:*:*'
+```
+
+## Note {.doc-section .doc-section-note}
+
+This function is used in compliance documentation, SBOM (Software Bill of
+Materials) generation, and vulnerability tracking. The CPE identifier
+should be included in release notes and security advisories.
+
+## See Also {.doc-section .doc-section-see-also}
+
+For more information on CPE 2.3 specification, visit:
+https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-188.pdf

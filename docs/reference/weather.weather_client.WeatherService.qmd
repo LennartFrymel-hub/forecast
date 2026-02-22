@@ -1,0 +1,37 @@
+# weather.weather_client.WeatherService { #spotforecast2_safe.weather.weather_client.WeatherService }
+
+```python
+weather.weather_client.WeatherService(
+    latitude,
+    longitude,
+    cache_path=None,
+    use_forecast=True,
+)
+```
+
+High-level service for weather data generation.
+
+Extends WeatherClient with caching, hybrid fetching (archive+forecast),
+and fallback strategies.
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [get_dataframe](#spotforecast2_safe.weather.weather_client.WeatherService.get_dataframe) | Get weather DataFrame for a specified range using best available methods. |
+
+### get_dataframe { #spotforecast2_safe.weather.weather_client.WeatherService.get_dataframe }
+
+```python
+weather.weather_client.WeatherService.get_dataframe(
+    start,
+    end,
+    timezone='UTC',
+    freq='h',
+    fallback_on_failure=True,
+)
+```
+
+Get weather DataFrame for a specified range using best available methods.
+
+Refactored from spotpredict.create_weather_df.

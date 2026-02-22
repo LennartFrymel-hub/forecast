@@ -1,0 +1,48 @@
+# utils.validation.check_residuals_input { #spotforecast2_safe.utils.validation.check_residuals_input }
+
+```python
+utils.validation.check_residuals_input(
+    forecaster_name,
+    use_in_sample_residuals,
+    in_sample_residuals_,
+    out_sample_residuals_,
+    use_binned_residuals,
+    in_sample_residuals_by_bin_,
+    out_sample_residuals_by_bin_,
+    levels=None,
+    encoding=None,
+)
+```
+
+Check residuals input arguments in Forecasters.
+
+
+
+## Parameters {.doc-section .doc-section-parameters}
+
+forecaster_name : str
+    Forecaster name.
+use_in_sample_residuals : bool
+    Indicates if in sample or out sample residuals are used.
+in_sample_residuals_ : numpy ndarray, dict
+    Residuals of the model when predicting training data.
+out_sample_residuals_ : numpy ndarray, dict
+    Residuals of the model when predicting non training data.
+use_binned_residuals : bool
+    Indicates if residuals are binned.
+in_sample_residuals_by_bin_ : dict
+    In sample residuals binned according to the predicted value each residual
+    is associated with.
+out_sample_residuals_by_bin_ : dict
+    Out of sample residuals binned according to the predicted value each residual
+    is associated with.
+levels : list, default None
+    Names of the series (levels) to be predicted (Forecasters multiseries).
+encoding : str, default None
+    Encoding used to identify the different series (ForecasterRecursiveMultiSeries).
+
+
+
+## Returns {.doc-section .doc-section-returns}
+
+None

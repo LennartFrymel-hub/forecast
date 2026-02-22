@@ -1,0 +1,42 @@
+# forecaster.metrics.root_mean_squared_scaled_error { #spotforecast2_safe.forecaster.metrics.root_mean_squared_scaled_error }
+
+```python
+forecaster.metrics.root_mean_squared_scaled_error(y_true, y_pred, y_train)
+```
+
+Root Mean Squared Scaled Error (RMSSE).
+
+RMSSE is a scale-independent error metric that measures the accuracy of
+a forecast. It is the root mean squared error of the forecast divided by
+the root mean squared error of a naive forecast in the training set. The
+naive forecast is the one obtained by shifting the time series by one period.
+If y_train is a list of numpy arrays or pandas Series, it is considered
+that each element is the true value of the target variable in the training
+set for each time series. In this case, the naive forecast is calculated
+for each time series separately.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name    | Type                                                                                                                       | Description                                                                                                                                                                          | Default    |
+|---------|----------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| y_true  | [np](`numpy`).[ndarray](`numpy.ndarray`) \| [pd](`pandas`).[Series](`pandas.Series`)                                       | True values of the target variable.                                                                                                                                                  | _required_ |
+| y_pred  | [np](`numpy`).[ndarray](`numpy.ndarray`) \| [pd](`pandas`).[Series](`pandas.Series`)                                       | Predicted values of the target variable.                                                                                                                                             | _required_ |
+| y_train | [list](`list`)\[[float](`float`)\] \| [np](`numpy`).[ndarray](`numpy.ndarray`) \| [pd](`pandas`).[Series](`pandas.Series`) | True values of the target variable in the training set. If list, it is consider that each element is the true value of the target variable in the training set for each time series. | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type             | Description   |
+|--------|------------------|---------------|
+|        | [float](`float`) | RMSSE value.  |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2.forecaster.metrics import root_mean_squared_scaled_error
+>>> y_train = np.array([1, 2, 3, 4, 5, 6, 7, 8])
+>>> y_true = np.array([9, 10, 11])
+>>> y_pred = np.array([8.8, 10.2, 10.9])
+>>> rmsse = root_mean_squared_scaled_error(y_true, y_pred, y_train)
+>>> rmsse < 1.0  # Good forecast
+True
+```
