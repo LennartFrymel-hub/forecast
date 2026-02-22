@@ -239,6 +239,7 @@ codeql-custom-queries-python/example.ql
 /_variables.yml
 
 # quartodoc interlink inventory (regenerated on each build)
+/_inv/
 /objects.json
 
 # Old MkDocs config backup

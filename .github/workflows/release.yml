@@ -81,20 +81,39 @@ jobs:
           skip-existing: true
           # Note: No token needed with Trusted Publishers (OIDC)
       
+      - name: Install Quarto CLI
+        if: success()
+        uses: quarto-dev/quarto-actions/setup@8a96df13519ee81fd526f2dfca5962811136661b  # v2.2.0
+        with:
+          version: "1.7.29"
+      
+      - name: Generate API reference stubs
+        if: success()
+        run: |
+          uv run python docs/quartodoc_build.py
+          uv run quartodoc interlinks
+
       - name: Build documentation
         if: success()
         run: |
-          mkdocs build
+          quarto render --no-cache
       
-      - name: Deploy documentation
+      - name: Setup Git Credentials for Publish
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
-          mkdocs gh-deploy --force
+
+      - name: Deploy documentation
+        if: success()
+        uses: quarto-dev/quarto-actions/publish@8a96df13519ee81fd526f2dfca5962811136661b  # v2.2.0
+        with:
+          target: gh-pages
+          path: _site
+          render: "false"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Verify PyPI Release
         if: success()
