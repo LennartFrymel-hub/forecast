@@ -1,3 +1,24 @@
+## [0.16.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0...v0.16.1-rc.1) (2026-02-22)
+
+
+### Bug Fixes
+
+* unpinned ([ce6fa79](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/ce6fa79698da67601bd4714105f35dc422b0444a))
+* workflow identation error ([2d04d4f](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/2d04d4fbbd758f68cc30208c3291262437d1c906))
+
+
+### Documentation
+
+* migrate from MkDocs to Quarto with quartodoc API generation ([8942820](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/8942820273681166c0b88b5fa29beb0bddaa91de))
+
+## [0.16.0-rc.4](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0-rc.3...v0.16.0-rc.4) (2026-02-22)
+
+
+### Bug Fixes
+
+* workflow identation error ([2d04d4f](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/2d04d4fbbd758f68cc30208c3291262437d1c906))
+
+## [0.16.0-rc.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0-rc.2...v0.16.0-rc.3) (2026-02-22)
 ## [0.16.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.15.3...v0.16.0) (2026-02-20)
 
 
@@ -8,6 +29,12 @@
 
 ### Bug Fixes
 
+* unpinned ([ce6fa79](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/ce6fa79698da67601bd4714105f35dc422b0444a))
+
+
+### Documentation
+
+* migrate from MkDocs to Quarto with quartodoc API generation ([8942820](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/8942820273681166c0b88b5fa29beb0bddaa91de))
 * version update ([9e34c87](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/9e34c878778242769cc2568bf6c9febc33563413))
 
 ## [0.16.0-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0-rc.1...v0.16.0-rc.2) (2026-02-20)
@@ -17,21 +44,18 @@
 
 * version update ([9e34c87](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/9e34c878778242769cc2568bf6c9febc33563413))
 
-<<<<<<< develop
 ## [0.16.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.15.3-rc.1...v0.16.0-rc.1) (2026-02-20)
 
 
 ### Features
 
 * hardened trainer ([42cd768](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/42cd768b195467f8db32fdd8e63423b18e0357d2))
-=======
 ## [0.15.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.15.2...v0.15.3) (2026-02-20)
 
 
 ### Bug Fixes
 
 * cleaup trainer ([f192a22](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/f192a222ccc382e0702e2306f238b8c4c01cddb1))
->>>>>>> main
 
 ## [0.15.3-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.15.2...v0.15.3-rc.1) (2026-02-20)
 
