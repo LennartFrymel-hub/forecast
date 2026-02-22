@@ -1,3 +1,10 @@
+## [0.16.0-rc.4](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0-rc.3...v0.16.0-rc.4) (2026-02-22)
+
+
+### Bug Fixes
+
+* workflow identation error ([2d04d4f](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/2d04d4fbbd758f68cc30208c3291262437d1c906))
+
 ## [0.16.0-rc.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0-rc.2...v0.16.0-rc.3) (2026-02-22)
 
 
