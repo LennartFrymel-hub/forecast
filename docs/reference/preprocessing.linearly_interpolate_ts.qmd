@@ -1,0 +1,104 @@
+# preprocessing.linearly_interpolate_ts { #spotforecast2_safe.preprocessing.linearly_interpolate_ts }
+
+`preprocessing.linearly_interpolate_ts`
+
+Linear interpolation transformer for time series data.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [LinearlyInterpolateTS](#spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS) | Transformer that applies linear interpolation to time series data. |
+
+### LinearlyInterpolateTS { #spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS }
+
+```python
+preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS()
+```
+
+Transformer that applies linear interpolation to time series data.
+
+This transformer fills missing values using linear interpolation and
+forward-fills any remaining gaps (e.g., at the end of the series).
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.preprocessing.linearly_interpolate_ts import LinearlyInterpolateTS
+>>> s = pd.Series([1.0, np.nan, 3.0, np.nan])
+>>> interpolator = LinearlyInterpolateTS()
+>>> s_filled = interpolator.fit_transform(s)
+>>> s_filled.tolist()
+[1.0, 2.0, 3.0, 3.0]
+```
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [apply](#spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.apply) | Apply linear interpolation and forward-fill. |
+| [fit](#spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.fit) | Fitted transformer (no-op). |
+| [transform](#spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.transform) | Transform the input data by applying linear interpolation. |
+
+##### apply { #spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.apply }
+
+```python
+preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.apply(y)
+```
+
+Apply linear interpolation and forward-fill.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                                                | Description                | Default    |
+|--------|---------------------------------------------------------------------------------------------------------------------|----------------------------|------------|
+| y      | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Input Series or DataFrame. | _required_ |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                | Description                                                    |
+|--------|---------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Union[pd.Series, pd.DataFrame]: Interpolated and ffilled data. |
+
+##### fit { #spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.fit }
+
+```python
+preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.fit(X, y=None)
+```
+
+Fitted transformer (no-op).
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                | Description   | Default    |
+|--------|---------------------|---------------|------------|
+| X      | [Any](`typing.Any`) | Input data.   | _required_ |
+| y      | [Any](`typing.Any`) | Ignored.      | `None`     |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                      | Description             |
+|--------|-----------------------------------------------------------------------------------------------------------|-------------------------|
+| self   | [LinearlyInterpolateTS](`spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS`) | The fitted transformer. |
+
+##### transform { #spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.transform }
+
+```python
+preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.transform(X)
+```
+
+Transform the input data by applying linear interpolation.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                                                | Description                               | Default    |
+|--------|---------------------------------------------------------------------------------------------------------------------|-------------------------------------------|------------|
+| X      | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Input Series or DataFrame to interpolate. | _required_ |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                | Description                                        |
+|--------|---------------------------------------------------------------------------------------------------------------------|----------------------------------------------------|
+|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Union[pd.Series, pd.DataFrame]: Interpolated data. |

@@ -1,0 +1,86 @@
+# model_selection.split_one_step { #spotforecast2_safe.model_selection.split_one_step }
+
+`model_selection.split_one_step`
+
+One step ahead cross-validation splitting.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [OneStepAheadFold](#spotforecast2_safe.model_selection.split_one_step.OneStepAheadFold) | Class to split time series data into train and test folds for one-step-ahead |
+
+### OneStepAheadFold { #spotforecast2_safe.model_selection.split_one_step.OneStepAheadFold }
+
+```python
+model_selection.split_one_step.OneStepAheadFold(
+    initial_train_size,
+    window_size=None,
+    differentiation=None,
+    return_all_indexes=False,
+    verbose=True,
+)
+```
+
+Class to split time series data into train and test folds for one-step-ahead
+forecasting.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name               | Type                                                                           | Description                                                                                                                                                                                                                   | Default    |
+|--------------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| initial_train_size | [int](`int`) \| [str](`str`) \| [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | Number of observations used for initial training.  - If an integer, the number of observations used for initial training. - If a date string or pandas Timestamp, it is the last date included in   the initial training set. | _required_ |
+| window_size        | [int](`int`)                                                                   | Number of observations needed to generate the autoregressive predictors. Defaults to None.                                                                                                                                    | `None`     |
+| differentiation    | [int](`int`)                                                                   | Number of observations to use for differentiation. This is used to extend the `last_window` as many observations as the differentiation order. Defaults to None.                                                              | `None`     |
+| return_all_indexes | [bool](`bool`)                                                                 | Whether to return all indexes or only the start and end indexes of each fold. Defaults to False.                                                                                                                              | `False`    |
+| verbose            | [bool](`bool`)                                                                 | Whether to print information about generated folds. Defaults to True.                                                                                                                                                         | `True`     |
+
+#### Attributes {.doc-section .doc-section-attributes}
+
+
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [split](#spotforecast2_safe.model_selection.split_one_step.OneStepAheadFold.split) | Split the time series data into train and test folds. |
+
+##### split { #spotforecast2_safe.model_selection.split_one_step.OneStepAheadFold.split }
+
+```python
+model_selection.split_one_step.OneStepAheadFold.split(
+    X,
+    as_pandas=False,
+    externally_fitted=None,
+)
+```
+
+Split the time series data into train and test folds.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name              | Type                                                                                                                                                   | Description                                                                                                                           | Default    |
+|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|------------|
+| X                 | [pd](`pandas`).[Series](`pandas.Series`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) \| [pd](`pandas`).[Index](`pandas.Index`) \| [dict](`dict`) | Time series data or index to split.                                                                                                   | _required_ |
+| as_pandas         | [bool](`bool`)                                                                                                                                         | If True, the folds are returned as a DataFrame. This is useful to visualize the folds in a more interpretable way. Defaults to False. | `False`    |
+| externally_fitted | [Any](`typing.Any`)                                                                                                                                    | This argument is not used in this class. It is included for API consistency. Defaults to None.                                        | `None`     |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                             | Description                                                                                                                                  |
+|--------|------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | list \| pd.DataFrame: A list of lists containing the indices (position) of                                                                   |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | the fold. The list contains 2 lists with the following information:                                                                          |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | - fold: fold number.                                                                                                                         |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | - [train_start, train_end]: list with the start and end positions of the training set.                                                       |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | - [test_start, test_end]: list with the start and end positions of the test set. These are the observations used to evaluate the forecaster. |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | - fit_forecaster: boolean indicating whether the forecaster should be fitted in this fold.                                                   |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | It is important to note that the returned values are the positions of the                                                                    |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | observations and not the actual values of the index, so they can be used to                                                                  |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | slice the data directly using iloc.                                                                                                          |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | If `as_pandas` is `True`, the folds are returned as a DataFrame with the                                                                     |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | following columns: 'fold', 'train_start', 'train_end', 'test_start',                                                                         |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | 'test_end', 'fit_forecaster'.                                                                                                                |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | Following the python convention, the start index is inclusive and the end                                                                    |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | index is exclusive. This means that the last index is not included in the                                                                    |
+|        | [list](`list`) \| [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | slice.                                                                                                                                       |

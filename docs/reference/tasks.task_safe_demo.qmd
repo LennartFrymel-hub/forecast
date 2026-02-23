@@ -1,0 +1,60 @@
+# tasks.task_safe_demo { #spotforecast2_safe.tasks.task_safe_demo }
+
+`tasks.task_safe_demo`
+
+Task demo: compare baseline, covariate, and custom LightGBM forecasts against ground truth.
+
+This script executes the baseline N-to-1 task, the covariate-enhanced N-to-1
+pipeline, and a custom LightGBM model with optimized hyperparameters, then loads
+the ground truth from a specified data directory.
+
+## Logging Mechanism {.doc-section .doc-section-logging-mechanism}
+
+This script uses a dual-handler logging system designed for safety-critical MLOps:
+1.  **Console Handler**: Provides real-time progress updates to `stdout`.
+2.  **File Handler**: Persists all log messages (including debug/tracebacks) to a
+    timestamped file in `{model_root}/logs/`.
+
+Log File Location:
+    By default, logs are saved to `~/spotforecast2_safe_models/logs/task_safe_demo_YYYYMMDD_HHMMSS.log`.
+
+Safety-Critical Features:
+- Persistent file-based logging for auditability.
+- Path management using pathlib for cross-platform reliability.
+- Explicit input validation and existence checks.
+- Comprehensive error handling with traceback logging.
+- Deterministic random seeding where applicable.
+- Minimal dependency footprint (no plotting libraries).
+
+## Examples {.doc-section .doc-section-examples}
+
+Run the demo:
+
+```python
+>>> python tasks/task_safe_demo.py
+```
+
+Force training (case-insensitive boolean):
+
+```python
+>>> python tasks/task_safe_demo.py --force_train false
+```
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [main](#spotforecast2_safe.tasks.task_safe_demo.main) | Main execution entry point. |
+
+### main { #spotforecast2_safe.tasks.task_safe_demo.main }
+
+```python
+tasks.task_safe_demo.main(
+    force_train=True,
+    data_path=None,
+    logging_enabled=False,
+)
+```
+
+Main execution entry point.
+Returns 0 on success, non-zero on failure.

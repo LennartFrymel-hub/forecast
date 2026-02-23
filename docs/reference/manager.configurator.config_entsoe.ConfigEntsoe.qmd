@@ -1,0 +1,172 @@
+# manager.configurator.config_entsoe.ConfigEntsoe { #spotforecast2_safe.manager.configurator.config_entsoe.ConfigEntsoe }
+
+```python
+manager.configurator.config_entsoe.ConfigEntsoe(
+    api_country_code='DE',
+    periods=None,
+    lags_consider=None,
+    train_size=None,
+    end_train_default='2025-12-31 00:00+00:00',
+    delta_val=None,
+    predict_size=24,
+    refit_size=7,
+    random_state=314159,
+    n_hyperparameters_trials=20,
+    data_filename='interim/energy_load.csv',
+)
+```
+
+Configuration for the ENTSO-E forecasting pipeline.
+
+This class manages all configuration parameters for the ENTSO-E task,
+including API settings, training/prediction intervals, and feature
+engineering specifications. All parameters can be customized during
+initialization or used with sensible defaults.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                     | Type                                                                                                 | Description                                                      | Default                     |
+|--------------------------|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|-----------------------------|
+| api_country_code         | [str](`str`)                                                                                         | ISO country code for ENTSO-E API queries.                        | `'DE'`                      |
+| periods                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\]\] | List of Period objects defining cyclical feature encodings.      | `None`                      |
+| lags_consider            | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[int](`int`)\]\]                               | List of lag values to consider for feature selection.            | `None`                      |
+| train_size               | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                      | Time window for training data.                                   | `None`                      |
+| end_train_default        | [str](`str`)                                                                                         | Default end date for training period (ISO format with timezone). | `'2025-12-31 00:00+00:00'`  |
+| delta_val                | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                      | Validation window size.                                          | `None`                      |
+| predict_size             | [int](`int`)                                                                                         | Number of hours to predict ahead.                                | `24`                        |
+| refit_size               | [int](`int`)                                                                                         | Number of days between model refits.                             | `7`                         |
+| random_state             | [int](`int`)                                                                                         | Random seed for reproducibility.                                 | `314159`                    |
+| n_hyperparameters_trials | [int](`int`)                                                                                         | Number of trials for hyperparameter optimization.                | `20`                        |
+| data_filename            | [str](`str`)                                                                                         | Path to the interim merged data file.                            | `'interim/energy_load.csv'` |
+
+## Attributes {.doc-section .doc-section-attributes}
+
+
+
+## Notes {.doc-section .doc-section-notes}
+
+The default period configurations use specific `n_periods` to balance resolution and smoothing:
+- **Daily**: `n_periods=12` (24h) provides ~2h resolution, smoothing hourly noise and halving dimensionality.
+- **Weekly**: `n_periods` typically matches range (1:1) to distinguish day-of-week patterns.
+- **Yearly**: `n_periods=12` (365d) provides ~1 month resolution, capturing broad seasonal trends without overfitting.
+
+See `docs/PERIOD_CONFIGURATION_RATIONALE.md` for a detailed analysis.
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe import Config
+>>> import pandas as pd
+>>>
+>>> # Use default configuration
+>>> config = Config()
+>>> config.API_COUNTRY_CODE
+'DE'
+>>> config.predict_size
+24
+>>> config.random_state
+314159
+>>>
+>>> # Create custom configuration
+>>> custom_config = Config(
+...     api_country_code='FR',
+...     predict_size=48,
+...     random_state=42
+... )
+>>> custom_config.API_COUNTRY_CODE
+'FR'
+>>> custom_config.predict_size
+48
+>>>
+>>> # Verify training window
+>>> config.train_size == pd.Timedelta(days=3 * 365)
+True
+>>>
+>>> # Check default periods
+>>> len(config.periods)
+5
+>>> config.periods[0].name
+'daily'
+```
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [get_params](#spotforecast2_safe.manager.configurator.config_entsoe.ConfigEntsoe.get_params) | Get parameters for this configuration object. |
+| [set_params](#spotforecast2_safe.manager.configurator.config_entsoe.ConfigEntsoe.set_params) | Set the parameters of this configuration object. |
+
+### get_params { #spotforecast2_safe.manager.configurator.config_entsoe.ConfigEntsoe.get_params }
+
+```python
+manager.configurator.config_entsoe.ConfigEntsoe.get_params(deep=True)
+```
+
+Get parameters for this configuration object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type           | Description                                                                                               | Default   |
+|--------|----------------|-----------------------------------------------------------------------------------------------------------|-----------|
+| deep   | [bool](`bool`) | If True, will return the parameters for this configuration and contained sub-objects that are estimators. | `True`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                      | Description                                           |
+|--------|-----------------------------------------------------------|-------------------------------------------------------|
+| params | [Dict](`typing.Dict`)\[[str](`str`), [object](`object`)\] | Dictionary of parameter names mapped to their values. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.manager.configurator.config_entsoe import ConfigEntsoe
+>>> config = ConfigEntsoe(api_country_code="FR")
+>>> p = config.get_params()
+>>> p["api_country_code"]
+'FR'
+>>> p["predict_size"]
+24
+```
+
+### set_params { #spotforecast2_safe.manager.configurator.config_entsoe.ConfigEntsoe.set_params }
+
+```python
+manager.configurator.config_entsoe.ConfigEntsoe.set_params(
+    params=None,
+    **kwargs,
+)
+```
+
+Set the parameters of this configuration object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type                                                      | Description                                                                                                                                           | Default   |
+|----------|-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| params   | [Dict](`typing.Dict`)\[[str](`str`), [object](`object`)\] | Optional dictionary of parameter names mapped to their new values.                                                                                    | `None`    |
+| **kwargs | [object](`object`)                                        | Additional parameter names mapped to their new values. It supports configuring nested 'Period' objects using the `periods__<name>__<param>` notation. | `{}`      |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name         | Type                                                                                 | Description                                                                    |
+|--------------|--------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| ConfigEntsoe | [ConfigEntsoe](`spotforecast2_safe.manager.configurator.config_entsoe.ConfigEntsoe`) | The configuration instance with updated parameters (supports method chaining). |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.manager.configurator.config_entsoe import ConfigEntsoe
+>>> config = ConfigEntsoe()
+>>> _ = config.set_params(api_country_code="FR", predict_size=48)
+>>> config.API_COUNTRY_CODE
+'FR'
+>>> config.predict_size
+48
+```
+
+```python
+>>> # Deep parameter setting
+>>> _ = config.set_params(periods__daily__n_periods=24)
+>>> next(p.n_periods for p in config.periods if p.name == "daily")
+24
+```

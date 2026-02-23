@@ -79,7 +79,7 @@ jobs:
 
       # ── 5. Quarto CLI (pinned) ────────────────────────────────────────────
       - name: Install Quarto CLI ${{ env.QUARTO_VERSION }}
-        uses: quarto-dev/quarto-actions/setup@c7e2b1a2e3b2e8c9d7f6a1b2c3d4e5f6a7b8c9d0  # v2.0.0 (example hash, update as needed)
+        uses: quarto-dev/quarto-actions/setup@8a96df13519ee81fd526f2dfca5962811136661b  # v2.2.0
         with:
           version: ${{ env.QUARTO_VERSION }}
 
@@ -110,7 +110,7 @@ jobs:
       # The quarto-actions/publish action creates a clean commit on gh-pages.
       # It does NOT force-push, preserving the branch history for auditability.
       - name: Deploy to GitHub Pages
-        uses: quarto-dev/quarto-actions/publish@c7e2b1a2e3b2e8c9d7f6a1b2c3d4e5f6a7b8c9d0  # v2.0.0 (example hash, update as needed)
+        uses: quarto-dev/quarto-actions/publish@8a96df13519ee81fd526f2dfca5962811136661b  # v2.2.0
         with:
           target: gh-pages
           path: _site

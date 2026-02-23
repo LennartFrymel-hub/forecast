@@ -1,0 +1,99 @@
+# preprocessing.repeating_basis_function { #spotforecast2_safe.preprocessing.repeating_basis_function }
+
+`preprocessing.repeating_basis_function`
+
+Repeating Basis Function transformer for cyclical features.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [RepeatingBasisFunction](#spotforecast2_safe.preprocessing.repeating_basis_function.RepeatingBasisFunction) | Transformer that encodes cyclical features using repeating radial basis functions. |
+
+### RepeatingBasisFunction { #spotforecast2_safe.preprocessing.repeating_basis_function.RepeatingBasisFunction }
+
+```python
+preprocessing.repeating_basis_function.RepeatingBasisFunction(
+    n_periods,
+    column,
+    input_range,
+    remainder='drop',
+)
+```
+
+Transformer that encodes cyclical features using repeating radial basis functions.
+
+This transformer places Gaussian basis functions across the specified input range
+and wraps them around to handle periodicity (e.g., day of year, hour of day).
+It is a simplified implementation to avoid external dependencies like scikit-lego.
+
+#### Attributes {.doc-section .doc-section-attributes}
+
+
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> import numpy as np
+>>> from spotforecast2_safe.preprocessing.repeating_basis_function import RepeatingBasisFunction
+>>> X = pd.DataFrame({"hour": [0, 6, 12, 18, 23]})
+>>> rbf = RepeatingBasisFunction(n_periods=4, column="hour", input_range=(0, 23))
+>>> features = rbf.fit_transform(X)
+>>> features.shape
+(5, 4)
+```
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [fit](#spotforecast2_safe.preprocessing.repeating_basis_function.RepeatingBasisFunction.fit) | Fitted transformer (no-op). |
+| [transform](#spotforecast2_safe.preprocessing.repeating_basis_function.RepeatingBasisFunction.transform) | Transform the input data into RBF features. |
+
+##### fit { #spotforecast2_safe.preprocessing.repeating_basis_function.RepeatingBasisFunction.fit }
+
+```python
+preprocessing.repeating_basis_function.RepeatingBasisFunction.fit(X, y=None)
+```
+
+Fitted transformer (no-op).
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                | Description   | Default    |
+|--------|---------------------|---------------|------------|
+| X      | [Any](`typing.Any`) | Input data.   | _required_ |
+| y      | [Any](`typing.Any`) | Ignored.      | `None`     |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                         | Description             |
+|--------|--------------------------------------------------------------------------------------------------------------|-------------------------|
+| self   | [RepeatingBasisFunction](`spotforecast2_safe.preprocessing.repeating_basis_function.RepeatingBasisFunction`) | The fitted transformer. |
+
+##### transform { #spotforecast2_safe.preprocessing.repeating_basis_function.RepeatingBasisFunction.transform }
+
+```python
+preprocessing.repeating_basis_function.RepeatingBasisFunction.transform(X)
+```
+
+Transform the input data into RBF features.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                                                | Description                                                   | Default    |
+|--------|---------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|------------|
+| X      | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Input DataFrame or Series containing the column to transform. | _required_ |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                     | Description                                                                  |
+|--------|------------------------------------------|------------------------------------------------------------------------------|
+|        | [np](`numpy`).[ndarray](`numpy.ndarray`) | np.ndarray: Array of transformed features with shape (n_samples, n_periods). |
+
+###### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                        |
+|--------|----------------------------|----------------------------------------------------|
+|        | [ValueError](`ValueError`) | If the specified column is not found in the input. |

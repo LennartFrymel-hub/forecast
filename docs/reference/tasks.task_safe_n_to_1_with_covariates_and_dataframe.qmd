@@ -1,0 +1,249 @@
+# tasks.task_safe_n_to_1_with_covariates_and_dataframe { #spotforecast2_safe.tasks.task_safe_n_to_1_with_covariates_and_dataframe }
+
+`tasks.task_safe_n_to_1_with_covariates_and_dataframe`
+
+N-to-1 Forecasting with Exogenous Covariates and Prediction Aggregation.
+
+This module implements a complete end-to-end pipeline for multi-step time series
+forecasting with exogenous variables (weather, holidays, calendar features),
+followed by prediction aggregation using configurable weights.
+
+## Logging Mechanism {.doc-section .doc-section-logging-mechanism}
+
+This script implements a production-grade logging system designed for safety-critical
+environments:
+1.  **Console Handler**: Provides real-time progress updates to `stdout`.
+2.  **File Handler**: Automatically persists execution logs to a timestamped file
+    in `~/spotforecast2_safe_models/logs/`.
+
+Log File Location:
+    By default, logs are saved to `~/spotforecast2_safe_models/logs/task_safe_n_to_1_YYYYMMDD_HHMMSS.log`.
+
+## The pipeline {.doc-section .doc-section-the-pipeline}
+
+1. Performs multi-output recursive forecasting with exogenous covariates
+2. Aggregates predictions using weighted combinations
+3. Supports flexible model selection (string or object-based)
+4. Allows customization via kwargs for all underlying functions
+
+## Key Features {.doc-section .doc-section-key-features}
+
+- Automatic weather, holiday, and calendar feature generation
+- Cyclical and polynomial feature engineering
+- Configurable recursive forecaster with LGBMRegressor default
+- Weighted prediction aggregation
+- Comprehensive parameter flexibility via **kwargs
+- Detailed logging and progress tracking
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [main](#spotforecast2_safe.tasks.task_safe_n_to_1_with_covariates_and_dataframe.main) | Execute the complete N-to-1 forecasting pipeline with configurable parameters. |
+| [n_to_1_with_covariates](#spotforecast2_safe.tasks.task_safe_n_to_1_with_covariates_and_dataframe.n_to_1_with_covariates) | Execute N-to-1 forecasting pipeline with exogenous covariates. |
+
+### main { #spotforecast2_safe.tasks.task_safe_n_to_1_with_covariates_and_dataframe.main }
+
+```python
+tasks.task_safe_n_to_1_with_covariates_and_dataframe.main(
+    forecast_horizon=24,
+    contamination=0.01,
+    window_size=72,
+    lags=24,
+    train_ratio=0.8,
+    latitude=51.5136,
+    longitude=7.4653,
+    timezone='UTC',
+    country_code='DE',
+    state='NW',
+    include_weather_windows=False,
+    include_holiday_features=False,
+    include_poly_features=False,
+    verbose=False,
+    weights=None,
+    log_dir=None,
+    logging_enabled=False,
+)
+```
+
+Execute the complete N-to-1 forecasting pipeline with configurable parameters.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                     | Type                                                                       | Description                                                           | Default   |
+|--------------------------|----------------------------------------------------------------------------|-----------------------------------------------------------------------|-----------|
+| forecast_horizon         | [int](`int`)                                                               | Number of steps ahead to forecast. Default: 24.                       | `24`      |
+| contamination            | [float](`float`)                                                           | Outlier contamination parameter [0, 1]. Default: 0.01.                | `0.01`    |
+| window_size              | [int](`int`)                                                               | Rolling window size for features. Default: 72.                        | `72`      |
+| lags                     | [int](`int`)                                                               | Number of lags for recursive model. Default: 24.                      | `24`      |
+| train_ratio              | [float](`float`)                                                           | Training data split ratio. Default: 0.8.                              | `0.8`     |
+| latitude                 | [float](`float`)                                                           | Geographic latitude. Default: 51.5136.                                | `51.5136` |
+| longitude                | [float](`float`)                                                           | Geographic longitude. Default: 7.4653.                                | `7.4653`  |
+| timezone                 | [str](`str`)                                                               | Data timezone. Default: "UTC".                                        | `'UTC'`   |
+| country_code             | [str](`str`)                                                               | Holiday country code. Default: "DE".                                  | `'DE'`    |
+| state                    | [str](`str`)                                                               | Holiday state code. Default: "NW".                                    | `'NW'`    |
+| include_weather_windows  | [bool](`bool`)                                                             | Toggle weather window features. Default: False.                       | `False`   |
+| include_holiday_features | [bool](`bool`)                                                             | Toggle holiday features. Default: False.                              | `False`   |
+| include_poly_features    | [bool](`bool`)                                                             | Toggle polynomial features. Default: False.                           | `False`   |
+| verbose                  | [bool](`bool`)                                                             | Toggle detailed logging. Default: False.                              | `False`   |
+| weights                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[float](`float`)\]\] | List of weights for prediction aggregation. Default: DEFAULT_WEIGHTS. | `None`    |
+| log_dir                  | [Optional](`typing.Optional`)\[[Path](`pathlib.Path`)\]                    | Directory to save log files. If None, uses default path.              | `None`    |
+| logging_enabled          | [bool](`bool`)                                                             | Toggle overall logging (console and file). Default: False.            | `False`   |
+
+### n_to_1_with_covariates { #spotforecast2_safe.tasks.task_safe_n_to_1_with_covariates_and_dataframe.n_to_1_with_covariates }
+
+```python
+tasks.task_safe_n_to_1_with_covariates_and_dataframe.n_to_1_with_covariates(
+    data=None,
+    forecast_horizon=24,
+    contamination=0.01,
+    window_size=72,
+    lags=24,
+    train_ratio=0.8,
+    latitude=51.5136,
+    longitude=7.4653,
+    timezone='UTC',
+    country_code='DE',
+    state='NW',
+    estimator=None,
+    include_weather_windows=False,
+    include_holiday_features=False,
+    include_poly_features=False,
+    weights=None,
+    verbose=True,
+    show_progress=True,
+    **kwargs,
+)
+```
+
+Execute N-to-1 forecasting pipeline with exogenous covariates.
+
+This function performs a complete time series forecasting workflow:
+1. Fetches and preprocesses data
+2. Engineers features (calendar, weather, holidays, cyclical, polynomial)
+3. Trains recursive forecaster on multiple targets
+4. Aggregates predictions using weighted combination
+
+#### Security Note {.doc-section .doc-section-security-note}
+
+Geographic coordinates (latitude/longitude) are considered sensitive PII
+(Personally Identifiable Information) per CWE-312 and CWE-532. This function
+implements data masking for all log output to prevent exposure in production
+monitoring systems, log aggregators, or crash dumps. Raw coordinate values
+are never logged at any log level, including DEBUG.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                     | Type                                                                                                                                                                                                     | Description                                                                                                                                                                                                                                                                                       | Default   |
+|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| data                     | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\]                                                                                                                          | Optional DataFrame with target time series data. If None, fetches data automatically. Default: None.                                                                                                                                                                                              | `None`    |
+| forecast_horizon         | [int](`int`)                                                                                                                                                                                             | Number of forecast steps ahead. Determines how many time steps to predict into the future. Typical values: 24 (1 day), 48 (2 days), 168 (1 week). Default: 24.                                                                                                                                    | `24`      |
+| contamination            | [float](`float`)                                                                                                                                                                                         | Outlier contamination level for anomaly detection. Expected proportion of outliers in the training data [0, 1]. Higher values detect fewer outliers. Default: 0.01 (1%).                                                                                                                          | `0.01`    |
+| window_size              | [int](`int`)                                                                                                                                                                                             | Rolling window size for feature engineering (hours). Size of the rolling window for computing statistics. Must be > lags. Typical range: 24-168. Default: 72.                                                                                                                                     | `72`      |
+| lags                     | [int](`int`)                                                                                                                                                                                             | Number of lagged features to create. Creates AR(p) features with p=lags. Typical values: 12, 24, 48. Default: 24.                                                                                                                                                                                 | `24`      |
+| train_ratio              | [float](`float`)                                                                                                                                                                                         | Proportion of data for training [0, 1]. Remaining data (1 - train_ratio) used for validation/testing. Typical values: 0.7-0.9. Default: 0.8.                                                                                                                                                      | `0.8`     |
+| latitude                 | [float](`float`)                                                                                                                                                                                         | Geographic latitude for solar features. Used to compute sunrise/sunset times for day/night features. Default: 51.5136 (Dortmund, Germany).                                                                                                                                                        | `51.5136` |
+| longitude                | [float](`float`)                                                                                                                                                                                         | Geographic longitude for solar features. Used to compute sunrise/sunset times for day/night features. Default: 7.4653 (Dortmund, Germany).                                                                                                                                                        | `7.4653`  |
+| timezone                 | [str](`str`)                                                                                                                                                                                             | Timezone for time-based features. Any timezone recognized by pytz. Default: "UTC".                                                                                                                                                                                                                | `'UTC'`   |
+| country_code             | [str](`str`)                                                                                                                                                                                             | ISO 3166-1 alpha-2 country code for holidays. Examples: "DE" (Germany), "US" (USA), "GB" (UK). Default: "DE".                                                                                                                                                                                     | `'DE'`    |
+| state                    | [str](`str`)                                                                                                                                                                                             | State/region code for holidays. Country-dependent. For Germany: "BW", "BY", "NW", etc. Default: "NW" (Nordrhein-Westfalen).                                                                                                                                                                       | `'NW'`    |
+| estimator                | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[str](`str`), [object](`object`)\]\]                                                                                                             | Forecaster model. Can be: - None: Uses LGBMRegressor(n_estimators=100, verbose=-1). - "ForecasterRecursive": References default estimator (same as None). - LGBMRegressor(...): Custom pre-configured estimator. - Any sklearn-compatible regressor. Default: None.                               | `None`    |
+| include_weather_windows  | [bool](`bool`)                                                                                                                                                                                           | Add rolling weather statistics. Creates moving averages, min, max of weather features over multiple windows (1D, 7D). Increases feature count significantly. Default: False.                                                                                                                      | `False`   |
+| include_holiday_features | [bool](`bool`)                                                                                                                                                                                           | Add holiday binary indicators. Creates features indicating holidays and special dates. Useful for capturing demand patterns around holidays. Default: False.                                                                                                                                      | `False`   |
+| include_poly_features    | [bool](`bool`)                                                                                                                                                                                           | Add polynomial interactions. Creates 2nd-order interaction terms between selected features. Useful for capturing non-linear relationships. Default: False.                                                                                                                                        | `False`   |
+| weights                  | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[Dict](`typing.Dict`)\[[str](`str`), [float](`float`)\], [List](`typing.List`)\[[float](`float`)\], [np](`numpy`).[ndarray](`numpy.ndarray`)\]\] | Weights for combining multi-output predictions. Can be: - None: Uses DEFAULT_WEIGHTS (see module-level constant for values) - Dict: {"col_name": weight, ...} for specific columns - List: [w1, w2, ...] in column order - np.ndarray: Same as list Default: None (uses DEFAULT_WEIGHTS).         | `None`    |
+| verbose                  | [bool](`bool`)                                                                                                                                                                                           | Enable progress logging. Prints intermediate results and timestamps. Default: True.                                                                                                                                                                                                               | `True`    |
+| show_progress            | [bool](`bool`)                                                                                                                                                                                           | Show a progress bar for major pipeline steps. Default: True.                                                                                                                                                                                                                                      | `True`    |
+| **kwargs                 | [Any](`typing.Any`)                                                                                                                                                                                      | Additional parameters for underlying functions. These are passed to n2n_predict_with_covariates(). Examples: - freq: Frequency for data resampling. Default: "h" (hourly). - columns: Specific columns to forecast. Default: None (all). Any parameter accepted by n2n_predict_with_covariates(). | `{}`      |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+|--------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [Tuple](`typing.Tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[Series](`pandas.Series`), [Dict](`typing.Dict`), [Dict](`typing.Dict`)\] | Tuple[pd.DataFrame, pd.Series, Dict, Dict]: A tuple containing: - predictions (pd.DataFrame): Multi-output forecasts from recursive model.     Each column represents a target variable.     Index is datetime matching the forecast period. - combined_prediction (pd.Series): Aggregated forecast from weighted combination.     Single column combining all output predictions.     Index is datetime matching the forecast period. - model_metrics (Dict): Performance metrics from recursive forecaster.     Keys may include: 'mae', 'rmse', 'mape', etc. - feature_info (Dict): Information about engineered features.     Contains feature counts, types, and engineering details. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                                     | Description                                                 |
+|--------|------------------------------------------|-------------------------------------------------------------|
+|        | [ValueError](`ValueError`)               | If forecast_horizon <= 0 or invalid parameter combinations. |
+|        | [FileNotFoundError](`FileNotFoundError`) | If data source files cannot be accessed.                    |
+|        | [RuntimeError](`RuntimeError`)           | If model training fails or data processing errors occur.    |
+
+#### Examples {.doc-section .doc-section-examples}
+
+Basic usage (uses all defaults):
+
+```python
+>>> predictions, combined, metrics, features = n_to_1_with_covariates()
+>>> print(f"Predictions shape: {predictions.shape}")
+>>> print(f"Combined forecast head:\n{combined.head()}")
+```
+
+Custom location and forecast horizon:
+
+```python
+>>> predictions, combined, metrics, features = n_to_1_with_covariates(
+...     forecast_horizon=48,
+...     latitude=48.1351,
+...     longitude=11.5820,
+...     country_code="DE",
+...     state="BY",
+...     verbose=True
+... )
+```
+
+With feature engineering enabled:
+
+```python
+>>> predictions, combined, metrics, features = n_to_1_with_covariates(
+...     forecast_horizon=24,
+...     include_weather_windows=True,
+...     include_holiday_features=True,
+...     include_poly_features=True,
+...     verbose=True
+... )
+```
+
+Custom estimator and weights:
+
+```python
+>>> from lightgbm import LGBMRegressor
+>>> custom_estimator = LGBMRegressor(
+...     n_estimators=200,
+...     learning_rate=0.01,
+...     max_depth=7
+... )
+>>> custom_weights = [1.0, 1.0, -0.5, -0.5]
+>>> predictions, combined, metrics, features = n_to_1_with_covariates(
+...     forecast_horizon=24,
+...     estimator=custom_estimator,
+...     weights=custom_weights,
+...     verbose=True
+... )
+```
+
+With all advanced options:
+
+```python
+>>> predictions, combined, metrics, features = n_to_1_with_covariates(
+...     forecast_horizon=72,
+...     contamination=0.02,
+...     window_size=168,
+...     lags=48,
+...     train_ratio=0.75,
+...     latitude=50.1109,
+...     longitude=8.6821,
+...     timezone="Europe/Berlin",
+...     country_code="DE",
+...     state="HE",
+...     include_weather_windows=True,
+...     include_holiday_features=True,
+...     include_poly_features=True,
+...     weights={"power": 1.0, "demand": 0.8},
+...     verbose=True,
+...     freq="h",
+... )
+>>> print(f"Model Metrics: {metrics}")
+>>> print(f"Feature Info: {features}")
+```
