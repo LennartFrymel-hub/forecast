@@ -38,20 +38,27 @@ import sys
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
-_SENTINEL = "# PATCHED: DocstringSectionWarns handler added by docs/quartodoc_build.py"
+_SENTINEL = "# PATCHED: DocstringSection handlers added by docs/quartodoc_build.py"
 
 _NEW_HANDLER = '''
-    # ── Compatibility patch: griffe DocstringSectionWarns ──────────────────
-    # PATCHED: DocstringSectionWarns handler added by docs/quartodoc_build.py
-    # griffe renamed DocstringSectionWarnings → DocstringSectionWarns in a
-    # recent release.  quartodoc 0.11.x has no @dispatch handler for the new
-    # name; this fills the gap until quartodoc ships the fix upstream.
+    # ── Compatibility patch: griffe DocstringSections ──────────────────────
+    # PATCHED: DocstringSection handlers added by docs/quartodoc_build.py
+    # griffe renamed/added sections that quartodoc 0.11.x doesn't handle yet.
     @dispatch
     def render(self, el: ds.DocstringSectionWarns) -> str:
         """Render a Warns: section as plain text."""
         if hasattr(el, "value") and el.value:
             return "\\n\\n".join(
                 getattr(w, "description", str(w)) for w in el.value
+            )
+        return ""
+
+    @dispatch
+    def render(self, el: ds.DocstringSectionFunctions) -> str:
+        """Render a Functions: section as plain text."""
+        if hasattr(el, "value") and el.value:
+            return "\\n\\n".join(
+                getattr(f, "description", str(f)) for f in el.value
             )
         return ""
     # ── End compatibility patch ────────────────────────────────────────────
@@ -72,7 +79,7 @@ def _find_renderer() -> pathlib.Path:
 
 
 def _apply_patch(renderer_path: pathlib.Path) -> None:
-    """Idempotently add the DocstringSectionWarns handler to MdRenderer."""
+    """Idempotently add DocstringSection handlers to MdRenderer."""
     source = renderer_path.read_text(encoding="utf-8")
 
     if _SENTINEL in source:

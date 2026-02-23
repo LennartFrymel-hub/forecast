@@ -96,7 +96,7 @@ jobs:
       - name: Build documentation
         if: success()
         run: |
-          quarto render --no-cache
+          uv run quarto render --no-cache
       
       - name: Setup Git Credentials for Publish
         if: success()
