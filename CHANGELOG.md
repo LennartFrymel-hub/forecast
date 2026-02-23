@@ -1,3 +1,10 @@
+## [0.16.2-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.2-rc.1...v0.16.2-rc.2) (2026-02-23)
+
+
+### Bug Fixes
+
+* weight_series ([3e8aaf0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/3e8aaf0e0fe27953456c89cfb8bf3f1f2015bb20))
+
 ## [0.16.2-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.1...v0.16.2-rc.1) (2026-02-23)
 
 
