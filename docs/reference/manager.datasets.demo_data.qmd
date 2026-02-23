@@ -1,0 +1,121 @@
+# manager.datasets.demo_data { #spotforecast2_safe.manager.datasets.demo_data }
+
+`manager.datasets.demo_data`
+
+Demo dataset configuration for safety-critical forecasting tasks.
+
+This module provides a flexible configuration dataclass for managing
+parameters in demonstration and production forecasting workflows.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [DemoConfig](#spotforecast2_safe.manager.datasets.demo_data.DemoConfig) | Configuration for the safety-critical demo task. |
+
+### DemoConfig { #spotforecast2_safe.manager.datasets.demo_data.DemoConfig }
+
+```python
+manager.datasets.demo_data.DemoConfig(
+    data_path=(lambda: Path.home() / 'spotforecast2_data' / 'data_test.csv')(),
+    model_root=(lambda: Path.home() / 'spotforecast2_safe_models')(),
+    log_root=(lambda: Path.home() / 'spotforecast2_safe_models' / 'logs')(),
+    forecast_horizon=24,
+    contamination=0.01,
+    window_size=72,
+    lags=24,
+    train_ratio=0.8,
+    random_seed=42,
+    weights=(lambda: [1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0])(),
+)
+```
+
+Configuration for the safety-critical demo task.
+
+This immutable dataclass encapsulates all parameters needed for
+forecasting demonstrations, including data paths, model directories,
+and hyperparameters. All fields have sensible defaults but can be
+overridden during initialization.
+
+#### Attributes {.doc-section .doc-section-attributes}
+
+
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from pathlib import Path
+>>> from spotforecast2_safe.manager.datasets.demo_data import DemoConfig
+>>>
+>>> # Example 1: Use default configuration
+>>> config = DemoConfig()
+>>> print(f"Forecast horizon: {config.forecast_horizon}")
+Forecast horizon: 24
+>>> print(f"Window size: {config.window_size}")
+Window size: 72
+>>> print(f"Random seed: {config.random_seed}")
+Random seed: 42
+>>>
+>>> # Example 2: Override specific parameters
+>>> config = DemoConfig(
+...     forecast_horizon=48,
+...     contamination=0.05,
+...     random_seed=123
+... )
+>>> print(f"Forecast horizon: {config.forecast_horizon}")
+Forecast horizon: 48
+>>> print(f"Contamination: {config.contamination}")
+Contamination: 0.05
+>>> print(f"Random seed: {config.random_seed}")
+Random seed: 123
+>>>
+>>> # Example 3: Customize paths for specific environment
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     custom_config = DemoConfig(
+...         data_path=Path(tmpdir) / "my_data.csv",
+...         model_root=Path(tmpdir) / "models",
+...         log_root=Path(tmpdir) / "logs"
+...     )
+...     print(f"Data path name: {custom_config.data_path.name}")
+...     print(f"Model root name: {custom_config.model_root.name}")
+Data path name: my_data.csv
+Model root name: models
+>>>
+>>> # Example 4: Safety-critical - validate parameters
+>>> config = DemoConfig(train_ratio=0.8, contamination=0.01)
+>>> assert 0.0 < config.train_ratio <= 1.0, "Invalid train_ratio"
+>>> assert 0.0 <= config.contamination < 1.0, "Invalid contamination"
+>>> print("Validation passed")
+Validation passed
+>>>
+>>> # Example 5: Custom weights for multi-variable aggregation
+>>> config = DemoConfig(
+...     weights=[1.0, 1.0, -1.0, 1.0, 1.0]
+... )
+>>> print(f"Number of weights: {len(config.weights)}")
+Number of weights: 5
+>>> print(f"First weight: {config.weights[0]}")
+First weight: 1.0
+>>>
+>>> # Example 6: Immutability check (frozen dataclass)
+>>> config = DemoConfig()
+>>> try:
+...     config.forecast_horizon = 100  # This should fail
+... except AttributeError as e:
+...     print("Config is immutable as expected")
+Config is immutable as expected
+>>>
+>>> # Example 7: Production configuration with long horizon
+>>> prod_config = DemoConfig(
+...     forecast_horizon=168,  # 1 week
+...     window_size=336,       # 2 weeks
+...     lags=48,
+...     train_ratio=0.9,
+...     contamination=0.005
+... )
+>>> print(f"Production horizon: {prod_config.forecast_horizon} hours")
+Production horizon: 168 hours
+>>> print(f"Training ratio: {prod_config.train_ratio}")
+Training ratio: 0.9
+```

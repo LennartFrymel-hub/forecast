@@ -242,6 +242,7 @@ quartodoc:
         - data.fetch_data.get_cache_home
         - data.fetch_data.get_data_home
         - data.data
+        - data.data
 
     # ── Preprocessing ─────────────────────────────────────────────────────────
     - title: "Preprocessing"
@@ -263,6 +264,8 @@ quartodoc:
         - preprocessing.imputation.WeightFunction
         - preprocessing.imputation.custom_weights
         - preprocessing.imputation.get_missing_weights
+        - preprocessing.linearly_interpolate_ts
+        - preprocessing.repeating_basis_function
 
     # ── Processing ────────────────────────────────────────────────────────────
     - title: "Processing"
@@ -280,6 +283,7 @@ quartodoc:
         - forecaster.base
         - forecaster.recursive._forecaster_recursive.ForecasterRecursive
         - forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate
+        - forecaster.recursive._forecaster_recursive_multiseries
         - forecaster.utils
         - forecaster.metrics.add_y_train_argument
         - forecaster.metrics.calculate_coverage
@@ -297,6 +301,11 @@ quartodoc:
       contents:
         - model_selection.validation.backtesting_forecaster
         - model_selection.validation.backtesting_forecaster_one_step
+        - model_selection.split_base
+        - model_selection.split_one_step
+        - model_selection.split_ts_cv
+        - model_selection.utils_common
+        - model_selection.validation
 
     # ── Manager ───────────────────────────────────────────────────────────────
     - title: "Manager"
@@ -308,6 +317,15 @@ quartodoc:
         - manager.trainer.get_path_model
         - manager.trainer.load_iteration
         - manager.predictor.get_model_prediction
+        - manager.configurator.config_entsoe.ConfigEntsoe
+        - manager.datasets.demo_data
+        - manager.datasets.demo_loader
+        - manager.logger
+        - manager.models.forecaster_recursive_lgbm
+        - manager.models.forecaster_recursive_model
+        - manager.models.forecaster_recursive_xgb
+        - manager.persistence
+        - manager.tools
 
     # ── Utils ─────────────────────────────────────────────────────────────────
     - title: "Utils"
@@ -325,6 +343,9 @@ quartodoc:
         - utils.validation.check_y
         - utils.validation.get_exog_dtypes
         - utils.validation.set_cpu_gpu_device
+        - utils.convert_to_utc
+        - utils.data_transform
+        - utils.forecaster_config
 
     # ── Weather ───────────────────────────────────────────────────────────────
     - title: "Weather"
@@ -348,3 +369,11 @@ quartodoc:
         Custom exception types for safety-critical failure signalling.
       contents:
         - exceptions
+
+    # ── Tasks ─────────────────────────────────────────────────────────────────
+    - title: "Tasks"
+      desc: |
+        Executable tasks for demonstration and production pipelines.
+      contents:
+        - tasks.task_safe_demo
+        - tasks.task_safe_n_to_1_with_covariates_and_dataframe

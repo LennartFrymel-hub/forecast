@@ -1,0 +1,163 @@
+# manager.datasets.demo_loader { #spotforecast2_safe.manager.datasets.demo_loader }
+
+`manager.datasets.demo_loader`
+
+Demo data loader for safety-critical forecasting tasks.
+
+This module provides flexible data loading functions for ground truth
+validation in forecasting demonstrations and production workflows.
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [load_actual_combined](#spotforecast2_safe.manager.datasets.demo_loader.load_actual_combined) | Load ground truth and compute combined actual series with validation. |
+
+### load_actual_combined { #spotforecast2_safe.manager.datasets.demo_loader.load_actual_combined }
+
+```python
+manager.datasets.demo_loader.load_actual_combined(
+    config,
+    columns,
+    forecast_horizon=None,
+    weights=None,
+    data_path=None,
+)
+```
+
+Load ground truth and compute combined actual series with validation.
+
+This function loads a CSV file containing ground truth data, validates
+the presence of required columns, extracts a subset based on forecast
+horizon, and aggregates multiple columns using weighted averaging.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name             | Type                                                                       | Description                                                                                         | Default    |
+|------------------|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|------------|
+| config           | [DemoConfig](`spotforecast2_safe.manager.datasets.demo_data.DemoConfig`)   | Configuration object containing default paths and parameters.                                       | _required_ |
+| columns          | [List](`typing.List`)\[[str](`str`)\]                                      | List of column names to extract from the ground truth data.                                         | _required_ |
+| forecast_horizon | [Optional](`typing.Optional`)\[[int](`int`)\]                              | Number of time steps to extract. If None, uses config.forecast_horizon. Must be positive.           | `None`     |
+| weights          | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[float](`float`)\]\] | Weights for aggregating columns. If None, uses config.weights. Length must match number of columns. | `None`     |
+| data_path        | [Optional](`typing.Optional`)\[[Path](`pathlib.Path`)\]                    | Path to the ground truth CSV file. If None, uses config.data_path. File must exist.                 | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                     | Description                                                          |
+|--------|------------------------------------------|----------------------------------------------------------------------|
+|        | [pd](`pandas`).[Series](`pandas.Series`) | Aggregated time series combining all columns with specified weights. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                                     | Description                                                                               |
+|--------|------------------------------------------|-------------------------------------------------------------------------------------------|
+|        | [FileNotFoundError](`FileNotFoundError`) | If the ground truth file does not exist.                                                  |
+|        | [ValueError](`ValueError`)               | If required columns are missing from the data or if weights length doesn't match columns. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import tempfile
+>>> import pandas as pd
+>>> from pathlib import Path
+>>> from spotforecast2_safe.manager.datasets.demo_data import DemoConfig
+>>> from spotforecast2_safe.manager.datasets.demo_loader import load_actual_combined
+>>>
+>>> # Example 1: Basic usage with default config parameters
+>>> with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+...     _ = f.write('timestamp,col1,col2\n')
+...     _ = f.write('2020-01-01 00:00:00,1.0,2.0\n')
+...     _ = f.write('2020-01-01 01:00:00,3.0,4.0\n')
+...     _ = f.write('2020-01-01 02:00:00,5.0,6.0\n')
+...     temp_path = Path(f.name)
+>>> config = DemoConfig(data_path=temp_path)
+>>> result = load_actual_combined(config, columns=['col1', 'col2'],
+...                               forecast_horizon=2, weights=[1.0, 1.0])
+>>> print(f"Result length: {len(result)}")
+Result length: 2
+>>> print(f"First value: {result.iloc[0]:.1f}")
+First value: 3.0
+>>> temp_path.unlink()  # Clean up
+>>>
+>>> # Example 2: Override forecast_horizon
+>>> with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+...     _ = f.write('timestamp,col1,col2\n')
+...     for i in range(10):
+...         _ = f.write(f'2020-01-01 {i:02d}:00:00,{i}.0,{i*2}.0\n')
+...     temp_path = Path(f.name)
+>>> config = DemoConfig(data_path=temp_path, forecast_horizon=24)
+>>> result = load_actual_combined(config, columns=['col1', 'col2'],
+...                               forecast_horizon=5, weights=[1.0, 0.5])
+>>> print(f"Custom horizon length: {len(result)}")
+Custom horizon length: 5
+>>> temp_path.unlink()
+>>>
+>>> # Example 3: Override weights for custom aggregation
+>>> with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+...     _ = f.write('timestamp,A,B,C\n')
+...     _ = f.write('2020-01-01 00:00:00,10.0,5.0,2.0\n')
+...     _ = f.write('2020-01-01 01:00:00,20.0,10.0,4.0\n')
+...     temp_path = Path(f.name)
+>>> config = DemoConfig(data_path=temp_path)
+>>> result = load_actual_combined(config, columns=['A', 'B', 'C'],
+...                               forecast_horizon=2,
+...                               weights=[1.0, -1.0, 1.0])
+>>> print(f"Weighted result shape: {result.shape}")
+Weighted result shape: (2,)
+>>> temp_path.unlink()
+>>>
+>>> # Example 4: Override data_path
+>>> with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+...     _ = f.write('timestamp,X,Y\n')
+...     _ = f.write('2020-01-01 00:00:00,100.0,200.0\n')
+...     custom_path = Path(f.name)
+>>> config = DemoConfig()  # Uses default path
+>>> result = load_actual_combined(config, columns=['X', 'Y'],
+...                               data_path=custom_path,
+...                               forecast_horizon=1,
+...                               weights=[0.5, 0.5])
+>>> print(f"Custom path result: {result.iloc[0]:.1f}")
+Custom path result: 150.0
+>>> custom_path.unlink()
+>>>
+>>> # Example 5: Error handling - missing file
+>>> config = DemoConfig(data_path=Path('/nonexistent/file.csv'))
+>>> try:
+...     result = load_actual_combined(config, columns=['A'],
+...                                   forecast_horizon=1, weights=[1.0])
+... except FileNotFoundError as e:
+...     print("File not found as expected")
+File not found as expected
+>>>
+>>> # Example 6: Error handling - missing columns
+>>> with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+...     _ = f.write('timestamp,col1\n')
+...     _ = f.write('2020-01-01 00:00:00,1.0\n')
+...     temp_path = Path(f.name)
+>>> config = DemoConfig(data_path=temp_path)
+>>> try:
+...     result = load_actual_combined(config, columns=['col1', 'col2'],
+...                                   forecast_horizon=1, weights=[1.0, 1.0])
+... except ValueError as e:
+...     print("Missing columns detected")
+Missing columns detected
+>>> temp_path.unlink()
+>>>
+>>> # Example 7: Production usage with all defaults from config
+>>> with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+...     _ = f.write('timestamp,load,solar,wind\n')
+...     for i in range(30):
+...         _ = f.write(f'2020-01-01 {i:02d}:00:00,{100+i},{50+i},{25+i}\n')
+...     temp_path = Path(f.name)
+>>> config = DemoConfig(
+...     data_path=temp_path,
+...     forecast_horizon=24,
+...     weights=[1.0, -0.5, -0.5]
+... )
+>>> result = load_actual_combined(config, columns=['load', 'solar', 'wind'])
+>>> print(f"Production forecast length: {len(result)}")
+Production forecast length: 24
+>>> print(f"Result is pandas Series: {isinstance(result, pd.Series)}")
+Result is pandas Series: True
+>>> temp_path.unlink()
+```

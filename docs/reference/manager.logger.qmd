@@ -1,0 +1,85 @@
+# manager.logger { #spotforecast2_safe.manager.logger }
+
+`manager.logger`
+
+
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [setup_logging](#spotforecast2_safe.manager.logger.setup_logging) | Configure robust logging for safety-critical execution. |
+
+### setup_logging { #spotforecast2_safe.manager.logger.setup_logging }
+
+```python
+manager.logger.setup_logging(level=logging.INFO, log_dir=None)
+```
+
+Configure robust logging for safety-critical execution.
+
+Sets up both a stream (stdout) and an optional informative file handler.
+Always logs INFO level or higher to the file, regardless of console level.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name    | Type                                                    | Description                                                                   | Default        |
+|---------|---------------------------------------------------------|-------------------------------------------------------------------------------|----------------|
+| level   | [int](`int`)                                            | Logging level for console output. Default: logging.INFO                       | `logging.INFO` |
+| log_dir | [Optional](`typing.Optional`)\[[Path](`pathlib.Path`)\] | Optional directory for log files. If provided, creates timestamped log files. | `None`         |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                | Description                                                                        |
+|--------|-------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+|        | [Tuple](`typing.Tuple`)\[[logging](`logging`).[Logger](`logging.Logger`), [Optional](`typing.Optional`)\[[Path](`pathlib.Path`)\]\] | Tuple[logging.Logger, Optional[Path]]: Logger instance and optional log file path. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type   | Description                                         |
+|--------|--------|-----------------------------------------------------|
+|        | None   | Warnings are logged if file handler creation fails. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import logging
+>>> import tempfile
+>>> from pathlib import Path
+>>> from spotforecast2_safe.manager.logger import setup_logging
+>>>
+>>> # Example 1: Basic console-only logging
+>>> logger, log_path = setup_logging(level=logging.INFO)
+>>> print(f"Logger name: {logger.name}")
+Logger name: task_safe_n_to_1
+>>> print(f"Log file path: {log_path}")
+Log file path: None
+>>>
+>>> # Example 2: File and console logging for audit trail
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     log_dir = Path(tmpdir)
+...     logger, log_path = setup_logging(level=logging.DEBUG, log_dir=log_dir)
+...     logger.info("Model training started")
+...     logger.debug("Hyperparameter: learning_rate=0.01")
+...     print(f"Log file created: {log_path.exists()}")
+...     print(f"Log file suffix: {log_path.suffix}")
+Log file created: True
+Log file suffix: .log
+>>>
+>>> # Example 3: Verify log levels and file creation
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     logger, log_path = setup_logging(log_dir=Path(tmpdir))
+...     # Verify logger is configured
+...     assert logger.name == "task_safe_n_to_1"
+...     assert log_path is not None or len(logger.handlers) > 0
+...     print("Logger configured successfully")
+Logger configured successfully
+>>>
+>>> # Example 4: Safety-critical scenario - file path verification
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     _, log_path = setup_logging(log_dir=Path(tmpdir))
+...     # In actual usage, log_path may be None if called multiple times
+...     # First call creates file, subsequent calls reuse handlers
+...     print("Logging system ready for audit trail")
+Logging system ready for audit trail
+```

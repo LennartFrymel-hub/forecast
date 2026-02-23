@@ -1,0 +1,100 @@
+# model_selection.split_base { #spotforecast2_safe.model_selection.split_base }
+
+`model_selection.split_base`
+
+Base class for time series cross-validation splitting.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [BaseFold](#spotforecast2_safe.model_selection.split_base.BaseFold) | Base class for all Fold classes in spotforecast. All fold classes should specify |
+
+### BaseFold { #spotforecast2_safe.model_selection.split_base.BaseFold }
+
+```python
+model_selection.split_base.BaseFold(
+    steps=None,
+    initial_train_size=None,
+    fold_stride=None,
+    window_size=None,
+    differentiation=None,
+    refit=False,
+    fixed_train_size=True,
+    gap=0,
+    skip_folds=None,
+    allow_incomplete_fold=True,
+    return_all_indexes=False,
+    verbose=True,
+)
+```
+
+Base class for all Fold classes in spotforecast. All fold classes should specify
+all the parameters that can be set at the class level in their ``__init__``.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                  | Type                                                                           | Description                                                                                                                                                                                                                                                                                                                                                                                                                    | Default   |
+|-----------------------|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| steps                 | [int](`int`)                                                                   | Number of observations used to be predicted in each fold. This is also commonly referred to as the forecast horizon or test size. Defaults to None.                                                                                                                                                                                                                                                                            | `None`    |
+| initial_train_size    | [int](`int`) \| [str](`str`) \| [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | Number of observations used for initial training.  - If an integer, the number of observations used for initial training. - If a date string or pandas Timestamp, it is the last date included in   the initial training set. Defaults to None.                                                                                                                                                                                | `None`    |
+| fold_stride           | [int](`int`)                                                                   | Number of observations that the start of the test set advances between consecutive folds.  - If `None`, it defaults to the same value as `steps`, meaning that folds   are placed back-to-back without overlap. - If `fold_stride < steps`, test sets overlap and multiple forecasts will   be generated for the same observations. - If `fold_stride > steps`, gaps are left between consecutive test sets. Defaults to None. | `None`    |
+| window_size           | [int](`int`)                                                                   | Number of observations needed to generate the autoregressive predictors. Defaults to None.                                                                                                                                                                                                                                                                                                                                     | `None`    |
+| differentiation       | [int](`int`)                                                                   | Number of observations to use for differentiation. This is used to extend the `last_window` as many observations as the differentiation order. Defaults to None.                                                                                                                                                                                                                                                               | `None`    |
+| refit                 | [bool](`bool`) \| [int](`int`)                                                 | Whether to refit the forecaster in each fold.  - If `True`, the forecaster is refitted in each fold. - If `False`, the forecaster is trained only in the first fold. - If an integer, the forecaster is trained in the first fold and then refitted   every `refit` folds. Defaults to False.                                                                                                                                  | `False`   |
+| fixed_train_size      | [bool](`bool`)                                                                 | Whether the training size is fixed or increases in each fold. Defaults to True.                                                                                                                                                                                                                                                                                                                                                | `True`    |
+| gap                   | [int](`int`)                                                                   | Number of observations between the end of the training set and the start of the test set. Defaults to 0.                                                                                                                                                                                                                                                                                                                       | `0`       |
+| skip_folds            | [int](`int`) \| [list](`list`)                                                 | Number of folds to skip.  - If an integer, every 'skip_folds'-th is returned. - If a list, the indexes of the folds to skip.  For example, if `skip_folds=3` and there are 10 folds, the returned folds are 0, 3, 6, and 9. If `skip_folds=[1, 2, 3]`, the returned folds are 0, 4, 5, 6, 7, 8, and 9. Defaults to None.                                                                                                       | `None`    |
+| allow_incomplete_fold | [bool](`bool`)                                                                 | Whether to allow the last fold to include fewer observations than `steps`. If `False`, the last fold is excluded if it is incomplete. Defaults to True.                                                                                                                                                                                                                                                                        | `True`    |
+| return_all_indexes    | [bool](`bool`)                                                                 | Whether to return all indexes or only the start and end indexes of each fold. Defaults to False.                                                                                                                                                                                                                                                                                                                               | `False`   |
+| verbose               | [bool](`bool`)                                                                 | Whether to print information about generated folds. Defaults to True.                                                                                                                                                                                                                                                                                                                                                          | `True`    |
+
+#### Attributes {.doc-section .doc-section-attributes}
+
+
+
+#### Functions {.doc-section .doc-section-functions}
+
+
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [set_params](#spotforecast2_safe.model_selection.split_base.BaseFold.set_params) | Set the parameters of the Fold object. Before overwriting the current |
+
+##### set_params { #spotforecast2_safe.model_selection.split_base.BaseFold.set_params }
+
+```python
+model_selection.split_base.BaseFold.set_params(params)
+```
+
+Set the parameters of the Fold object. Before overwriting the current
+parameters, the input parameters are validated to ensure correctness.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type           | Description                            | Default    |
+|--------|----------------|----------------------------------------|------------|
+| params | [dict](`dict`) | Dictionary with the parameters to set. | _required_ |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.model_selection import TimeSeriesFold
+>>> cv = TimeSeriesFold(steps=1)
+>>> cv.set_params({
+...     "steps": 2,
+...     "initial_train_size": 10,
+...     "fold_stride": 2,
+...     "window_size": 5,
+...     "differentiation": 1,
+...     "refit": True,
+...     "fixed_train_size": False,
+...     "gap": 1,
+...     "skip_folds": 2,
+...     "allow_incomplete_fold": False,
+...     "return_all_indexes": True,
+...     "verbose": False,
+... })
+```

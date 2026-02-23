@@ -1,0 +1,50 @@
+# utils.convert_to_utc { #spotforecast2_safe.utils.convert_to_utc }
+
+`utils.convert_to_utc`
+
+Utility functions for timezone conversion.
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [convert_to_utc](#spotforecast2_safe.utils.convert_to_utc.convert_to_utc) | Convert DataFrame index timezone to UTC. |
+
+### convert_to_utc { #spotforecast2_safe.utils.convert_to_utc.convert_to_utc }
+
+```python
+utils.convert_to_utc.convert_to_utc(df, timezone)
+```
+
+Convert DataFrame index timezone to UTC.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type                                           | Description                                                  | Default    |
+|----------|------------------------------------------------|--------------------------------------------------------------|------------|
+| df       | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | DataFrame with DatetimeIndex.                                | _required_ |
+| timezone | [Optional](`typing.Optional`)\[[str](`str`)\]  | Optional timezone string. Required if index has no timezone. | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                        |
+|--------|------------------------------------------------|------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | DataFrame with UTC timezone index. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                            |
+|--------|----------------------------|------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If index is not DatetimeIndex or has no timezone and timezone is None. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.utils.convert_to_utc import convert_to_utc
+>>> df = pd.DataFrame({"value": [1, 2, 3]}, index=pd.to_datetime(["2022-01-01", "2022-01-02", "2022-01-03"]))
+>>> convert_to_utc(df, "Europe/Berlin")
+           value
+2022-01-01 00:00:00+01:00
+2022-01-02 00:00:00+01:00
+2022-01-03 00:00:00+01:00
+```

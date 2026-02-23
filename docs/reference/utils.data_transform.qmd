@@ -1,0 +1,215 @@
+# utils.data_transform { #spotforecast2_safe.utils.data_transform }
+
+`utils.data_transform`
+
+Data transformation utilities for time series forecasting.
+
+This module provides functions for normalizing and transforming data formats.
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [date_to_index_position](#spotforecast2_safe.utils.data_transform.date_to_index_position) | Transform a datetime string or pandas Timestamp to an integer. The integer |
+| [expand_index](#spotforecast2_safe.utils.data_transform.expand_index) | Create a new index extending from the end of the original index. |
+| [input_to_frame](#spotforecast2_safe.utils.data_transform.input_to_frame) | Convert input data to a pandas DataFrame. |
+| [transform_dataframe](#spotforecast2_safe.utils.data_transform.transform_dataframe) | Transform raw values of pandas DataFrame with a scikit-learn alike |
+
+### date_to_index_position { #spotforecast2_safe.utils.data_transform.date_to_index_position }
+
+```python
+utils.data_transform.date_to_index_position(
+    index,
+    date_input,
+    method='prediction',
+    date_literal='steps',
+    kwargs_pd_to_datetime=None,
+)
+```
+
+Transform a datetime string or pandas Timestamp to an integer. The integer
+represents the position of the datetime in the index.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                  | Type                                                                                                  | Description                                                                                                                                                                 | Default        |
+|-----------------------|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+| index                 | [pd](`pandas`).[Index](`pandas.Index`)                                                                | Original datetime index (must be a pandas DatetimeIndex if `date_input` is not an int).                                                                                     | _required_     |
+| date_input            | [Union](`typing.Union`)\[[int](`int`), [str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Datetime to transform to integer. - If int, returns the same integer. - If str or pandas Timestamp, it is converted and expanded into the index.                            | _required_     |
+| method                | [str](`str`)                                                                                          | Can be 'prediction' or 'validation'. - If 'prediction', the date must be later than the last date in the index. - If 'validation', the date must be within the index range. | `'prediction'` |
+| date_literal          | [str](`str`)                                                                                          | Variable name used in error messages. Defaults to 'steps'.                                                                                                                  | `'steps'`      |
+| kwargs_pd_to_datetime | [Optional](`typing.Optional`)\[[dict](`dict`)\]                                                       | Additional keyword arguments to pass to `pd.to_datetime()`. Defaults to None.                                                                                               | `None`         |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type         | Description                                                                                                                                                                                                                                                                                  |
+|--------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| int    | [int](`int`) | `date_input` transformed to integer position in the `index`. - If `date_input` is an integer, it returns the same integer. - If method is 'prediction', number of steps to predict from the last date in the index. - If method is 'validation', position plus one of the date in the index. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                            |
+|--------|----------------------------|------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If `method` is not 'prediction' or 'validation'.                       |
+|        | [TypeError](`TypeError`)   | If `index` is not a DatetimeIndex when `date_input` is not an integer. |
+|        | [ValueError](`ValueError`) | If `date_input` (as date) does not meet the method's constraints.      |
+|        | [TypeError](`TypeError`)   | If `date_input` is not an integer, string, or pandas Timestamp.        |
+
+### expand_index { #spotforecast2_safe.utils.data_transform.expand_index }
+
+```python
+utils.data_transform.expand_index(index, steps)
+```
+
+Create a new index extending from the end of the original index.
+
+This function generates future indices for forecasting by extending the time
+series index by a specified number of steps. Handles both DatetimeIndex and
+RangeIndex appropriately.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                    | Description                                                                                         | Default    |
+|--------|-------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|------------|
+| index  | [Union](`typing.Union`)\[[pd](`pandas`).[Index](`pandas.Index`), None\] | Original pandas Index (DatetimeIndex or RangeIndex). If None, creates a RangeIndex starting from 0. | _required_ |
+| steps  | [int](`int`)                                                            | Number of future steps to generate.                                                                 | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                   | Description                                   |
+|--------|----------------------------------------|-----------------------------------------------|
+|        | [pd](`pandas`).[Index](`pandas.Index`) | New pandas Index with `steps` future periods. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                     | Description                                                                      |
+|--------|--------------------------|----------------------------------------------------------------------------------|
+|        | [TypeError](`TypeError`) | If steps is not an integer, or if index is neither DatetimeIndex nor RangeIndex. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> from spotforecast2_safe.utils.data_transform import expand_index
+>>>
+>>> # DatetimeIndex
+>>> dates = pd.date_range("2023-01-01", periods=5, freq="D")
+>>> new_index = expand_index(dates, 3)
+>>> new_index
+DatetimeIndex(['2023-01-06', '2023-01-07', '2023-01-08'], dtype='datetime64[ns]', freq='D')
+>>>
+>>> # RangeIndex
+>>> range_idx = pd.RangeIndex(start=0, stop=10)
+>>> new_index = expand_index(range_idx, 5)
+>>> new_index
+RangeIndex(start=10, stop=15, step=1)
+>>>
+>>> # None index (creates new RangeIndex)
+>>> new_index = expand_index(None, 3)
+>>> new_index
+RangeIndex(start=0, stop=3, step=1)
+>>>
+>>> # Invalid: steps not an integer
+>>> try:
+...     expand_index(dates, 3.5)
+... except TypeError as e:
+...     print("Error: steps must be an integer")
+Error: steps must be an integer
+```
+
+### input_to_frame { #spotforecast2_safe.utils.data_transform.input_to_frame }
+
+```python
+utils.data_transform.input_to_frame(data, input_name)
+```
+
+Convert input data to a pandas DataFrame.
+
+This function ensures consistent DataFrame format for internal processing.
+If data is already a DataFrame, it's returned as-is. If it's a Series,
+it's converted to a single-column DataFrame.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type                                                                                                                | Description                                                                                                                                           | Default    |
+|------------|---------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| data       | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Input data as pandas Series or DataFrame.                                                                                                             | _required_ |
+| input_name | [str](`str`)                                                                                                        | Name of the input data type. Accepted values are: - 'y': Target time series - 'last_window': Last window for prediction - 'exog': Exogenous variables | _required_ |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                            |
+|--------|------------------------------------------------|------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | DataFrame version of the input data. For Series input, uses the series |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | name if available, otherwise uses a default name based on input_name.  |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import pandas as pd
+>>> from spotforecast2_safe.utils.data_transform import input_to_frame
+>>>
+>>> # Series with name
+>>> y = pd.Series([1, 2, 3], name="sales")
+>>> df = input_to_frame(y, input_name="y")
+>>> df.columns.tolist()
+['sales']
+>>>
+>>> # Series without name (uses default)
+>>> y_no_name = pd.Series([1, 2, 3])
+>>> df = input_to_frame(y_no_name, input_name="y")
+>>> df.columns.tolist()
+['y']
+>>>
+>>> # DataFrame (returned as-is)
+>>> df_input = pd.DataFrame({"temp": [20, 21], "humidity": [50, 55]})
+>>> df_output = input_to_frame(df_input, input_name="exog")
+>>> df_output.columns.tolist()
+['temp', 'humidity']
+>>>
+>>> # Exog series without name
+>>> exog = pd.Series([10, 20, 30])
+>>> df_exog = input_to_frame(exog, input_name="exog")
+>>> df_exog.columns.tolist()
+['exog']
+```
+
+### transform_dataframe { #spotforecast2_safe.utils.data_transform.transform_dataframe }
+
+```python
+utils.data_transform.transform_dataframe(
+    df,
+    transformer,
+    fit=False,
+    inverse_transform=False,
+)
+```
+
+Transform raw values of pandas DataFrame with a scikit-learn alike
+transformer, preprocessor or ColumnTransformer.
+
+The transformer used must have the following methods: fit, transform,
+fit_transform and inverse_transform. ColumnTransformers are not allowed
+since they do not have inverse_transform method.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name              | Type                                           | Description                                                                                                                                                        | Default    |
+|-------------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| df                | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | DataFrame to be transformed.                                                                                                                                       | _required_ |
+| transformer       | [object](`object`)                             | Scikit-learn alike transformer, preprocessor, or ColumnTransformer. Must implement fit, transform, fit_transform and inverse_transform.                            | _required_ |
+| fit               | [bool](`bool`)                                 | Train the transformer before applying it. Defaults to False.                                                                                                       | `False`    |
+| inverse_transform | [bool](`bool`)                                 | Transform back the data to the original representation. This is not available when using transformers of class scikit-learn ColumnTransformers. Defaults to False. | `False`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description            |
+|--------|------------------------------------------------|------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | Transformed DataFrame. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                              |
+|--------|----------------------------|----------------------------------------------------------|
+|        | [TypeError](`TypeError`)   | If df is not a pandas DataFrame.                         |
+|        | [ValueError](`ValueError`) | If inverse_transform is requested for ColumnTransformer. |

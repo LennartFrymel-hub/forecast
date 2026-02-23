@@ -1,0 +1,589 @@
+# forecaster.recursive._forecaster_recursive_multiseries { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries }
+
+`forecaster.recursive._forecaster_recursive_multiseries`
+
+
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [ForecasterRecursiveMultiSeries](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries) | Recursive autoregressive forecaster for multiple time series. |
+
+### ForecasterRecursiveMultiSeries { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries(
+    estimator=None,
+    lags=None,
+    window_features=None,
+    encoding='ordinal',
+    transformer_series=None,
+    transformer_exog=None,
+    weight_func=None,
+    series_weights=None,
+    differentiation=None,
+    dropna_from_series=False,
+    fit_kwargs=None,
+    binner_kwargs=None,
+    forecaster_id=None,
+    regressor=None,
+)
+```
+
+Recursive autoregressive forecaster for multiple time series.
+
+This class turns any estimator compatible with the scikit-learn API into a
+recursive autoregressive (multi-step) forecaster for multiple series.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name               | Type                                                                                             | Description                                                                                                                                                                                                                                                                                                             | Default     |
+|--------------------|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| estimator          | [object](`object`)                                                                               | An instance of an estimator or pipeline compatible with the scikit-learn API.                                                                                                                                                                                                                                           | `None`      |
+| lags               | ([int](`int`), [list](`list`), [np](`numpy`).[ndarray](`numpy.ndarray`), [range](`range`), None) | Lags used as predictors. Index starts at 1, so lag 1 is equal to t-1. - `int`: include lags from 1 to `lags` (included). - `list`, `1d numpy ndarray` or `range`: include only lags present in   `lags`, all elements must be int. - `None`: no lags are included as predictors.                                        | `None`      |
+| window_features    | ([object](`object`), [list](`list`), None)                                                       | Instance or list of instances used to create window features from the original time series.                                                                                                                                                                                                                             | `None`      |
+| encoding           | ([str](`str`), None)                                                                             | Encoding used to identify the different series. - `'ordinal'`: single column with integer values [0, n_series - 1]. - `'ordinal_category'`: same as 'ordinal' but with pandas.category dtype. - `'onehot'`: binary column for each series. - `None`: no series identification column is created. Defaults to 'ordinal'. | `'ordinal'` |
+| transformer_series | ([transformer](`transformer`), [dict](`dict`), None)                                             | Preprocessor compatible with scikit-learn (fit/transform/inverse_transform). Applied to each series before training. ColumnTransformers are not allowed. - Single transformer: cloned and applied to all series. - Dict: different transformer per series.                                                              | `None`      |
+| transformer_exog   | ([transformer](`transformer`), None)                                                             | Preprocessor for exogenous variables. `inverse_transform` is not available for ColumnTransformers.                                                                                                                                                                                                                      | `None`      |
+| weight_func        | ([Callable](`typing.Callable`), [dict](`dict`), None)                                            | Function defining weights for each sample based on index. Only used if estimator supports `sample_weight`. - Single function: applied to all series. - Dict: `{'series_name': Callable}`, others get weight 1.                                                                                                          | `None`      |
+| series_weights     | ([dict](`dict`), None)                                                                           | Weights per series `{'series_name': float}`. Applied if estimator supports `sample_weight`. Others get weight 1. If `None`, all levels have weight 1.                                                                                                                                                                   | `None`      |
+| differentiation    | ([int](`int`), [dict](`dict`), None)                                                             | Order of differencing applied to series. - `int`: same order for all series. - `dict`: different order per series (keys are series names). - `None`: no differencing.                                                                                                                                                   | `None`      |
+| dropna_from_series | [bool](`bool`)                                                                                   | If `True`, drops rows with NaNs in X_train/y_train. If `False`, leaves NaNs and warns. Defaults to `False`.                                                                                                                                                                                                             | `False`     |
+| fit_kwargs         | ([dict](`dict`), None)                                                                           | Additional arguments for the estimator's `fit` method.                                                                                                                                                                                                                                                                  | `None`      |
+| binner_kwargs      | ([dict](`dict`), None)                                                                           | Arguments for `QuantileBinner` used for residuals. Includes `n_bins`, `method`, `subsample`, `random_state`, `dtype`.                                                                                                                                                                                                   | `None`      |
+| forecaster_id      | ([str](`str`), [int](`int`), None)                                                               | Identifier for the forecaster.                                                                                                                                                                                                                                                                                          | `None`      |
+| regressor          | [object](`object`)                                                                               | **Deprecated**, alias for `estimator`.                                                                                                                                                                                                                                                                                  | `None`      |
+
+#### Attributes {.doc-section .doc-section-attributes}
+
+
+
+#### Notes {.doc-section .doc-section-notes}
+
+Weights are used to control the influence of each observation.
+`ForecasterRecursiveMultiSeries` accepts two types of weights:
+- `series_weights`: Controls relative importance of each series.
+- `weight_func`: Controls relative importance based on index values.
+If both are provided, they are multiplied. Negative weights are not allowed.
+
+#### Methods
+
+| Name | Description |
+| --- | --- |
+| [create_predict_X](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.create_predict_X) | Create the predictors needed to predict `steps` ahead. |
+| [create_sample_weights](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.create_sample_weights) | Create weights for each observation according to the forecaster's attributes |
+| [create_train_X_y](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.create_train_X_y) | Create training matrices from multiple time series and exogenous variables. |
+| [fit](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.fit) | Training Forecaster. |
+| [get_feature_importances](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.get_feature_importances) | Return feature importances of the estimator. |
+| [predict](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict) | Predict n steps ahead. |
+| [predict_bootstrapping](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_bootstrapping) | Generate multiple forecasting predictions using a bootstrapping process. |
+| [predict_dist](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_dist) | Fit a given probability distribution for each step. |
+| [predict_interval](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_interval) | Predict n steps ahead and estimate prediction intervals. |
+| [predict_quantiles](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_quantiles) | Calculate the specified quantiles for each step. |
+| [set_fit_kwargs](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_fit_kwargs) | Set new values for the additional keyword arguments passed to the `fit` method. |
+| [set_in_sample_residuals](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_in_sample_residuals) | Set in-sample residuals in case they were not calculated during training. |
+| [set_lags](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_lags) | Set new value to the attribute `lags`. |
+| [set_out_sample_residuals](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_out_sample_residuals) | Set new values to the attribute `out_sample_residuals_`. |
+| [set_params](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_params) | Set new values to the parameters of the scikit-learn model. |
+| [set_window_features](#spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_window_features) | Set new value to the attribute `window_features`. |
+
+##### create_predict_X { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.create_predict_X }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.create_predict_X(
+    steps,
+    levels=None,
+    last_window=None,
+    exog=None,
+    suppress_warnings=False,
+    check_inputs=True,
+)
+```
+
+Create the predictors needed to predict `steps` ahead.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name              | Type                                                                                                             | Description                                                       | Default    |
+|-------------------|------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|------------|
+| steps             | [int](`int`)                                                                                                     | Number of steps to predict.                                       | _required_ |
+| levels            | ([str](`str`), [list](`list`), None)                                                                             | Time series to be predicted. Defaults to `None`.                  | `None`     |
+| last_window       | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), None)                                                           | Series values for predictors. Defaults to `None`.                 | `None`     |
+| exog              | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`), None) | Exogenous variable/s included as predictor/s. Defaults to `None`. | `None`     |
+| suppress_warnings | [bool](`bool`)                                                                                                   | If `True`, suppress warnings. Defaults to `False`.                | `False`    |
+| check_inputs      | [bool](`bool`)                                                                                                   | If `True`, check input for warnings/errors. Defaults to `True`.   | `True`     |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                              |
+|--------|------------------------------------------------|----------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Long-format DataFrame with the predictors. |
+
+##### create_sample_weights { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.create_sample_weights }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.create_sample_weights(
+    series_names_in_,
+    X_train,
+)
+```
+
+Create weights for each observation according to the forecaster's attributes
+`series_weights` and `weight_func`. The resulting weights are product of both
+types of weights.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name             | Type                                           | Description                                           | Default    |
+|------------------|------------------------------------------------|-------------------------------------------------------|------------|
+| series_names_in_ | [list](`list`)                                 | Names of the series (levels) used during training.    | _required_ |
+| X_train          | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | Dataframe created with the `create_train_X_y` method. | _required_ |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                     | Description                                 |
+|--------|------------------------------------------|---------------------------------------------|
+|        | [np](`numpy`).[ndarray](`numpy.ndarray`) | np.ndarray: Weights to use in `fit` method. |
+
+##### create_train_X_y { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.create_train_X_y }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.create_train_X_y(
+    series,
+    exog=None,
+    suppress_warnings=False,
+)
+```
+
+Create training matrices from multiple time series and exogenous variables.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name              | Type                                                                                                             | Description                                                                             | Default    |
+|-------------------|------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|------------|
+| series            | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`))                                                 | Training time series.                                                                   | _required_ |
+| exog              | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`), None) | Exogenous variable/s included as predictor/s. Defaults to `None`.                       | `None`     |
+| suppress_warnings | [bool](`bool`)                                                                                                   | If `True`, skforecast warnings will be suppressed during creation. Defaults to `False`. | `False`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                         | Description                                                                                                                                                               |
+|--------|--------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| tuple  | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[Series](`pandas.Series`)\] | A tuple containing: - X_train (pd.DataFrame): Training values (predictors). - y_train (pd.Series): Values (target) of the time series related   to each row of `X_train`. |
+
+###### Notes {.doc-section .doc-section-notes}
+
+See `_create_train_X_y` for detailed information on input types.
+
+##### fit { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.fit }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.fit(
+    series,
+    exog=None,
+    store_last_window=True,
+    store_in_sample_residuals=False,
+    random_state=123,
+    suppress_warnings=False,
+)
+```
+
+Training Forecaster.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name                      | Type                                                                                                             | Description                                                                                                          | Default    |
+|---------------------------|------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|------------|
+| series                    | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`))                                                 | Training time series.                                                                                                | _required_ |
+| exog                      | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`), None) | Exogenous variable/s included as predictor/s. Defaults to `None`.                                                    | `None`     |
+| store_last_window         | ([bool](`bool`), [list](`list`))                                                                                 | Whether or not to store the last window (`last_window_`) of training data. Defaults to `True`.                       | `True`     |
+| store_in_sample_residuals | [bool](`bool`)                                                                                                   | If `True`, in-sample residuals will be stored in the forecaster object after fitting. Defaults to `False`.           | `False`    |
+| random_state              | [int](`int`)                                                                                                     | Set a seed for the random generator so that the stored sample residuals are always deterministic. Defaults to `123`. | `123`      |
+| suppress_warnings         | [bool](`bool`)                                                                                                   | If `True`, skforecast warnings will be suppressed during training. Defaults to `False`.                              | `False`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+###### Notes {.doc-section .doc-section-notes}
+
+- If `series` is a wide-format pandas DataFrame, each column represents
+  a different time series.
+- If `series` is a long-format pandas DataFrame with a MultiIndex, the
+  first level of the index must contain the series IDs.
+- If series is a dictionary, each key must be a series ID.
+- If `exog` is a wide-format pandas DataFrame, it must share the same
+  index type as series.
+- If `exog` is a long-format pandas Series or DataFrame with a MultiIndex,
+  the first level contains the series IDs.
+- If `exog` is a dictionary, each key must correspond to a series ID.
+
+##### get_feature_importances { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.get_feature_importances }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.get_feature_importances(
+    sort_importance=True,
+)
+```
+
+Return feature importances of the estimator.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name            | Type           | Description                                                                       | Default   |
+|-----------------|----------------|-----------------------------------------------------------------------------------|-----------|
+| sort_importance | [bool](`bool`) | If `True`, sorts the feature importances in descending order. Defaults to `True`. | `True`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                       |
+|--------|------------------------------------------------|-------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Feature importances associated with each predictor. |
+
+##### predict { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict(
+    steps,
+    levels=None,
+    last_window=None,
+    exog=None,
+    suppress_warnings=False,
+    check_inputs=True,
+)
+```
+
+Predict n steps ahead.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name              | Type                                                                                                             | Description                                                       | Default    |
+|-------------------|------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|------------|
+| steps             | [int](`int`)                                                                                                     | Number of steps to predict.                                       | _required_ |
+| levels            | ([str](`str`), [list](`list`), None)                                                                             | Time series to be predicted. Defaults to `None`.                  | `None`     |
+| last_window       | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), None)                                                           | Series values for predictors. Defaults to `None`.                 | `None`     |
+| exog              | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`), None) | Exogenous variable/s included as predictor/s. Defaults to `None`. | `None`     |
+| suppress_warnings | [bool](`bool`)                                                                                                   | If `True`, suppress warnings. Defaults to `False`.                | `False`    |
+| check_inputs      | [bool](`bool`)                                                                                                   | If `True`, check input for warnings/errors. Defaults to `True`.   | `True`     |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                               |
+|--------|------------------------------------------------|-----------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Long-format DataFrame with the predictions. |
+
+##### predict_bootstrapping { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_bootstrapping }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_bootstrapping(
+    steps,
+    levels=None,
+    last_window=None,
+    exog=None,
+    n_boot=250,
+    use_in_sample_residuals=True,
+    use_binned_residuals=True,
+    random_state=123,
+    suppress_warnings=False,
+)
+```
+
+Generate multiple forecasting predictions using a bootstrapping process.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name                    | Type                                                                                                             | Description                                                                      | Default    |
+|-------------------------|------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|------------|
+| steps                   | [int](`int`)                                                                                                     | Number of steps to predict.                                                      | _required_ |
+| levels                  | ([str](`str`), [list](`list`), None)                                                                             | Time series to be predicted. Defaults to `None`.                                 | `None`     |
+| last_window             | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), None)                                                           | Series values used to create predictors. Defaults to `None`.                     | `None`     |
+| exog                    | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`), None) | Exogenous variable/s included as predictor/s. Defaults to `None`.                | `None`     |
+| n_boot                  | [int](`int`)                                                                                                     | Number of bootstrapping iterations. Defaults to `250`.                           | `250`      |
+| use_in_sample_residuals | [bool](`bool`)                                                                                                   | If `True`, use residuals from training data. Defaults to `True`.                 | `True`     |
+| use_binned_residuals    | [bool](`bool`)                                                                                                   | If `True`, residuals are selected based on predicted values. Defaults to `True`. | `True`     |
+| random_state            | [int](`int`)                                                                                                     | Seed for reproducibility. Defaults to `123`.                                     | `123`      |
+| suppress_warnings       | [bool](`bool`)                                                                                                   | If `True`, suppress warnings. Defaults to `False`.                               | `False`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                             |
+|--------|------------------------------------------------|-------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Long-format DataFrame with the bootstrapping predictions. |
+
+###### References {.doc-section .doc-section-references}
+
+[1] Forecasting: Principles and Practice (3rd ed) Rob J Hyndman and George Athanasopoulos.
+    https://otexts.com/fpp3/prediction-intervals.html
+
+##### predict_dist { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_dist }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_dist(
+    steps,
+    distribution,
+    levels=None,
+    last_window=None,
+    exog=None,
+    n_boot=250,
+    use_in_sample_residuals=True,
+    use_binned_residuals=True,
+    random_state=123,
+    suppress_warnings=False,
+)
+```
+
+Fit a given probability distribution for each step.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name                    | Type                                                                                                             | Description                                                                      | Default    |
+|-------------------------|------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|------------|
+| steps                   | [int](`int`)                                                                                                     | Number of steps to predict.                                                      | _required_ |
+| distribution            | [object](`object`)                                                                                               | A distribution object from scipy.stats.                                          | _required_ |
+| levels                  | ([str](`str`), [list](`list`), None)                                                                             | Time series to be predicted. Defaults to `None`.                                 | `None`     |
+| last_window             | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), None)                                                           | Series values used to create predictors. Defaults to `None`.                     | `None`     |
+| exog                    | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`), None) | Exogenous variable/s included as predictor/s. Defaults to `None`.                | `None`     |
+| n_boot                  | [int](`int`)                                                                                                     | Number of bootstrapping iterations. Defaults to `250`.                           | `250`      |
+| use_in_sample_residuals | [bool](`bool`)                                                                                                   | If `True`, use residuals from training data. Defaults to `True`.                 | `True`     |
+| use_binned_residuals    | [bool](`bool`)                                                                                                   | If `True`, residuals are selected based on predicted values. Defaults to `True`. | `True`     |
+| random_state            | [int](`int`)                                                                                                     | Seed for reproducibility. Defaults to `123`.                                     | `123`      |
+| suppress_warnings       | [bool](`bool`)                                                                                                   | If `True`, suppress warnings. Defaults to `False`.                               | `False`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                                     |
+|--------|------------------------------------------------|---------------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Long-format DataFrame with parameters of the fitted distribution. |
+
+##### predict_interval { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_interval }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_interval(
+    steps,
+    levels=None,
+    last_window=None,
+    exog=None,
+    method='conformal',
+    interval=[5, 95],
+    n_boot=250,
+    use_in_sample_residuals=True,
+    use_binned_residuals=True,
+    random_state=123,
+    suppress_warnings=False,
+)
+```
+
+Predict n steps ahead and estimate prediction intervals.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name                    | Type                                                                                                             | Description                                                                                                        | Default       |
+|-------------------------|------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|---------------|
+| steps                   | [int](`int`)                                                                                                     | Number of steps to predict.                                                                                        | _required_    |
+| levels                  | ([str](`str`), [list](`list`), None)                                                                             | Time series to be predicted. Defaults to `None`.                                                                   | `None`        |
+| last_window             | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), None)                                                           | Series values used to create predictors. Defaults to `None`.                                                       | `None`        |
+| exog                    | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`), None) | Exogenous variable/s included as predictor/s. Defaults to `None`.                                                  | `None`        |
+| method                  | [str](`str`)                                                                                                     | Technique used to estimate prediction intervals. Options: 'bootstrapping', 'conformal'. Defaults to `'conformal'`. | `'conformal'` |
+| interval                | ([float](`float`), [list](`list`), [tuple](`tuple`))                                                             | Confidence level of the prediction interval. Defaults to `[5, 95]`.                                                | `[5, 95]`     |
+| n_boot                  | [int](`int`)                                                                                                     | Number of bootstrapping iterations. Defaults to `250`.                                                             | `250`         |
+| use_in_sample_residuals | [bool](`bool`)                                                                                                   | If `True`, use residuals from training data. Defaults to `True`.                                                   | `True`        |
+| use_binned_residuals    | [bool](`bool`)                                                                                                   | If `True`, residuals are selected based on predicted values. Defaults to `True`.                                   | `True`        |
+| random_state            | [int](`int`)                                                                                                     | Seed for reproducibility. Defaults to `123`.                                                                       | `123`         |
+| suppress_warnings       | [bool](`bool`)                                                                                                   | If `True`, suppress warnings. Defaults to `False`.                                                                 | `False`       |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                         |
+|--------|------------------------------------------------|---------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Long-format DataFrame with predictions and intervals. |
+
+##### predict_quantiles { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_quantiles }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.predict_quantiles(
+    steps,
+    levels=None,
+    last_window=None,
+    exog=None,
+    quantiles=[0.05, 0.5, 0.95],
+    n_boot=250,
+    use_in_sample_residuals=True,
+    use_binned_residuals=True,
+    random_state=123,
+    suppress_warnings=False,
+)
+```
+
+Calculate the specified quantiles for each step.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name                    | Type                                                                                                             | Description                                                                      | Default             |
+|-------------------------|------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|---------------------|
+| steps                   | [int](`int`)                                                                                                     | Number of steps to predict.                                                      | _required_          |
+| levels                  | ([str](`str`), [list](`list`), None)                                                                             | Time series to be predicted. Defaults to `None`.                                 | `None`              |
+| last_window             | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), None)                                                           | Series values used to create predictors. Defaults to `None`.                     | `None`              |
+| exog                    | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`), None) | Exogenous variable/s included as predictor/s. Defaults to `None`.                | `None`              |
+| quantiles               | ([list](`list`), [tuple](`tuple`))                                                                               | Sequence of quantiles to compute (0 to 1). Defaults to `[0.05, 0.5, 0.95]`.      | `[0.05, 0.5, 0.95]` |
+| n_boot                  | [int](`int`)                                                                                                     | Number of bootstrapping iterations. Defaults to `250`.                           | `250`               |
+| use_in_sample_residuals | [bool](`bool`)                                                                                                   | If `True`, use residuals from training data. Defaults to `True`.                 | `True`              |
+| use_binned_residuals    | [bool](`bool`)                                                                                                   | If `True`, residuals are selected based on predicted values. Defaults to `True`. | `True`              |
+| random_state            | [int](`int`)                                                                                                     | Seed for reproducibility. Defaults to `123`.                                     | `123`               |
+| suppress_warnings       | [bool](`bool`)                                                                                                   | If `True`, suppress warnings. Defaults to `False`.                               | `False`             |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                       |
+|--------|------------------------------------------------|-------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Long-format DataFrame with the predicted quantiles. |
+
+##### set_fit_kwargs { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_fit_kwargs }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_fit_kwargs(
+    fit_kwargs,
+)
+```
+
+Set new values for the additional keyword arguments passed to the `fit` method.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type           | Description                               | Default    |
+|------------|----------------|-------------------------------------------|------------|
+| fit_kwargs | [dict](`dict`) | Dict of the form {"argument": new_value}. | _required_ |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+##### set_in_sample_residuals { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_in_sample_residuals }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_in_sample_residuals(
+    series,
+    exog=None,
+    random_state=123,
+    suppress_warnings=False,
+)
+```
+
+Set in-sample residuals in case they were not calculated during training.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name              | Type                                                                                                             | Description                                                       | Default    |
+|-------------------|------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|------------|
+| series            | ([pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`))                                                 | Training time series.                                             | _required_ |
+| exog              | ([pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [dict](`dict`), None) | Exogenous variable/s included as predictor/s. Defaults to `None`. | `None`     |
+| random_state      | [int](`int`)                                                                                                     | Seed for reproducibility. Defaults to `123`.                      | `123`      |
+| suppress_warnings | [bool](`bool`)                                                                                                   | If `True`, suppress warnings. Defaults to `False`.                | `False`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+##### set_lags { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_lags }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_lags(
+    lags=None,
+)
+```
+
+Set new value to the attribute `lags`.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                                                                                             | Description                                  | Default   |
+|--------|--------------------------------------------------------------------------------------------------|----------------------------------------------|-----------|
+| lags   | ([int](`int`), [list](`list`), [np](`numpy`).[ndarray](`numpy.ndarray`), [range](`range`), None) | Lags used as predictors. Defaults to `None`. | `None`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+##### set_out_sample_residuals { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_out_sample_residuals }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_out_sample_residuals(
+    y_true,
+    y_pred,
+    append=False,
+    random_state=123,
+)
+```
+
+Set new values to the attribute `out_sample_residuals_`.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type           | Description                                                                   | Default    |
+|--------------|----------------|-------------------------------------------------------------------------------|------------|
+| y_true       | [dict](`dict`) | Dictionary with the true values of the time series.                           | _required_ |
+| y_pred       | [dict](`dict`) | Dictionary with the predicted values of the time series.                      | _required_ |
+| append       | [bool](`bool`) | If `True`, new residuals are added to the existing ones. Defaults to `False`. | `False`    |
+| random_state | [int](`int`)   | Seed for reproducibility. Defaults to `123`.                                  | `123`      |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+###### Notes {.doc-section .doc-section-notes}
+
+Out-of-sample residuals can only be stored for series seen during fit.
+
+##### set_params { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_params }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_params(
+    params,
+)
+```
+
+Set new values to the parameters of the scikit-learn model.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type           | Description       | Default    |
+|--------|----------------|-------------------|------------|
+| params | [dict](`dict`) | Parameter values. | _required_ |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
+
+##### set_window_features { #spotforecast2_safe.forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_window_features }
+
+```python
+forecaster.recursive._forecaster_recursive_multiseries.ForecasterRecursiveMultiSeries.set_window_features(
+    window_features=None,
+)
+```
+
+Set new value to the attribute `window_features`.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name            | Type                                       | Description                                                                       | Default   |
+|-----------------|--------------------------------------------|-----------------------------------------------------------------------------------|-----------|
+| window_features | ([object](`object`), [list](`list`), None) | Instance or list of instances used to create window features. Defaults to `None`. | `None`    |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | None   | None          |
