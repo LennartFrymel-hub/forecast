@@ -1,0 +1,26 @@
+# manager.models.forecaster_recursive_xgb { #spotforecast2_safe.manager.models.forecaster_recursive_xgb }
+
+`manager.models.forecaster_recursive_xgb`
+
+Recursive forecaster model wrappers for different estimators.
+
+## Classes
+
+| Name | Description |
+| --- | --- |
+| [ForecasterRecursiveXGB](#spotforecast2_safe.manager.models.forecaster_recursive_xgb.ForecasterRecursiveXGB) | ForecasterRecursive specialization using XGBoost. |
+
+### ForecasterRecursiveXGB { #spotforecast2_safe.manager.models.forecaster_recursive_xgb.ForecasterRecursiveXGB }
+
+```python
+manager.models.forecaster_recursive_xgb.ForecasterRecursiveXGB(
+    iteration,
+    lags=12,
+    **kwargs,
+)
+```
+
+ForecasterRecursive specialization using XGBoost.
+
+#### Attributes {.doc-section .doc-section-attributes}
+

@@ -1,0 +1,4 @@
+# manager.persistence { #spotforecast2_safe.manager.persistence }
+
+`manager.persistence`
+

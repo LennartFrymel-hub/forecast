@@ -1,0 +1,5 @@
+# manager.tools { #spotforecast2_safe.manager.tools }
+
+`manager.tools`
+
+Utility tools for command-line interface parsing.
