@@ -1,0 +1,59 @@
+---
+title: "Data Imputation and Gap Weighting"
+description: "How to handle missing values and minimize their impact on model performance."
+---
+
+In real-world time series forecasting, data gaps are inevitable. While simple imputation (like forward-filling) can provide values for missing entries, it often introduces localized noise or bias. `spotforecast2-safe` provides a systematic way to handle these gaps using the `WeightFunction` and `get_missing_weights` utilities.
+
+## The Problem: Data Gaps and Model Lags
+
+Most time series models (like `ForecasterRecursive`) use historical values (lags) as features. If a single data point is missing and imputed, every subsequent prediction that uses that point in its lag window is potentially compromised.
+
+## The Solution: Weighted Imputation
+
+Instead of just filling gaps, we calculate a "weight" for each data point. Points that were recently imputed or are too close to a gap are given a weight of **0**, effectively excluding them from the training objective.
+
+### Key Components
+
+- **`get_missing_weights`**: Analyzes a DataFrame for missing values, performs deterministic imputation, and calculates a 0/1 weight series based on a `window_size`.
+- **`WeightFunction`**: A serializable (picklable) wrapper for these weights, allowing them to be passed to model training pipelines.
+
+## Implementation Example
+
+The following example demonstrates how to prepare data with gaps for safe training.
+
+```{python}
+import pandas as pd
+import numpy as np
+from spotforecast2_safe.preprocessing.imputation import (
+    get_missing_weights, 
+    WeightFunction
+)
+
+# 1. Create dummy data with a gap
+data = pd.DataFrame({"y": range(20)}, index=pd.RangeIndex(0, 20))
+data.loc[10, "y"] = np.nan
+
+# 2. Get filled data and weights
+# window_size=5 means we mask the gap and the 5 points following it
+filled_data, weights = get_missing_weights(data, window_size=5)
+
+# 3. Create a serializable WeightFunction
+weight_func = WeightFunction(weights)
+
+# 4. Usage in a Forecaster (conceptual)
+# forecaster = ForecasterRecursive(
+#     estimator=LGBMRegressor(),
+#     lags=12,
+#     weight_func=weight_func
+# )
+```
+
+## Internal Logic
+
+The `get_missing_weights` function uses a rolling maximum approach to propagate the "missing" status across the `window_size`. This ensures that if any part of a model's feature vector (of size `window_size`) touches an imputed value, that specific sample is ignored during training.
+
+::: {.callout-important}
+### Safety First
+The `WeightFunction` is designed to be deterministic and picklable. This is crucial for safety-critical systems where models must be serialized and loaded in different environments (e.g., training in a batch environment and predicting in an edge device) without loss of context.
+:::

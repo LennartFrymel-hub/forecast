@@ -1,14 +1,31 @@
+## [0.16.2-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.1...v0.16.2-rc.1) (2026-02-23)
+
+
+### Bug Fixes
+
+*  Fixed get_missing_weights to return numeric 0/1 weights instead of booleans. ([1b44261](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/1b4426158d84e49d75a1de463b21333f9d9ee58d))
+
+
+### Documentation
+
+* api completion ([9ec7551](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/9ec75516ca9230724a2086659e9b2608e0e20251))
+* fixed reuse ([fbd9c24](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/fbd9c248f5bc4c3df14427ae579f05a947dafd27))
+* links fixed for types ([6cffe8c](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/6cffe8c84d4efb0a733c09f78739230476b04939))
+
+## [0.16.1-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.1-rc.1...v0.16.1-rc.2) (2026-02-23)
 ## [0.16.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0...v0.16.1) (2026-02-22)
 
 
 ### Bug Fixes
 
+*  Fixed get_missing_weights to return numeric 0/1 weights instead of booleans. ([1b44261](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/1b4426158d84e49d75a1de463b21333f9d9ee58d))
 * unpinned ([ce6fa79](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/ce6fa79698da67601bd4714105f35dc422b0444a))
 * workflow identation error ([2d04d4f](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/2d04d4fbbd758f68cc30208c3291262437d1c906))
 
 
 ### Documentation
 
+* links fixed for types ([6cffe8c](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/6cffe8c84d4efb0a733c09f78739230476b04939))
 * migrate from MkDocs to Quarto with quartodoc API generation ([8942820](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/8942820273681166c0b88b5fa29beb0bddaa91de))
 
 ## [0.16.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0...v0.16.1-rc.1) (2026-02-22)

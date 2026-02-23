@@ -45,9 +45,9 @@ class TestGetMissingWeights:
         # Data should be unchanged (no NaNs to fill)
         pd.testing.assert_frame_equal(imputed_data, data)
 
-        # missing_mask should be all False (no missing weights)
+        # missing_mask (now weights) should be all 1.0 (no gaps)
         assert isinstance(missing_mask, pd.Series)
-        assert not missing_mask.any()
+        assert (missing_mask == 1.0).all()
 
     def test_single_gap_creates_missing_mask(self):
         """Test that imputation is applied (ffill/bfill) and no NaN remain."""
@@ -59,10 +59,10 @@ class TestGetMissingWeights:
         )
 
         # After ffill/bfill, there should be no NaN values
-        # missing_mask is weights_series.isna() which will be all False
-        # because weights_series doesn't have NaN (it's 1 - rolling().max())
+        # weights series should be float and have some 0.0 values for the gap
         assert not imputed_data.isnull().any().any()
-        assert missing_mask.dtype == bool
+        assert np.issubdtype(missing_mask.dtype, np.floating)
+        assert (missing_mask == 0.0).any()
 
     def test_data_imputation_ffill_bfill(self):
         """Test that data is properly imputed with ffill and bfill."""
@@ -119,8 +119,10 @@ class TestGetMissingWeights:
 
         # After imputation, all data should be filled (no NaNs)
         assert not imputed_data.isnull().any().any()
-        # missing_mask is weights_series.isna() which should be all False
-        assert not missing_mask.any()
+        # missing_mask (weights) should have 0.0 values at gap locations
+        assert (missing_mask == 0.0).any()
+        # Verify specific gap locations (e.g., index 50)
+        assert missing_mask.iloc[50] == 0.0
 
     def test_verbose_output(self, capsys):
         """Test verbose output messages."""
@@ -146,8 +148,8 @@ class TestGetMissingWeights:
         assert isinstance(imputed_data, pd.DataFrame)
         assert isinstance(missing_mask, pd.Series)
 
-    def test_missing_mask_boolean(self):
-        """Test that missing_mask is boolean."""
+    def test_missing_mask_numeric(self):
+        """Test that missing_mask (weights) is numeric."""
         dates = pd.date_range("2020-01-01", periods=100, freq="D")
         data = create_test_data_with_gaps(dates, [50])
 
@@ -155,7 +157,7 @@ class TestGetMissingWeights:
             data, window_size=24, verbose=False
         )
 
-        assert missing_mask.dtype == bool
+        assert np.issubdtype(missing_mask.dtype, np.floating)
 
     def test_edge_case_single_row_fails(self):
         """Test that single row with window_size validation fails appropriately."""
@@ -272,9 +274,8 @@ class TestIntegrationWithForecaster:
             data, window_size=24, verbose=False
         )
 
-        # Create a weights_series from missing_mask
-        # (inverse: True missing -> 0 weight, False -> 1 weight)
-        weights_series = (~missing_mask).astype(float)
+        # get_missing_weights now returns weights directly
+        weights_series = missing_mask
 
         # Simulate what ForecasterRecursive does: call with window_size:] index
         window_size = 24
@@ -297,7 +298,7 @@ class TestIntegrationWithForecaster:
             data, window_size=20, verbose=False
         )
 
-        weights_series = (~missing_mask).astype(float)
+        weights_series = missing_mask
 
         # Test full index
         all_weights = custom_weights(dates, weights_series)
