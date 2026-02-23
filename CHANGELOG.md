@@ -1,3 +1,15 @@
+## [0.16.1-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.1-rc.1...v0.16.1-rc.2) (2026-02-23)
+
+
+### Bug Fixes
+
+*  Fixed get_missing_weights to return numeric 0/1 weights instead of booleans. ([1b44261](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/1b4426158d84e49d75a1de463b21333f9d9ee58d))
+
+
+### Documentation
+
+* links fixed for types ([6cffe8c](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/6cffe8c84d4efb0a733c09f78739230476b04939))
+
 ## [0.16.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.0...v0.16.1-rc.1) (2026-02-22)
 
 
