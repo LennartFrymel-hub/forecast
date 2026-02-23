@@ -107,7 +107,7 @@ def get_missing_weights(
 
     Returns:
         Tuple[pd.DataFrame, pd.Series]:
-            A tuple containing the forward and backward filled DataFrame and a boolean series where True indicates missing weights.
+            A tuple containing the forward and backward filled DataFrame and a numeric series (0.0 or 1.0) where 0.0 indicates a weight for missing values/gaps.
 
     Examples:
         >>> from spotforecast2_safe.data.fetch_data import fetch_data
@@ -136,9 +136,13 @@ def get_missing_weights(
 
     is_missing = pd.Series(0, index=data.index)
     is_missing.loc[missing_indices] = 1
-    weights_series = 1 - is_missing.rolling(window=window_size + 1, min_periods=1).max()
+    # weights_series: 0 if in/near gap, 1 otherwise
+    weights_series = (
+        1.0 - is_missing.rolling(window=window_size + 1, min_periods=1).max()
+    )
+
     if verbose:
-        n_missing_after = weights_series.isna().sum()
+        n_missing_after = (weights_series == 0).sum()
         pct_missing_after = (n_missing_after / len(data)) * 100
         print(
             f"Number of rows with missing weights after processing: {n_missing_after}"
@@ -146,4 +150,4 @@ def get_missing_weights(
         print(
             f"Percentage of rows with missing weights after processing: {pct_missing_after:.2f}%"
         )
-    return data, weights_series.isna()
+    return data, weights_series

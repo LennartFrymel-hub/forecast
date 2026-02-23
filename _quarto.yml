@@ -146,6 +146,8 @@ website:
         contents:
           - text: "Outlier Detection"
             file: docs/preprocessing/outliers.qmd
+          - text: "Data Imputation & Gap Weighting"
+            file: docs/preprocessing/imputation.qmd
           - text: "Period Configuration Rationale"
             file: docs/PERIOD_CONFIGURATION_RATIONALE.qmd
 

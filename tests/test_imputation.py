@@ -36,7 +36,7 @@ def test_get_missing_weights_fills_and_returns_series(capsys):
     assert "Number of rows with missing values" in captured
     assert filled.isna().sum().sum() == 0
     assert missing_weights.index.equals(data.index)
-    assert missing_weights.dtype == bool
+    assert np.issubdtype(missing_weights.dtype, np.floating)
 
 
 def test_custom_weights_returns_values_for_index():
