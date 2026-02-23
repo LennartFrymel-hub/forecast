@@ -104,7 +104,7 @@ jobs:
       # Remove --no-cache only if build time becomes unacceptable and you
       # have verified cache invalidation is reliable.
       - name: Render Quarto site
-        run: quarto render --no-cache
+        run: uv run quarto render --no-cache
 
       # ── 9. Deploy to GitHub Pages (gh-pages branch) ───────────────────────
       # The quarto-actions/publish action creates a clean commit on gh-pages.

@@ -60,7 +60,7 @@ uv sync
 ## Core Capabilities
 
 - **Data Service** — Robust fetching of time series, weather, and holiday data.
-- **Preprocessing** — Hardened [tools for data curation](docs/preprocessing/curate_data.agg_and_resample_data.qmd), resampling, temporal splitting, and [Data Imputation & Gap Weighting](docs/preprocessing/imputation.qmd).
+- **Preprocessing** — Hardened [tools for data curation](docs/reference/preprocessing.curate_data.agg_and_resample_data.qmd), resampling, temporal splitting, and [Data Imputation & Gap Weighting](docs/preprocessing/imputation.qmd).
 - **Forecasting Engine** — Simplified recursive forecasting and seasonal baselines.
 
 ::: {.callout-warning}

@@ -42,6 +42,9 @@ dev = [
     # Pin quartodoc to a minor-version range; upgrade deliberately.
     # The Quarto CLI binary itself is pinned in .github/workflows/docs.yml.
     "quartodoc>=0.9.1,<1.0",
+    "ipykernel>=7.1.0",
+    "jupyter>=1.1.1",
+    "nbformat>=5.10.4",
     # ── Testing ─────────────────────────────────────────────────────────────
     "pytest>=9.0.2,<10.0",
     "pytest-anyio>=0.0.0,<1.0",
@@ -66,6 +69,9 @@ dev = [
     "ruff>=0.3.0,<1.0",
     # Documentation — replaces MkDocs stack
     "quartodoc>=0.9.1,<1.0",
+    "ipykernel>=7.1.0",
+    "jupyter>=1.1.1",
+    "nbformat>=5.10.4",
     "safety>=3.0.0,<4.0",
     "bandit>=1.8.0,<2.0",
     "mypy>=1.8.0,<2.0",
