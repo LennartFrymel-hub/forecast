@@ -812,13 +812,12 @@ def n2n_predict_with_covariates(
     if verbose:
         print("\n[3/9] Processing missing values and creating sample weights...")
 
-    imputed_data, missing_mask = get_missing_weights(
+    imputed_data, weights_series = get_missing_weights(
         data, window_size=window_size, verbose=verbose
     )
 
     # Create weight function for forecaster
-    # Invert missing_mask: True (missing) -> 0 (weight), False (valid) -> 1 (weight)
-    weights_series = (~missing_mask).astype(float)
+    # Weights are already directly usable: 1.0 (valid/default), 0.0 (near gap)
 
     # Use WeightFunction class which is picklable (unlike local functions with closures)
     from spotforecast2_safe.preprocessing import WeightFunction
