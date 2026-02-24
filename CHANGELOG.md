@@ -4,6 +4,12 @@
 ### Features
 
 * new dataset demo02.cvs ([ed40bc6](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/ed40bc650813392966db98606d96231ed70c7275))
+## [0.16.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.2...v0.16.3) (2026-02-23)
+
+
+### Bug Fixes
+
+* weight_series ([3e8aaf0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/3e8aaf0e0fe27953456c89cfb8bf3f1f2015bb20))
 
 ## [0.16.3-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.2...v0.16.3-rc.1) (2026-02-23)
 
