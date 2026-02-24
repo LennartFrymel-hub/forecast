@@ -1,3 +1,10 @@
+## [0.17.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.3...v0.17.0) (2026-02-24)
+
+
+### Features
+
+* new dataset demo02.cvs ([ed40bc6](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/ed40bc650813392966db98606d96231ed70c7275))
+
 ## [0.17.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.16.3-rc.1...v0.17.0-rc.1) (2026-02-24)
 
 
