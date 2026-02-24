@@ -22,7 +22,7 @@ the full signature, parameters, and return values.
 
 ## Examples
 
-```python
+```{python}
 import pandas as pd
 from spotforecast2_safe.preprocessing.outlier import mark_outliers
 
@@ -32,13 +32,13 @@ data = pd.DataFrame({
 })
 
 # Mark outliers
-result_data, outlier_mask = mark_outliers(
+result_data, outlier_labels = mark_outliers(
     data,
     contamination=0.1,  # Expect 10% contamination
-    columns=['value']
 )
 
-print(f"Outliers marked: {outlier_mask.sum()} records")
+outlier_count = (outlier_labels == -1).sum()
+print(f"Outliers marked: {outlier_count} records")
 ```
 
 ## Detection Methods
