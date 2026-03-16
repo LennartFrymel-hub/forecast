@@ -33,18 +33,26 @@ data = pd.DataFrame({
 
 # Mark outliers
 result_data, outlier_labels = mark_outliers(
-    data,
+    data=data.copy(),  # Use a copy to preserve original data
     contamination=0.1,  # Expect 10% contamination
 )
 
 outlier_count = (outlier_labels == -1).sum()
 print(f"Outliers marked: {outlier_count} records")
+
+pd.DataFrame({
+    'value (before detection)':          data['value'],
+    'value (after detection)':          result_data.squeeze(),
+    'outlier_label':  outlier_labels,
+    'is_outlier':     outlier_labels == -1,
+})
 ```
 
 ## Detection Methods
 
 This module uses isolation forest and other statistical methods to detect:
-- Sudden spikes or drops
-- Seasonal anomalies
-- Drift in baseline values
-- Sudden shifts in variance
+
+* Sudden spikes or drops
+* Seasonal anomalies
+* Drift in baseline values
+* Sudden shifts in variance
