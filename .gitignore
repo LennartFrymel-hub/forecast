@@ -244,3 +244,4 @@ codeql-custom-queries-python/example.ql
 
 # Old MkDocs config backup
 mkdocs.yml.bak
+.claude/settings.json

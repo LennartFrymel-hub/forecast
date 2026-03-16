@@ -41,7 +41,7 @@ uv sync
 uv run pytest tests/ -v
 ```
 
-### Building the Package
+## Building the Package
 
 To build the source and binary distributions (wheels):
 
@@ -52,6 +52,30 @@ uv run python -m build
 # The artifacts will be in the dist/ directory
 ls -lah dist/
 ```
+
+## Documentation
+
+Update or create documentation:
+
+- API documentation goes in `docs/api/`
+- Processing guides go in `docs/processing/`
+- Preprocessing guides go in `docs/preprocessing/`
+- Use Markdown with Google-style docstring conventions
+
+Build documentation locally:
+
+```bash
+uv run python docs/quartodoc_build.py
+uv run quartodoc interlinks
+uv run quarto render --no-cache
+```
+
+Open the generated documentation in a local browser:
+```bash
+open _site/index.html 
+```
+
+
 
 ## Coding Standards
 
@@ -205,22 +229,6 @@ git checkout -b feat/your-feature-name
 
 Pull Request title should follow the conventional commit format.
 
-## Documentation
-
-For larger features, update or create documentation:
-
-- API documentation goes in `docs/api/`
-- Processing guides go in `docs/processing/`
-- Preprocessing guides go in `docs/preprocessing/`
-- Use Markdown with Google-style docstring conventions
-
-Build documentation locally:
-
-```bash
-uv run mkdocs serve
-```
-
-Visit http://localhost:8000 to preview changes.
 
 ## Safety-Critical Standards
 

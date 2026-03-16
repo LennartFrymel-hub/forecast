@@ -20,9 +20,9 @@ Return imputed DataFrame and a series indicating missing weights.
 
 ## Returns {.doc-section .doc-section-returns}
 
-| Name   | Type                                                                                                         | Description                                                                                                                                             |
-|--------|--------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-|        | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[Series](`pandas.Series`)\] | Tuple[pd.DataFrame, pd.Series]: A tuple containing the forward and backward filled DataFrame and a boolean series where True indicates missing weights. |
+| Name   | Type                                                                                                         | Description                                                                                                                                                                          |
+|--------|--------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[Series](`pandas.Series`)\] | Tuple[pd.DataFrame, pd.Series]: A tuple containing the forward and backward filled DataFrame and a numeric series (0.0 or 1.0) where 0.0 indicates a weight for missing values/gaps. |
 
 ## Examples {.doc-section .doc-section-examples}
 
