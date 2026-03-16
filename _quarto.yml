@@ -342,6 +342,8 @@ website:
             file: docs/task_safe_demo_explained.qmd
           - text: "Task Safe n-to-1 Explained"
             file: docs/task_safe_n21_cov_df.qmd
+          - text: "n2n_predict_with_covariates Explained"
+            file: docs/n2n_predict_with_covariates_explained.qmd
 
 
       - section: "Development & Community"
