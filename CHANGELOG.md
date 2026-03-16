@@ -1,3 +1,16 @@
+## [0.18.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.17.3...v0.18.0) (2026-03-16)
+
+
+### Features
+
+* doc completed ([063c9f0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/063c9f05401e1e6190e346b25b862f983e355904))
+
+
+### Documentation
+
+* n2n ([ec7dd56](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/ec7dd565432d6460de0c6a004a2fc8d18445f44c))
+* n2n added ([3db6b84](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/3db6b84918770a9b8ba4c729bb5eb8fdea111708))
+
 ## [0.18.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.17.3-rc.1...v0.18.0-rc.1) (2026-03-16)
 
 
