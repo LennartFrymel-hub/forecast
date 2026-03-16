@@ -37,11 +37,11 @@ from spotforecast2_safe.utils import generate_holiday
 import pandas as pd
 import numpy as np
 
-# Create sample time series data
+# Create sample time series data (index with explicit freq for forecasting)
+np.random.seed(0)
 dates = pd.date_range('2020-01-01', periods=100, freq='D')
 values = np.random.randn(100).cumsum()
-df = pd.DataFrame({'date': dates, 'value': values})
-df.set_index('date', inplace=True)
+df = pd.DataFrame({'value': values}, index=dates)
 ```
 
 ### 3. Define Forecasting Period
@@ -56,29 +56,28 @@ test_end = '2023-12-31'
 ### 4. Create Rolling Features
 
 ```{python}
-#| eval: false
-# Transform time series into lag features for supervised learning
-rolling_features = RollingFeatures(
-    stats='mean',       # Rolling statistic to compute
-    window_sizes=7,     # Use 7-step history
-)
+from sklearn.linear_model import Ridge
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
-X = rolling_features.fit_transform(df['value'])
+# Split series; RollingFeatures is passed as a window_feature to the forecaster
+y = df['value']
+y_train = y.iloc[:80]
+rolling_features = RollingFeatures(stats='mean', window_sizes=7)
+print(f"RollingFeatures: stats={rolling_features.stats}, window_sizes={rolling_features.window_sizes}")
 ```
 
 ### 5. Train Recursive Forecaster
 
 ```{python}
-#| eval: false
-# Initialize forecaster with LightGBM backend
-forecaster = ForecasterRecursiveLGBM(
-    iteration=0,
-    lags=7,   # Use 7-step lag history
+# Build forecaster with rolling-mean window features and fit on training data
+forecaster = ForecasterRecursive(
+    estimator=Ridge(),
+    lags=7,
+    window_features=[rolling_features],
 )
-
-# Train and forecast (see ForecasterRecursiveModel for the full workflow)
 forecaster.fit(y_train)
-y_pred = forecaster.predict()
+y_pred = forecaster.predict(steps=7)
+print(y_pred.round(3))
 ```
 
 ## Key Concepts
@@ -112,15 +111,15 @@ Recursive forecasting predicts multiple steps ahead by feeding model predictions
 - `ForecasterRecursiveXGB`: XGBoost implementation
 
 ```{python}
-#| eval: false
-from spotforecast2_safe.manager.models import ForecasterRecursiveLGBM
+from lightgbm import LGBMRegressor
 
-forecaster = ForecasterRecursiveLGBM(
-    iteration=0,
+forecaster_lgbm = ForecasterRecursive(
+    estimator=LGBMRegressor(n_jobs=1, verbose=-1, random_state=42),
     lags=7,
 )
-forecaster.fit(y_train)
-forecast = forecaster.predict()
+forecaster_lgbm.fit(y_train)
+forecast = forecaster_lgbm.predict(steps=7)
+print(forecast.round(3))
 ```
 
 See [ForecasterRecursive Guide](recursive/ForecasterRecursive.qmd) for detailed examples.
@@ -130,15 +129,16 @@ See [ForecasterRecursive Guide](recursive/ForecasterRecursive.qmd) for detailed 
 The `ExogBuilder` class constructs exogenous (external) features:
 
 ```{python}
-#| eval: false
-from spotforecast2_safe.preprocessing import ExogBuilder
-
 builder = ExogBuilder(
     periods=[Period(name="hour", n_periods=24, column="hour", input_range=(0, 23))],
     country_code="DE",
 )
-
-X_with_exog = builder.transform(df)
+exog = builder.build(
+    start_date=pd.Timestamp('2023-01-01', tz='UTC'),
+    end_date=pd.Timestamp('2023-01-03', tz='UTC'),
+)
+print(f"Exogenous features: {exog.shape[1]} columns, {exog.shape[0]} rows")
+print(exog.columns[:5].tolist())
 ```
 
 ### Holiday Integration
@@ -162,14 +162,17 @@ See [Holiday Generation API](reference/utils.qmd) for details.
 Save trained models for production deployment:
 
 ```{python}
-#| eval: false
-from spotforecast2_safe.manager.persistence import save_model, load_model
+import tempfile
+from pathlib import Path
+import spotforecast2_safe.manager.persistence as persistence
 
-# Save model and metadata
-save_model(forecaster, 'my_forecaster.pkl')
+with tempfile.NamedTemporaryFile(suffix='.pkl', delete=False) as tmp:
+    model_path = Path(tmp.name)
 
-# Load in production
-forecaster = load_model('my_forecaster.pkl')
+persistence.dump(forecaster, model_path)
+loaded_forecaster = persistence.load(model_path)
+print(f"Saved and loaded: {type(loaded_forecaster).__name__}")
+model_path.unlink()
 ```
 
 See [Model Persistence Guide](processing/model_persistence.qmd) for details.
@@ -183,10 +186,10 @@ All spotforecast2-safe operations maintain these critical properties:
 Same input always produces identical output (bit-level reproducible):
 
 ```{python}
-#| eval: false
-X1 = rolling_features.fit_transform(df['value'])
-X2 = rolling_features.fit_transform(df['value'])
-assert (X1 == X2).all().all()  # True
+pred1 = forecaster.predict(steps=7)
+pred2 = forecaster.predict(steps=7)
+assert (pred1 == pred2).all()
+print("Determinism verified: identical predictions on repeated calls.")
 ```
 
 ### Fail-Safe Operation
@@ -194,58 +197,73 @@ assert (X1 == X2).all().all()  # True
 Invalid data raises explicit errors instead of silent failures:
 
 ```{python}
-#| eval: false
-# This raises an error, not NaN propagation
-df_with_nans = pd.DataFrame({'value': [1, np.nan, 3]})
+# Missing values raise an explicit error — no silent NaN propagation
+y_with_nans = pd.Series([1.0, np.nan, 3.0, 4.0, 5.0],
+                        index=pd.date_range('2020-01-01', periods=5, freq='D'))
 try:
-    X = rolling_features.fit_transform(df_with_nans['value'])
-except Exception as e:
-    print(f"Data validation error: {e}")
+    bad_forecaster = ForecasterRecursive(estimator=Ridge(), lags=2)
+    bad_forecaster.fit(y_with_nans)
+except ValueError as e:
+    print(f"ValueError: {e}")
 ```
 
 ### Auditability
 
-All transformations are traceable with clear, white-box code:
+All transformations are traceable with clear, white-box code. The source code is visible via:
 
-```{python}
-# Source code is visible via:
-# 1. Docstrings (in editor)
-# 2. Automatic API documentation (mkdocs)
-# 3. GitHub repository
-```
+* Docstrings (in editor)
+* Automatic API documentation (quarto)
+* GitHub repository
 
 ## Complete Example: End-to-End Forecasting
 
 ```{python}
-#| eval: false
 import pandas as pd
-import numpy as np
+from importlib.resources import files
+from sklearn.linear_model import Ridge
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 from spotforecast2_safe.preprocessing import RollingFeatures
-from spotforecast2_safe.manager.models import ForecasterRecursiveLGBM
 from spotforecast2_safe.utils import create_holiday_df
 
-# 1. Prepare data
-dates = pd.date_range('2020-01-01', periods=365*3, freq='h', tz='UTC')
-values = np.sin(np.arange(len(dates))*2*np.pi/8760) + np.random.randn(len(dates))*0.1
-y = pd.Series(values, index=dates)
+# 1. Load demo02.csv (column A, 1970–1972, resampled to regular hourly grid)
+path = files('spotforecast2_safe.datasets.csv').joinpath('demo02.csv')
+df = pd.read_csv(path, index_col='DateTime', parse_dates=True)
+df = df.sort_index().loc['1970-01-01':'1972-12-31'].resample('h').mean()
+y = df['A'].ffill()
+print(f"Series: {len(y)} hourly obs  ({y.index[0]} – {y.index[-1]})")
 
-# 2. Define train/test split dates
-train_end = '2022-12-31'
+# 2. Holiday calendar as exogenous feature (German public holidays)
+holidays = create_holiday_df(start='1970-01-01', end='1972-12-31', country_code='DE')
+holidays.index = holidays.index.tz_localize(None)   # align to tz-naive index
+exog = holidays.reindex(y.index).fillna(0)          # missing slots → non-holiday
 
-# 3. Create rolling features
-rolling = RollingFeatures(stats='mean', window_sizes=24)
-X = rolling.fit_transform(y)
+# 3. Train / test split  (2 years train, 1 year test)
+train_end = '1971-12-31 23:00'
+y_train     = y[y.index    <= train_end]
+y_test      = y[y.index    >  train_end]
+exog_train  = exog[exog.index <= train_end]
+exog_test   = exog[exog.index >  train_end]
+print(f"Train: {len(y_train)} obs — Test: {len(y_test)} obs")
 
-# 4. Split data
-y_train = y[y.index <= train_end]
+# 4. Build forecaster: lag 1 h / 1 day / 1 week + 24-h rolling mean + holiday exog
+forecaster = ForecasterRecursive(
+    estimator=Ridge(),
+    lags=[1, 24, 168],
+    window_features=[RollingFeatures(stats='mean', window_sizes=24)],
+)
+forecaster.fit(y_train, exog=exog_train)
 
-# 5. Train forecaster
-forecaster = ForecasterRecursiveLGBM(iteration=0, lags=24)
-forecaster.fit(y_train)
+# 5. Forecast the first 24 hours of the test set
+exog_future = exog_test.iloc[:24]
+forecast = forecaster.predict(steps=24, exog=exog_future)
 
-# 6. Generate forecast
-forecast = forecaster.predict()
-print(f"Forecast: {forecast}")
+# 6. Evaluate: first 10 hours as a comparison table
+results = pd.DataFrame({
+    'y_test':   y_test.iloc[:10].values,
+    'forecast': forecast.iloc[:10].values,
+    'mae':      (y_test.iloc[:10] - forecast.iloc[:10]).abs().values,
+}, index=forecast.iloc[:10].index)
+results.round(4)
 ```
 
 ## Documentation Organization

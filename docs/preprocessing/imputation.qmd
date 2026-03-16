@@ -20,33 +20,54 @@ Instead of just filling gaps, we calculate a "weight" for each data point. Point
 
 ## Implementation Example
 
-The following example demonstrates how to prepare data with gaps for safe training.
+The following example demonstrates how to prepare data with gaps for safe training and generate a forecast.
 
 ```{python}
 import pandas as pd
 import numpy as np
-from spotforecast2_safe.preprocessing.imputation import (
-    get_missing_weights, 
-    WeightFunction
-)
+from lightgbm import LGBMRegressor
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+from spotforecast2_safe.preprocessing.imputation import get_missing_weights, WeightFunction
 
-# 1. Create dummy data with a gap
-data = pd.DataFrame({"y": range(20)}, index=pd.RangeIndex(0, 20))
-data.loc[10, "y"] = np.nan
+# 1. Synthetic hourly series with two consecutive gaps
+np.random.seed(42)
+n = 200
+dates = pd.date_range('2020-01-01', periods=n, freq='h')
+values = np.sin(np.arange(n) * 2 * np.pi / 24) + np.random.randn(n) * 0.1
+data = pd.DataFrame({'y': values}, index=dates)
+data.loc[data.index[50], 'y'] = np.nan
+data.loc[data.index[51], 'y'] = np.nan
 
-# 2. Get filled data and weights
-# window_size=5 means we mask the gap and the 5 points following it
-filled_data, weights = get_missing_weights(data, window_size=5)
+print(f"NaNs before imputation: {data['y'].isna().sum()}")
 
-# 3. Create a serializable WeightFunction
+# 2. Impute gaps and compute safety weights
+# window_size=12 → the gap itself plus the next 12 observations are down-weighted to 0
+filled_data, weights = get_missing_weights(data, window_size=12)
+
+print(f"NaNs after imputation:  {filled_data['y'].isna().sum()}")
+print(f"Zero-weight samples:    {(weights == 0).sum()}  "
+      f"(gap + {12}-step lag window masked out)")
+
+# 3. Wrap weights in a picklable WeightFunction
 weight_func = WeightFunction(weights)
 
-# 4. Usage in a Forecaster (conceptual)
-# forecaster = ForecasterRecursive(
-#     estimator=LGBMRegressor(),
-#     lags=12,
-#     weight_func=weight_func
-# )
+# 4. Build forecaster — weight_func down-weights imputed regions during training
+forecaster = ForecasterRecursive(
+    estimator=LGBMRegressor(n_jobs=1, verbose=-1, random_state=42),
+    lags=12,
+    weight_func=weight_func,
+)
+forecaster.fit(filled_data['y'])
+
+# 5. Forecast the next 24 hours
+forecast = forecaster.predict(steps=24)
+
+# 6. Results table
+results = pd.DataFrame({
+    'timestamp': forecast.index,
+    'forecast':  forecast.values.round(4),
+})
+results.set_index('timestamp')
 ```
 
 ## Internal Logic
@@ -57,3 +78,166 @@ The `get_missing_weights` function uses a rolling maximum approach to propagate 
 ### Safety First
 The `WeightFunction` is designed to be deterministic and picklable. This is crucial for safety-critical systems where models must be serialized and loaded in different environments (e.g., training in a batch environment and predicting in an edge device) without loss of context.
 :::
+
+## The Weight Function Explained
+
+To make the mechanism concrete, this section walks through the exact numerical values at each step using a small, readable example: 30 hourly observations, two consecutive gaps at positions 10–11, and `window_size=5`.
+
+### Step 1 — Raw data with gaps
+
+```{python}
+import pandas as pd
+import numpy as np
+from spotforecast2_safe.preprocessing.imputation import get_missing_weights, WeightFunction
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+from lightgbm import LGBMRegressor
+
+np.random.seed(42)
+n = 30
+dates = pd.date_range('2020-01-01', periods=n, freq='h')
+values = np.sin(np.arange(n) * 2 * np.pi / 24) + np.random.randn(n) * 0.1
+data = pd.DataFrame({'y': values.round(4)}, index=dates)
+
+# Inject two consecutive gaps
+data.loc[data.index[10], 'y'] = np.nan
+data.loc[data.index[11], 'y'] = np.nan
+
+data.iloc[7:18]   # rows around the gap
+```
+
+The last known good value before the gap is `0.7614` (row 9, `09:00`).
+
+### Step 2 — Imputation and weight propagation
+
+`get_missing_weights` forward-fills the gap with the last known value, then applies a **rolling maximum** of width `window_size + 1` over a binary "was-NaN" mask. Any row whose rolling window touches an imputed value receives weight `0`.
+
+```{python}
+filled_data, weights = get_missing_weights(data, window_size=5)
+
+combined = filled_data.copy()
+combined['weight'] = weights
+combined.iloc[7:20]
+```
+
+The contaminated zone covers exactly **2 gap rows + 5 lag-window rows = 7 zeros**.
+
+::: {.callout-note}
+Why extend the mask by `window_size`?
+A lag-3 model predicting at `12:00` uses features `[lag_1=11:00, lag_2=10:00, lag_3=09:00]`.
+Both `10:00` and `11:00` are imputed, so the entire training row for `12:00` is corrupt.
+The mask must reach forward by the full lag depth.
+:::
+
+### Step 3 — From weights to `X_train` and `sample_weight`
+
+`ForecasterRecursive._create_train_X_y()` converts the series into a lag matrix. With `lags=3` the training matrix starts at row 3 and the row indices become timestamps:
+
+```{python}
+forecaster_small = ForecasterRecursive(
+    estimator=LGBMRegressor(n_jobs=1, verbose=-1, random_state=42),
+    lags=3,
+    weight_func=WeightFunction(weights),
+)
+
+X_train, y_train, *_ = forecaster_small._create_train_X_y(filled_data['y'])
+sample_weight = forecaster_small.create_sample_weights(X_train)
+
+# Combine everything for inspection
+inspection = X_train.copy()
+inspection['y_target']      = y_train
+inspection['sample_weight'] = sample_weight
+inspection.iloc[7:18]
+```
+
+`weight_func` is called with `X_train.index` (the timestamps). It looks up each timestamp in the pre-computed weights Series and returns the corresponding `0.0` or `1.0`. Rows where `sample_weight == 0` are present in `X_train` but have **zero influence** on the fitted model.
+
+### Step 4 — How the estimator uses `sample_weight`
+
+Inside `ForecasterRecursive.fit()` the call path is:
+
+```
+fit(y, exog)
+  └─ _create_train_X_y(y)          → X_train, y_train
+  └─ create_sample_weights(X_train) → weight_func(X_train.index)  → array([1,1,...,0,0,...,1])
+  └─ estimator.fit(X_train, y_train, sample_weight=array)
+```
+
+`LGBMRegressor` (and any sklearn-compatible estimator) interprets `sample_weight=0` as "skip this observation entirely". The imputed rows are physically present in the training matrix but contribute zero gradient to the model.
+
+```{python}
+# Show the weight distribution summary
+sw_series = pd.Series(sample_weight, index=X_train.index, name='sample_weight')
+print(f"Total training rows : {len(sw_series)}")
+print(f"Active   (weight=1) : {(sw_series == 1).sum()}")
+print(f"Excluded (weight=0) : {(sw_series == 0).sum()}")
+print()
+print("Excluded timestamps:")
+print(sw_series[sw_series == 0].index.tolist())
+```
+
+### Why a callable — not an array?
+
+You might wonder: if we already have the `weights` Series, why not pass it directly to the forecaster instead of wrapping it in a callable?  There are three concrete reasons.
+
+**Reason 1 — Length mismatch: the lag matrix is shorter than the original series.**
+
+`get_missing_weights` returns one weight per row of the original series (length `n`).
+`ForecasterRecursive._create_train_X_y` discards the first `max(lags)` rows because they cannot be fully populated with lag features.
+The resulting `X_train` has length `n − max(lags)`, which changes with every different `lags` setting.
+
+```{python}
+print(f"len(filled_data) = {len(filled_data)}   ← original series, one weight per row")
+print(f"len(weights)     = {len(weights)}   ← same")
+print()
+print(f"{'lags':>6}  {'X_train rows':>12}  {'would need array length':>22}  {'actual weights length':>20}")
+print("-" * 66)
+for lags in [1, 3, 7, 12]:
+    f_tmp = ForecasterRecursive(
+        estimator=LGBMRegressor(verbose=-1),
+        lags=lags,
+        weight_func=WeightFunction(weights),
+    )
+    X_tmp, *_ = f_tmp._create_train_X_y(filled_data['y'])
+    print(f"{lags:>6}  {len(X_tmp):>12}  {len(X_tmp):>22}  {len(weights):>20}  {'✗ mismatch' if len(X_tmp) != len(weights) else '✓'}")
+```
+
+A plain array passed at construction time has no way to know which rows were dropped.
+A **callable receives `X_train.index`** — the exact timestamps that survived — and performs a label-based lookup, returning a correctly sized array regardless of `lags`.
+
+**Reason 2 — Index-based lookup, not positional.**
+
+The forecaster calls `weight_func(X_train.index)` where `X_train.index` is a `DatetimeIndex`. The function maps each timestamp to its pre-computed weight by label:
+
+```{python}
+wf = WeightFunction(weights)
+sample_idx = X_train.index[7:10]      # three timestamps from inside X_train
+print("queried timestamps:", sample_idx.tolist())
+print("returned weights:  ", wf(sample_idx).tolist())
+```
+
+A positional array `weights[7:10]` would silently return the wrong values because the lag-matrix offset shifts all positions by `max(lags)`.
+
+**Reason 3 — Picklability for model serialization.**
+
+Trained `ForecasterRecursive` instances are saved with `persistence.dump()` (joblib). Any closure or lambda that captures a local variable fails at serialization time:
+
+```{python}
+import pickle
+
+# A lambda closure over a local variable — NOT serializable
+def make_closure():
+    w = weights.copy()
+    return lambda index: w.reindex(index).values
+
+try:
+    pickle.dumps(make_closure())
+    print("lambda closure: picklable")
+except AttributeError as e:
+    print(f"lambda closure: NOT picklable — {e}")
+
+# WeightFunction stores only the Series — fully serializable
+wf_roundtrip = pickle.loads(pickle.dumps(WeightFunction(weights)))
+print(f"WeightFunction:  picklable — spot-check: {wf_roundtrip(weights.index[:3]).tolist()}")
+```
+
+`WeightFunction` is a plain class with a single `__init__` attribute (`weights_series`). Pickle serializes it without any closure or scope dependency, making it safe to store alongside the trained model and reload in a completely separate process.

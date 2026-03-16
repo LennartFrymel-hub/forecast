@@ -93,6 +93,7 @@ Run formatting tools before committing:
 black src/ tests/
 isort src/ tests/
 flake8 src/ tests/ --max-line-length=100
+uv run ruff check src/ tests/
 ```
 
 ### Documentation Style
