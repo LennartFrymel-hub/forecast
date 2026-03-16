@@ -1,3 +1,10 @@
+## [0.17.2-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.17.2-rc.1...v0.17.2-rc.2) (2026-03-16)
+
+
+### Bug Fixes
+
+* /var/cache error ([6d267f1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/6d267f1394d835a63f2e4dbd4e120c182dc9e03f))
+
 ## [0.17.2-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.17.1...v0.17.2-rc.1) (2026-03-16)
 
 
