@@ -30,10 +30,13 @@ def mark_outliers(
         tuple[pd.DataFrame, np.ndarray]: A tuple containing the modified dataset with outliers marked as NaN and the outlier labels.
 
     Examples:
-        >>> from spotforecast2_safe.data.fetch_data import fetch_data
-        >>> from spotforecast2_safe.preprocessing.outlier import mark_outliers
-        >>> data = fetch_data()
-        >>> cleaned_data, outlier_labels = mark_outliers(data, contamination=0.1, random_state=42, verbose=True)
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
+        from spotforecast2_safe.preprocessing.outlier import mark_outliers
+        path_demo = get_package_data_home() / "demo02.csv"
+        data = fetch_data(filename=path_demo)
+        cleaned_data, outlier_labels = mark_outliers(data, contamination=0.1, random_state=42, verbose=True)
+        ```
     """
     for col in data.columns:
         iso = IsolationForest(contamination=contamination, random_state=random_state)

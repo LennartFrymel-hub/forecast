@@ -28,9 +28,10 @@ Marks outliers as NaN in the dataset using Isolation Forest.
 
 ## Examples {.doc-section .doc-section-examples}
 
-```python
->>> from spotforecast2_safe.data.fetch_data import fetch_data
->>> from spotforecast2_safe.preprocessing.outlier import mark_outliers
->>> data = fetch_data()
->>> cleaned_data, outlier_labels = mark_outliers(data, contamination=0.1, random_state=42, verbose=True)
+```{python}
+from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
+from spotforecast2_safe.preprocessing.outlier import mark_outliers
+path_demo = get_package_data_home() / "demo02.csv"
+data = fetch_data(filename=path_demo)
+cleaned_data, outlier_labels = mark_outliers(data, contamination=0.1, random_state=42, verbose=True)
 ```

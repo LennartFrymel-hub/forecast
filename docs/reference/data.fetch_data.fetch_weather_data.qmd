@@ -41,17 +41,16 @@ Args:
 
 ## Examples {.doc-section .doc-section-examples}
 
-```python
->>> from spotforecast2_safe.data.fetch_data import fetch_weather_data
->>> weather_df = fetch_weather_data(
-...     cov_start='2023-01-01T00:00',
-...     cov_end='2023-01-11T00:00',
-...     latitude=51.5136,
-...     longitude=7.4653,
-...     timezone='UTC',
-...     freq='h',
-...     fallback_on_failure=True,
-...     cached=True
-... )
->>> weather_df.head()
+```{python}
+from spotforecast2_safe.data.fetch_data import fetch_weather_data
+weather_df = fetch_weather_data(
+    cov_start='2023-01-01T00:00',
+    cov_end='2023-01-11T00:00',
+    latitude=51.5136,
+    longitude=7.4653,
+    timezone='UTC',
+    freq='h',
+    fallback_on_failure=True,
+    cached=True)
+weather_df.head()
 ```

@@ -14,7 +14,6 @@ import logging
 
 def get_data_home(data_home: Optional[Union[str, Path]] = None) -> Path:
     """Return the location where datasets are to be stored.
-
     By default the data directory is set to a folder named 'spotforecast2_data' in the
     user home folder. Alternatively, it can be set by the 'SPOTFORECAST2_DATA' environment
     variable or programmatically by giving an explicit folder path. The '~'
@@ -30,11 +29,12 @@ def get_data_home(data_home: Optional[Union[str, Path]] = None) -> Path:
         data_home (pathlib.Path):
             The path to the spotforecast data directory.
     Examples:
-        >>> from pathlib import Path
-        >>> get_data_home()
-        PosixPath('/home/user/spotforecast2_data')
-        >>> get_data_home(Path('/tmp/spotforecast2_data'))
-        PosixPath('/tmp/spotforecast2_data')
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import get_data_home
+        from pathlib import Path
+        get_data_home()
+        get_data_home(Path('/tmp/spotforecast2_data'))
+        ```
     """
     if data_home is None:
         data_home = environ.get(
@@ -55,19 +55,18 @@ def get_package_data_home() -> Path:
             The path to the spotforecast package data directory.
 
     Examples:
-        >>> from spotforecast2_safe.data.fetch_data import get_package_data_home
-        >>> package_data_dir = get_package_data_home()
-        >>> package_data_dir.name
-        'csv'
-        >>> package_data_dir.parent.name
-        'datasets'
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import get_package_data_home
+        package_data_dir = get_package_data_home()
+        print(package_data_dir.name)
+        print(package_data_dir.parent.name)
+        ```
     """
     return Path(__file__).parent.parent / "datasets" / "csv"
 
 
 def get_cache_home(cache_home: Optional[Union[str, Path]] = None) -> Path:
     """Return the location where persistent models are to be cached.
-
     By default the cache directory is set to a folder named 'spotforecast2_cache' in the
     user home folder. Alternatively, it can be set by the 'SPOTFORECAST2_CACHE' environment
     variable or programmatically by giving an explicit folder path. The '~' symbol is
@@ -90,24 +89,31 @@ def get_cache_home(cache_home: Optional[Union[str, Path]] = None) -> Path:
         OSError: If the directory cannot be created due to permission issues.
 
     Examples:
-        >>> from spotforecast2_safe.data.fetch_data import get_cache_home
-        >>> cache_dir = get_cache_home()
-        >>> cache_dir.name
-        'spotforecast2_cache'
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import get_cache_home
+        cache_dir = get_cache_home()
+        print(cache_dir.name)
+        print(cache_dir.parent.name)
+        ```
 
-        >>> # Custom cache location
-        >>> import tempfile
-        >>> from pathlib import Path
-        >>> custom_cache = get_cache_home(Path('/tmp/my_cache'))
-        >>> custom_cache.exists()
-        True
+        ```{python}
+        # Using custom path
+        from spotforecast2_safe.data.fetch_data import get_cache_home
+        import tempfile
+        from pathlib import Path
+        custom_cache = get_cache_home(Path('/tmp/my_cache'))
+        custom_cache.exists()
+        ```
 
-        >>> # Using environment variable
-        >>> import os
-        >>> os.environ['SPOTFORECAST2_CACHE'] = '/var/cache/spotforecast2'
-        >>> cache_dir = get_cache_home()
-        >>> cache_dir.as_posix()
-        '/var/cache/spotforecast2'
+        ```{python}
+        # Using environment variable
+        from spotforecast2_safe.data.fetch_data import get_cache_home
+        import os
+        os.environ['SPOTFORECAST2_CACHE'] = '/tmp/spotforecast2_cache_env'
+        cache_dir = get_cache_home()
+        cache_dir.as_posix()
+        del os.environ['SPOTFORECAST2_CACHE']
+        ```
     """
     if cache_home is None:
         cache_home = environ.get(
@@ -127,7 +133,6 @@ def load_timeseries(
     data_home: Optional[Union[str, Path]] = None,
 ) -> pd.Series:
     """Load the actual-load time series from ``interim/energy_load.csv``.
-
     Reads the ``Actual Load`` column, converts the index to a UTC
     ``DatetimeIndex`` with hourly frequency, and fills any missing
     values with forward/backward fill.
@@ -193,7 +198,6 @@ def load_timeseries_forecast(
     data_home: Optional[Union[str, Path]] = None,
 ) -> pd.Series:
     """Load the day-ahead forecast time series from ``interim/energy_load.csv``.
-
     Reads the ``Forecasted Load`` column, converts the index to a UTC
     ``DatetimeIndex`` with hourly frequency, and fills any missing
     values with forward/backward fill.
@@ -294,15 +298,13 @@ def fetch_data(
         FileNotFoundError: If CSV file does not exist.
 
     Examples:
-        >>> from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
-        >>> # demo01.csv is included in the package datasets
-        >>> path_demo = get_package_data_home() / "demo01.csv"
-        >>> df = fetch_data(filename=path_demo)
-        >>> df.head()
-                                  Forecasted Load  Actual Load
-        Time (UTC)
-        2022-01-01 00:00:00+00:00  306.73           317.27
-        2022-01-01 00:15:00+00:00  306.73           317.27
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
+        # demo02.csv is included in the package datasets
+        path_demo = get_package_data_home() / "demo02.csv"
+        df = fetch_data(filename=path_demo)
+        df.head()
+        ```
     """
     if columns is not None and len(columns) == 0:
         raise ValueError("columns must be specified and cannot be empty.")
@@ -375,19 +377,19 @@ def fetch_holiday_data(
         pd.DataFrame: DataFrame containing holiday information.
 
     Examples:
-        >>> from spotforecast2_safe.data.fetch_data import fetch_holiday_data
-        >>> holiday_df = fetch_holiday_data(
-        ...     start='2023-01-01T00:00',
-        ...     end='2023-01-10T00:00',
-        ...     tz='UTC',
-        ...     freq='h',
-        ...     country_code='DE',
-        ...     state='NW'
-        ... )
-        >>> holiday_df.head()
-                        is_holiday
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import fetch_holiday_data
+        holiday_df = fetch_holiday_data(
+            start='2023-01-01T00:00',
+            end='2023-01-10T00:00',
+            tz='UTC',
+            freq='h',
+            country_code='DE',
+            state='NW'
+        )
+        holiday_df.head()
+        ```
     """
-
     holiday_df = create_holiday_df(
         start=start, end=end, tz=tz, freq=freq, country_code=country_code, state=state
     )
@@ -428,18 +430,19 @@ def fetch_weather_data(
         pd.DataFrame: DataFrame containing weather information.
 
     Examples:
-        >>> from spotforecast2_safe.data.fetch_data import fetch_weather_data
-        >>> weather_df = fetch_weather_data(
-        ...     cov_start='2023-01-01T00:00',
-        ...     cov_end='2023-01-11T00:00',
-        ...     latitude=51.5136,
-        ...     longitude=7.4653,
-        ...     timezone='UTC',
-        ...     freq='h',
-        ...     fallback_on_failure=True,
-        ...     cached=True
-        ... )
-        >>> weather_df.head()
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import fetch_weather_data
+        weather_df = fetch_weather_data(
+            cov_start='2023-01-01T00:00',
+            cov_end='2023-01-11T00:00',
+            latitude=51.5136,
+            longitude=7.4653,
+            timezone='UTC',
+            freq='h',
+            fallback_on_failure=True,
+            cached=True)
+        weather_df.head()
+        ```
     """
     if cached:
         cache_path = get_data_home() / "weather_cache.parquet"

@@ -1,14 +1,33 @@
-## [0.17.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.17.0...v0.17.1) (2026-03-16)
+## [0.17.2-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.17.2-rc.1...v0.17.2-rc.2) (2026-03-16)
 
 
 ### Bug Fixes
 
-* doc generation update ([7bdc42e](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/7bdc42e978614686f191acf4aa0ef24d9ed9aec3))
+* /var/cache error ([6d267f1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/6d267f1394d835a63f2e4dbd4e120c182dc9e03f))
+
+## [0.17.2-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.17.1...v0.17.2-rc.1) (2026-03-16)
+
+
+### Bug Fixes
+
+* docs living examples ([3d7f078](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/3d7f07876c14c74758663a6d62827902a9294004))
 
 
 ### Documentation
 
-* outliers ([a4c9336](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/a4c933619e092d07748ea8353bf9e4c69b86bcf8))
+* imputation explained ([09396dd](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/09396dd8d8da4bd1e04deec1393863a3c3525adf))
+
+## [0.17.1-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.17.1-rc.1...v0.17.1-rc.2) (2026-03-16)
+
+
+### Bug Fixes
+
+* docs living examples ([3d7f078](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/3d7f07876c14c74758663a6d62827902a9294004))
+
+
+### Documentation
+
+* imputation explained ([09396dd](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/09396dd8d8da4bd1e04deec1393863a3c3525adf))
 
 ## [0.17.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.17.0...v0.17.1-rc.1) (2026-03-16)
 
