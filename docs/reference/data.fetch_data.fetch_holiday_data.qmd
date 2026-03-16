@@ -32,16 +32,15 @@ Fetches holiday data for the dataset period.
 
 ## Examples {.doc-section .doc-section-examples}
 
-```python
->>> from spotforecast2_safe.data.fetch_data import fetch_holiday_data
->>> holiday_df = fetch_holiday_data(
-...     start='2023-01-01T00:00',
-...     end='2023-01-10T00:00',
-...     tz='UTC',
-...     freq='h',
-...     country_code='DE',
-...     state='NW'
-... )
->>> holiday_df.head()
-                is_holiday
+```{python}
+from spotforecast2_safe.data.fetch_data import fetch_holiday_data
+holiday_df = fetch_holiday_data(
+    start='2023-01-01T00:00',
+    end='2023-01-10T00:00',
+    tz='UTC',
+    freq='h',
+    country_code='DE',
+    state='NW'
+)
+holiday_df.head()
 ```

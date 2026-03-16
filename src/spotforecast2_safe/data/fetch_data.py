@@ -109,7 +109,7 @@ def get_cache_home(cache_home: Optional[Union[str, Path]] = None) -> Path:
         # Using environment variable
         from spotforecast2_safe.data.fetch_data import get_cache_home
         import os
-        os.environ['SPOTFORECAST2_CACHE'] = '/var/cache/spotforecast2'
+        os.environ['SPOTFORECAST2_CACHE'] = '/tmp/spotforecast2_cache_env'
         cache_dir = get_cache_home()
         cache_dir.as_posix()
         del os.environ['SPOTFORECAST2_CACHE']

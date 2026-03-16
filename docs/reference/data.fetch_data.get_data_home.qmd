@@ -5,7 +5,6 @@ data.fetch_data.get_data_home(data_home=None)
 ```
 
 Return the location where datasets are to be stored.
-
 By default the data directory is set to a folder named 'spotforecast2_data' in the
 user home folder. Alternatively, it can be set by the 'SPOTFORECAST2_DATA' environment
 variable or programmatically by giving an explicit folder path. The '~'
@@ -25,8 +24,9 @@ If the folder does not already exist, it is automatically created.
 | data_home | [pathlib](`pathlib`).[Path](`pathlib.Path`) | The path to the spotforecast data directory. |
 
 Examples:
-    >>> from pathlib import Path
-    >>> get_data_home()
-    PosixPath('/home/user/spotforecast2_data')
-    >>> get_data_home(Path('/tmp/spotforecast2_data'))
-    PosixPath('/tmp/spotforecast2_data')
+    ```{python}
+    from spotforecast2_safe.data.fetch_data import get_data_home
+    from pathlib import Path
+    get_data_home()
+    get_data_home(Path('/tmp/spotforecast2_data'))
+    ```

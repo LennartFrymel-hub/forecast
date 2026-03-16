@@ -5,7 +5,6 @@ data.fetch_data.get_cache_home(cache_home=None)
 ```
 
 Return the location where persistent models are to be cached.
-
 By default the cache directory is set to a folder named 'spotforecast2_cache' in the
 user home folder. Alternatively, it can be set by the 'SPOTFORECAST2_CACHE' environment
 variable or programmatically by giving an explicit folder path. The '~' symbol is
@@ -35,27 +34,28 @@ forecasting runs, following scikit-learn model persistence conventions.
 
 ## Examples {.doc-section .doc-section-examples}
 
-```python
->>> from spotforecast2_safe.data.fetch_data import get_cache_home
->>> cache_dir = get_cache_home()
->>> cache_dir.name
-'spotforecast2_cache'
+```{python}
+from spotforecast2_safe.data.fetch_data import get_cache_home
+cache_dir = get_cache_home()
+print(cache_dir.name)
+print(cache_dir.parent.name)
 ```
 
-```python
->>> # Custom cache location
->>> import tempfile
->>> from pathlib import Path
->>> custom_cache = get_cache_home(Path('/tmp/my_cache'))
->>> custom_cache.exists()
-True
+```{python}
+# Using custom path
+from spotforecast2_safe.data.fetch_data import get_cache_home
+import tempfile
+from pathlib import Path
+custom_cache = get_cache_home(Path('/tmp/my_cache'))
+custom_cache.exists()
 ```
 
-```python
->>> # Using environment variable
->>> import os
->>> os.environ['SPOTFORECAST2_CACHE'] = '/var/cache/spotforecast2'
->>> cache_dir = get_cache_home()
->>> cache_dir.as_posix()
-'/var/cache/spotforecast2'
+```{python}
+# Using environment variable
+from spotforecast2_safe.data.fetch_data import get_cache_home
+import os
+os.environ['SPOTFORECAST2_CACHE'] = '/tmp/spotforecast2_cache_env'
+cache_dir = get_cache_home()
+cache_dir.as_posix()
+del os.environ['SPOTFORECAST2_CACHE']
 ```
