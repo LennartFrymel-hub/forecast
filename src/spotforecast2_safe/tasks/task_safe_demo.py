@@ -7,32 +7,34 @@ Task demo: compare baseline, covariate, and custom LightGBM forecasts against gr
 This script executes the baseline N-to-1 task, the covariate-enhanced N-to-1
 pipeline, and a custom LightGBM model with optimized hyperparameters, then loads
 the ground truth from a specified data directory.
+Logging Mechanism: This script uses a dual-handler logging system designed for safety-critical MLOps:
 
-Logging Mechanism:
-    This script uses a dual-handler logging system designed for safety-critical MLOps:
-    1.  **Console Handler**: Provides real-time progress updates to `stdout`.
-    2.  **File Handler**: Persists all log messages (including debug/tracebacks) to a
-        timestamped file in `{model_root}/logs/`.
-
-    Log File Location:
-        By default, logs are saved to `~/spotforecast2_safe_models/logs/task_safe_demo_YYYYMMDD_HHMMSS.log`.
-
-Safety-Critical Features:
-- Persistent file-based logging for auditability.
-- Path management using pathlib for cross-platform reliability.
-- Explicit input validation and existence checks.
-- Comprehensive error handling with traceback logging.
-- Deterministic random seeding where applicable.
-- Minimal dependency footprint (no plotting libraries).
+* Console Handler:
+    Provides real-time progress updates to `stdout`.
+* File Handler:
+    Persists all log messages (including debug/tracebacks) to a timestamped file in `{model_root}/logs/`.
+* Log File Location:
+    By default, logs are saved to `~/spotforecast2_safe_models/logs/task_safe_demo_YYYYMMDD_HHMMSS.log`.
+* Safety-Critical Features:
+    * Persistent file-based logging for auditability.
+    * Path management using pathlib for cross-platform reliability.
+    * Explicit input validation and existence checks.
+    * Comprehensive error handling with traceback logging.
+    * Deterministic random seeding where applicable.
+    * Minimal dependency footprint (no plotting libraries).
 
 Examples:
-    Run the demo:
+    # Run with default settings (force training)
+    >>> uv run spotforecast-safe-demo
 
-    >>> python tasks/task_safe_demo.py
+    # Skip training (use cached models if available)
+    >>> uv run spotforecast-safe-demo --force_train false
 
-    Force training (case-insensitive boolean):
+    # Specify custom data path
+    >>> uv run spotforecast-safe-demo --data_path /path/to/data.csv
 
-    >>> python tasks/task_safe_demo.py --force_train false
+    # Enable logging
+    >>> uv run spotforecast-safe-demo --logging true
 """
 
 from __future__ import annotations

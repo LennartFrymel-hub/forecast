@@ -1,0 +1,152 @@
+# processing.n2n_predict_with_covariates.n2n_predict_with_covariates { #spotforecast2_safe.processing.n2n_predict_with_covariates.n2n_predict_with_covariates }
+
+```python
+processing.n2n_predict_with_covariates.n2n_predict_with_covariates(
+    data=None,
+    forecast_horizon=24,
+    contamination=0.01,
+    window_size=72,
+    lags=24,
+    train_ratio=0.8,
+    latitude=51.5136,
+    longitude=7.4653,
+    timezone='UTC',
+    country_code='DE',
+    state='NW',
+    estimator=None,
+    include_weather_windows=False,
+    include_holiday_features=False,
+    include_poly_features=False,
+    force_train=True,
+    model_dir=None,
+    verbose=True,
+    show_progress=False,
+)
+```
+
+End-to-end recursive forecasting with exogenous covariates.
+
+This function implements a complete forecasting pipeline that:
+1. Loads and validates target data
+2. Detects and removes outliers
+3. Imputes missing values with weighted gaps
+4. Creates exogenous features (weather, holidays, calendar, day/night)
+5. Performs feature engineering (cyclical encoding, interactions)
+6. Merges target and exogenous data
+7. Splits into train/validation/test sets
+8. Trains or loads recursive forecasters with sample weighting
+9. Generates multi-step ahead predictions
+
+Models are persisted to disk following scikit-learn conventions using joblib.
+By default, models are retrained (force_train=True). Set force_train=False to reuse existing cached models.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                     | Type                                                                                             | Description                                                                                                                                                                                  | Default   |
+|--------------------------|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| data                     | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\]                  | Optional DataFrame with target time series data. If None, fetches data automatically. Default: None.                                                                                         | `None`    |
+| forecast_horizon         | [int](`int`)                                                                                     | Number of time steps to forecast ahead. Default: 24.                                                                                                                                         | `24`      |
+| contamination            | [float](`float`)                                                                                 | Contamination parameter for outlier detection. Default: 0.01.                                                                                                                                | `0.01`    |
+| window_size              | [int](`int`)                                                                                     | Rolling window size for gap detection. Default: 72.                                                                                                                                          | `72`      |
+| lags                     | [int](`int`)                                                                                     | Number of lags for recursive forecaster. Default: 24.                                                                                                                                        | `24`      |
+| train_ratio              | [float](`float`)                                                                                 | Fraction of data for training. Default: 0.8.                                                                                                                                                 | `0.8`     |
+| latitude                 | [float](`float`)                                                                                 | Location latitude. Default: 51.5136 (Dortmund).                                                                                                                                              | `51.5136` |
+| longitude                | [float](`float`)                                                                                 | Location longitude. Default: 7.4653 (Dortmund).                                                                                                                                              | `7.4653`  |
+| timezone                 | [str](`str`)                                                                                     | Timezone for data. Default: "UTC".                                                                                                                                                           | `'UTC'`   |
+| country_code             | [str](`str`)                                                                                     | Country code for holidays. Default: "DE".                                                                                                                                                    | `'DE'`    |
+| state                    | [str](`str`)                                                                                     | State code for holidays. Default: "NW".                                                                                                                                                      | `'NW'`    |
+| estimator                | [Optional](`typing.Optional`)\[[object](`object`)\]                                              | Base estimator for recursive forecaster. If None, uses LGBMRegressor. Default: None.                                                                                                         | `None`    |
+| include_weather_windows  | [bool](`bool`)                                                                                   | Include weather window features. Default: False.                                                                                                                                             | `False`   |
+| include_holiday_features | [bool](`bool`)                                                                                   | Include holiday features. Default: False.                                                                                                                                                    | `False`   |
+| include_poly_features    | [bool](`bool`)                                                                                   | Include polynomial interaction features. Default: False.                                                                                                                                     | `False`   |
+| force_train              | [bool](`bool`)                                                                                   | Force retraining of all models, ignoring cached models. Default: True.                                                                                                                       | `True`    |
+| model_dir                | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[str](`str`), [Path](`pathlib.Path`)\]\] | Directory for saving/loading trained models. If None, uses the spotforecast2 cache directory (~/spotforecast2_cache by default, or SPOTFORECAST2_CACHE environment variable). Default: None. | `None`    |
+| verbose                  | [bool](`bool`)                                                                                   | Print progress messages. Default: True.                                                                                                                                                      | `True`    |
+| show_progress            | [bool](`bool`)                                                                                   | Show progress bar during training. Default: False.                                                                                                                                           | `False`   |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                    | Description                                                                       |
+|--------|-------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                                          | Tuple containing:                                                                 |
+|        | [Dict](`typing.Dict`)                                                                                                   | - predictions: DataFrame with forecast values for each target variable.           |
+|        | [Dict](`typing.Dict`)                                                                                                   | - metadata: Dictionary with forecast metadata (index, shapes, etc.).              |
+|        | [Tuple](`typing.Tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [Dict](`typing.Dict`), [Dict](`typing.Dict`)\] | - forecasters: Dictionary of trained ForecasterRecursive objects keyed by target. |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                         | Description                                                    |
+|--------|------------------------------|----------------------------------------------------------------|
+|        | [ValueError](`ValueError`)   | If data validation fails or required data cannot be retrieved. |
+|        | [ImportError](`ImportError`) | If required dependencies are not installed.                    |
+|        | [OSError](`OSError`)         | If models cannot be saved to disk.                             |
+
+## Examples {.doc-section .doc-section-examples}
+
+Basic usage with automatic model caching:
+
+```python
+>>> predictions, metadata, forecasters = n2n_predict_with_covariates(
+...     forecast_horizon=24,
+...     verbose=True
+... )
+>>> print(predictions.shape)
+(24, 11)
+```
+
+Load cached models (if available):
+
+```python
+>>> predictions, metadata, forecasters = n2n_predict_with_covariates(
+...     forecast_horizon=24,
+...     force_train=False,
+...     model_dir="./saved_models"
+... )
+```
+
+Force retraining and update cache:
+
+```python
+>>> predictions, metadata, forecasters = n2n_predict_with_covariates(
+...     forecast_horizon=24,
+...     force_train=True,
+...     model_dir="./saved_models"
+... )
+```
+
+Custom location and features:
+
+```python
+>>> predictions, metadata, forecasters = n2n_predict_with_covariates(
+...     forecast_horizon=48,
+...     latitude=52.5200,  # Berlin
+...     longitude=13.4050,
+...     lags=48,
+...     include_poly_features=True,
+...     force_train=False,
+...     verbose=True
+... )
+```
+
+## Notes {.doc-section .doc-section-notes}
+
+- The function uses cached weather data when available.
+- Missing values are handled via forward/backward fill with downweighting
+  observations near gaps.
+- Sample weights are passed to the forecaster to penalize observations
+  near missing data.
+- Train/validation splits are temporal (80/20 by default).
+- All features are cast to float32 for memory efficiency.
+- Trained models are saved to disk using joblib for fast reuse.
+- When force_train=False, existing models are loaded and prediction
+  proceeds without retraining. This significantly speeds up prediction
+  for repeated calls with the same configuration.
+- The model_dir directory is created automatically if it doesn't exist.
+- By default, models are cached in ~/spotforecast2_cache, which can be
+  customized via the SPOTFORECAST2_CACHE environment variable.
+
+## Performance Notes {.doc-section .doc-section-performance-notes}
+
+- First run: Full training
+- Subsequent runs (force_train=False): Model loading only
+- Force retrain (force_train=True): Full training again

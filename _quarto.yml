@@ -80,24 +80,84 @@ website:
         contents:
           - text: "Overview"
             file: docs/reference/index.qmd
+
           - section: "Data"
             contents:
+              - text: "data"
+                file: docs/reference/data.data.qmd
               - text: "fetch_data"
                 file: docs/reference/data.fetch_data.fetch_data.qmd
               - text: "fetch_holiday_data"
                 file: docs/reference/data.fetch_data.fetch_holiday_data.qmd
               - text: "fetch_weather_data"
                 file: docs/reference/data.fetch_data.fetch_weather_data.qmd
+              - text: "get_data_home"
+                file: docs/reference/data.fetch_data.get_data_home.qmd
+              - text: "get_cache_home"
+                file: docs/reference/data.fetch_data.get_cache_home.qmd
+              - text: "get_package_data_home"
+                file: docs/reference/data.fetch_data.get_package_data_home.qmd
+              - text: "load_timeseries"
+                file: docs/reference/data.fetch_data.load_timeseries.qmd
+              - text: "load_timeseries_forecast"
+                file: docs/reference/data.fetch_data.load_timeseries_forecast.qmd
+
           - section: "Preprocessing"
             contents:
+              - text: "Overview"
+                file: docs/reference/preprocessing.qmd
               - text: "ExogBuilder"
                 file: docs/reference/preprocessing.exog_builder.ExogBuilder.qmd
-              - text: "curate_data"
-                file: docs/reference/preprocessing.curate_data.agg_and_resample_data.qmd
-              - text: "outlier detection"
-                file: docs/reference/preprocessing.outlier.mark_outliers.qmd
-              - text: "split"
-                file: docs/reference/preprocessing.split.split_abs_train_val_test.qmd
+              - text: "linearly_interpolate_ts"
+                file: docs/reference/preprocessing.linearly_interpolate_ts.qmd
+              - text: "repeating_basis_function"
+                file: docs/reference/preprocessing.repeating_basis_function.qmd
+              - section: "Curate Data"
+                contents:
+                  - text: "agg_and_resample_data"
+                    file: docs/reference/preprocessing.curate_data.agg_and_resample_data.qmd
+                  - text: "basic_ts_checks"
+                    file: docs/reference/preprocessing.curate_data.basic_ts_checks.qmd
+                  - text: "curate_holidays"
+                    file: docs/reference/preprocessing.curate_data.curate_holidays.qmd
+                  - text: "curate_weather"
+                    file: docs/reference/preprocessing.curate_data.curate_weather.qmd
+                  - text: "get_start_end"
+                    file: docs/reference/preprocessing.curate_data.get_start_end.qmd
+              - section: "Imputation"
+                contents:
+                  - text: "WeightFunction"
+                    file: docs/reference/preprocessing.imputation.WeightFunction.qmd
+                  - text: "get_missing_weights"
+                    file: docs/reference/preprocessing.imputation.get_missing_weights.qmd
+                  - text: "custom_weights"
+                    file: docs/reference/preprocessing.imputation.custom_weights.qmd
+              - section: "Outlier"
+                contents:
+                  - text: "mark_outliers"
+                    file: docs/reference/preprocessing.outlier.mark_outliers.qmd
+                  - text: "manual_outlier_removal"
+                    file: docs/reference/preprocessing.outlier.manual_outlier_removal.qmd
+                  - text: "get_outliers"
+                    file: docs/reference/preprocessing.outlier.get_outliers.qmd
+              - section: "Split"
+                contents:
+                  - text: "split_abs_train_val_test"
+                    file: docs/reference/preprocessing.split.split_abs_train_val_test.qmd
+                  - text: "split_rel_train_val_test"
+                    file: docs/reference/preprocessing.split.split_rel_train_val_test.qmd
+
+          - section: "Processing"
+            contents:
+              - text: "Overview"
+                file: docs/reference/processing.qmd
+              - text: "agg_predict"
+                file: docs/reference/processing.agg_predict.agg_predict.qmd
+              - text: "n2n_predict"
+                file: docs/reference/processing.n2n_predict.n2n_predict.qmd
+              - text: "n2n_predict_with_covariates"
+                file: docs/reference/processing.n2n_predict_with_covariates.n2n_predict_with_covariates.qmd
+
           - section: "Forecaster"
             contents:
               - text: "base"
@@ -106,36 +166,141 @@ website:
                 file: docs/reference/forecaster.recursive._forecaster_recursive.ForecasterRecursive.qmd
               - text: "ForecasterEquivalentDate"
                 file: docs/reference/forecaster.recursive._forecaster_equivalent_date.ForecasterEquivalentDate.qmd
-              - text: "metrics"
-                file: docs/reference/forecaster.metrics.add_y_train_argument.qmd
+              - text: "ForecasterRecursiveMultiSeries"
+                file: docs/reference/forecaster.recursive._forecaster_recursive_multiseries.qmd
               - text: "utils"
                 file: docs/reference/forecaster.utils.qmd
+              - section: "Metrics"
+                contents:
+                  - text: "add_y_train_argument"
+                    file: docs/reference/forecaster.metrics.add_y_train_argument.qmd
+                  - text: "calculate_coverage"
+                    file: docs/reference/forecaster.metrics.calculate_coverage.qmd
+                  - text: "create_mean_pinball_loss"
+                    file: docs/reference/forecaster.metrics.create_mean_pinball_loss.qmd
+                  - text: "crps_from_predictions"
+                    file: docs/reference/forecaster.metrics.crps_from_predictions.qmd
+                  - text: "crps_from_quantiles"
+                    file: docs/reference/forecaster.metrics.crps_from_quantiles.qmd
+                  - text: "mean_absolute_scaled_error"
+                    file: docs/reference/forecaster.metrics.mean_absolute_scaled_error.qmd
+                  - text: "root_mean_squared_scaled_error"
+                    file: docs/reference/forecaster.metrics.root_mean_squared_scaled_error.qmd
+                  - text: "symmetric_mean_absolute_percentage_error"
+                    file: docs/reference/forecaster.metrics.symmetric_mean_absolute_percentage_error.qmd
+
           - section: "Model Selection"
             contents:
               - text: "backtesting_forecaster"
                 file: docs/reference/model_selection.validation.backtesting_forecaster.qmd
+              - text: "backtesting_forecaster_one_step"
+                file: docs/reference/model_selection.validation.backtesting_forecaster_one_step.qmd
+              - text: "validation"
+                file: docs/reference/model_selection.validation.qmd
+              - text: "BaseFold"
+                file: docs/reference/model_selection.split_base.qmd
+              - text: "OneStepAheadFold"
+                file: docs/reference/model_selection.split_one_step.qmd
+              - text: "TimeSeriesFold"
+                file: docs/reference/model_selection.split_ts_cv.qmd
+              - text: "utils_common"
+                file: docs/reference/model_selection.utils_common.qmd
+
           - section: "Manager"
             contents:
-              - text: "metrics"
+              - text: "calculate_metrics"
                 file: docs/reference/manager.metrics.calculate_metrics.qmd
-              - text: "trainer"
-                file: docs/reference/manager.trainer.get_last_model.qmd
-              - text: "predictor"
+              - text: "get_model_prediction"
                 file: docs/reference/manager.predictor.get_model_prediction.qmd
+              - text: "ConfigEntsoe"
+                file: docs/reference/manager.configurator.config_entsoe.ConfigEntsoe.qmd
+              - text: "logger"
+                file: docs/reference/manager.logger.qmd
+              - text: "persistence"
+                file: docs/reference/manager.persistence.qmd
+              - text: "tools"
+                file: docs/reference/manager.tools.qmd
+              - section: "Datasets"
+                contents:
+                  - text: "demo_data"
+                    file: docs/reference/manager.datasets.demo_data.qmd
+                  - text: "demo_loader"
+                    file: docs/reference/manager.datasets.demo_loader.qmd
+              - section: "Models"
+                contents:
+                  - text: "ForecasterRecursiveLGBM"
+                    file: docs/reference/manager.models.forecaster_recursive_lgbm.qmd
+                  - text: "ForecasterRecursiveModel"
+                    file: docs/reference/manager.models.forecaster_recursive_model.qmd
+                  - text: "ForecasterRecursiveXGB"
+                    file: docs/reference/manager.models.forecaster_recursive_xgb.qmd
+              - section: "Trainer"
+                contents:
+                  - text: "get_last_model"
+                    file: docs/reference/manager.trainer.get_last_model.qmd
+                  - text: "get_path_model"
+                    file: docs/reference/manager.trainer.get_path_model.qmd
+                  - text: "load_iteration"
+                    file: docs/reference/manager.trainer.load_iteration.qmd
+
           - section: "Utils"
             contents:
-              - text: "cpe"
+              - text: "Overview"
+                file: docs/reference/utils.qmd
+              - text: "get_cpe_identifier"
                 file: docs/reference/utils.cpe.get_cpe_identifier.qmd
-              - text: "generate_holiday"
+              - text: "create_holiday_df"
                 file: docs/reference/utils.generate_holiday.create_holiday_df.qmd
-              - text: "validation"
-                file: docs/reference/utils.validation.check_y.qmd
-          - text: "Weather"
-            file: docs/reference/weather.weather_client.WeatherClient.qmd
-          - text: "Downloader"
-            file: docs/reference/downloader.entsoe.download_new_data.qmd
+              - text: "convert_to_utc"
+                file: docs/reference/utils.convert_to_utc.qmd
+              - text: "data_transform"
+                file: docs/reference/utils.data_transform.qmd
+              - text: "forecaster_config"
+                file: docs/reference/utils.forecaster_config.qmd
+              - section: "Validation"
+                contents:
+                  - text: "check_y"
+                    file: docs/reference/utils.validation.check_y.qmd
+                  - text: "check_exog"
+                    file: docs/reference/utils.validation.check_exog.qmd
+                  - text: "check_exog_dtypes"
+                    file: docs/reference/utils.validation.check_exog_dtypes.qmd
+                  - text: "check_interval"
+                    file: docs/reference/utils.validation.check_interval.qmd
+                  - text: "check_predict_input"
+                    file: docs/reference/utils.validation.check_predict_input.qmd
+                  - text: "check_residuals_input"
+                    file: docs/reference/utils.validation.check_residuals_input.qmd
+                  - text: "get_exog_dtypes"
+                    file: docs/reference/utils.validation.get_exog_dtypes.qmd
+                  - text: "set_cpu_gpu_device"
+                    file: docs/reference/utils.validation.set_cpu_gpu_device.qmd
+
+          - section: "Weather"
+            contents:
+              - text: "Overview"
+                file: docs/reference/weather.qmd
+              - text: "WeatherClient"
+                file: docs/reference/weather.weather_client.WeatherClient.qmd
+              - text: "WeatherService"
+                file: docs/reference/weather.weather_client.WeatherService.qmd
+
+          - section: "Downloader"
+            contents:
+              - text: "download_new_data"
+                file: docs/reference/downloader.entsoe.download_new_data.qmd
+              - text: "merge_build_manual"
+                file: docs/reference/downloader.entsoe.merge_build_manual.qmd
+
           - text: "Exceptions"
             file: docs/reference/exceptions.qmd
+
+          - section: "Tasks API"
+            contents:
+              - text: "task_safe_demo"
+                file: docs/reference/tasks.task_safe_demo.qmd
+              - text: "task_safe_n_to_1_with_covariates_and_dataframe"
+                file: docs/reference/tasks.task_safe_n_to_1_with_covariates_and_dataframe.qmd
 
       - section: "Processing Guides"
         contents:
@@ -252,7 +417,9 @@ quartodoc:
         - data.fetch_data.fetch_weather_data
         - data.fetch_data.get_cache_home
         - data.fetch_data.get_data_home
-        - data.data
+        - data.fetch_data.get_package_data_home
+        - data.fetch_data.load_timeseries
+        - data.fetch_data.load_timeseries_forecast
         - data.data
 
     # ── Preprocessing ─────────────────────────────────────────────────────────
@@ -285,6 +452,7 @@ quartodoc:
       contents:
         - processing.agg_predict.agg_predict
         - processing.n2n_predict.n2n_predict
+        - processing.n2n_predict_with_covariates.n2n_predict_with_covariates
 
     # ── Forecaster ────────────────────────────────────────────────────────────
     - title: "Forecaster"

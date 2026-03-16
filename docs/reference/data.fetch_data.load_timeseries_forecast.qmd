@@ -1,0 +1,56 @@
+# data.fetch_data.load_timeseries_forecast { #spotforecast2_safe.data.fetch_data.load_timeseries_forecast }
+
+```python
+data.fetch_data.load_timeseries_forecast(data_home=None)
+```
+
+Load the day-ahead forecast time series from ``interim/energy_load.csv``.
+Reads the ``Forecasted Load`` column, converts the index to a UTC
+``DatetimeIndex`` with hourly frequency, and fills any missing
+values with forward/backward fill.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type                                                                                             | Description                                                          | Default   |
+|-----------|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|-----------|
+| data_home | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[str](`str`), [Path](`pathlib.Path`)\]\] | Root data directory.  If *None*, resolved via :func:`get_data_home`. | `None`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                     | Description                                                         |
+|--------|------------------------------------------|---------------------------------------------------------------------|
+|        | [pd](`pandas`).[Series](`pandas.Series`) | pd.Series: Hourly forecasted-load series indexed by UTC timestamps. |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                                     | Description                                    |
+|--------|------------------------------------------|------------------------------------------------|
+|        | [FileNotFoundError](`FileNotFoundError`) | If ``interim/energy_load.csv`` does not exist. |
+|        | [KeyError](`KeyError`)                   | If ``Forecasted Load`` column is not present.  |
+
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import os, tempfile, shutil
+>>> import pandas as pd
+>>> from spotforecast2_safe.data.fetch_data import (
+...     load_timeseries_forecast, get_package_data_home,
+... )
+>>> tmp = tempfile.mkdtemp()
+>>> os.environ["SPOTFORECAST2_DATA"] = tmp
+>>> interim = os.path.join(tmp, "interim")
+>>> os.makedirs(interim, exist_ok=True)
+>>> demo = get_package_data_home() / "demo01.csv"
+>>> df = pd.read_csv(demo)
+>>> df = df.rename(columns={
+...     "Time": "Time (UTC)",
+...     "Actual": "Actual Load",
+...     "Forecast": "Forecasted Load",
+... })
+>>> df.to_csv(os.path.join(interim, "energy_load.csv"), index=False)
+>>> y_f = load_timeseries_forecast()
+>>> isinstance(y_f, pd.Series)
+True
+>>> shutil.rmtree(tmp)
+>>> del os.environ["SPOTFORECAST2_DATA"]
+```
