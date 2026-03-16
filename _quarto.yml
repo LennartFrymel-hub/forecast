@@ -173,6 +173,11 @@ website:
         contents:
           - text: "Demo Tasks"
             file: docs/tasks.qmd
+          - text: "Task Safe Demo Explained"
+            file: docs/task_safe_demo_explained.qmd
+          - text: "Task Safe n-to-1 Explained"
+            file: docs/task_safe_n21_cov_df.qmd
+
 
       - section: "Development & Community"
         contents:
