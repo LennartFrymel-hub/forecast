@@ -51,11 +51,21 @@ all the parameters that can be set at the class level in their ``__init__``.
 
 #### Attributes {.doc-section .doc-section-attributes}
 
-
+| Name               | Type           | Description                                                                                                                                    |
+|--------------------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| initial_train_size | [int](`int`)   | Number of observations used for initial training.                                                                                              |
+| window_size        | [int](`int`)   | Number of observations needed to generate the autoregressive predictors.                                                                       |
+| differentiation    | [int](`int`)   | Number of observations to use for differentiation. This is used to extend the `last_window` as many observations as the differentiation order. |
+| return_all_indexes | [bool](`bool`) | Whether to return all indexes or only the start and end indexes of each fold.                                                                  |
+| verbose            | [bool](`bool`) | Whether to print information about generated folds.                                                                                            |
 
 #### Functions {.doc-section .doc-section-functions}
 
+Validates the input parameters to ensure correctness.
 
+Extracts and returns the index from the input data X.
+
+Set the parameters of the Fold object after validating them.
 
 #### Methods
 

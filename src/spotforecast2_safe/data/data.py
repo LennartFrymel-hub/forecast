@@ -147,7 +147,7 @@ class Data:
 
 @dataclass(frozen=True)
 class Period:
-    """Class abstraction for the information required to encode a period using RBF.
+    """Class abstraction for the information required to encode a period.
 
     Attributes:
         name: Name of the period (e.g., 'hour', 'day').

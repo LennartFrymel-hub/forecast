@@ -17,8 +17,7 @@ The spotforecast2-safe library organizes functionality into six major modules:
 
 ### 1. Import Core Components
 
-```python
-from spotforecast2_safe.data import Period
+```{python}
 from spotforecast2_safe.preprocessing import (
     ExogBuilder,
     RollingFeatures,
@@ -34,7 +33,7 @@ from spotforecast2_safe.utils import generate_holiday
 
 ### 2. Load & Prepare Data
 
-```python
+```{python}
 import pandas as pd
 import numpy as np
 
@@ -47,60 +46,62 @@ df.set_index('date', inplace=True)
 
 ### 3. Define Forecasting Period
 
-```python
-# Define train/test split for temporal validation
-period = Period(
-    train_end='2022-12-31',
-    test_start='2023-01-01',
-    test_end='2023-12-31'
-)
+```{python}
+# Define train/test split dates for temporal validation
+train_end = '2022-12-31'
+test_start = '2023-01-01'
+test_end = '2023-12-31'
 ```
 
 ### 4. Create Rolling Features
 
-```python
+```{python}
+#| eval: false
 # Transform time series into lag features for supervised learning
 rolling_features = RollingFeatures(
-    window_size=7,  # Use 7-day history
-    include_autocorrelated_features=True
+    stats='mean',       # Rolling statistic to compute
+    window_sizes=7,     # Use 7-step history
 )
 
-X, y = rolling_features.fit_transform(df['value'])
+X = rolling_features.fit_transform(df['value'])
 ```
 
 ### 5. Train Recursive Forecaster
 
-```python
+```{python}
+#| eval: false
 # Initialize forecaster with LightGBM backend
 forecaster = ForecasterRecursiveLGBM(
-    steps_ahead=30,  # Forecast 30 days ahead
-    window_size=7,   # Use 7-day history
+    iteration=0,
+    lags=7,   # Use 7-step lag history
 )
 
-# Train on historical data
-forecaster.fit(X_train, y_train)
-
-# Forecast future values
-y_pred = forecaster.predict(steps=30)
+# Train and forecast (see ForecasterRecursiveModel for the full workflow)
+forecaster.fit(y_train)
+y_pred = forecaster.predict()
 ```
 
 ## Key Concepts
 
 ### Period Management
 
-The `Period` class encapsulates temporal information for train/test splits:
+The `Period` dataclass encodes cyclical temporal features (e.g. hour-of-day, day-of-week):
 
-```python
+```{python}
 from spotforecast2_safe.data import Period
 
-period = Period(
-    train_end='2023-06-30',
-    test_start='2023-07-01',
-    test_end='2023-12-31'
-)
+# Encode hour-of-day as a cyclical feature
+period = Period(name="hour", n_periods=24, column="hour", input_range=(0, 23))
 ```
 
-See [Period API](reference/data.fetch_data.fetch_data.qmd) for details.
+For train/test splits, use plain date strings with pandas boolean indexing:
+
+```{python}
+train_end = '2023-06-30'
+test_start = '2023-07-01'
+```
+
+See [Period API](reference/data.data.qmd) for details.
 
 ### Recursive Forecasting
 
@@ -110,16 +111,16 @@ Recursive forecasting predicts multiple steps ahead by feeding model predictions
 - `ForecasterRecursiveLGBM`: LightGBM implementation (recommended for most use cases)
 - `ForecasterRecursiveXGB`: XGBoost implementation
 
-```python
-from spotforecast2_safe.preprocessing import ForecasterRecursiveLGBM
+```{python}
+#| eval: false
+from spotforecast2_safe.manager.models import ForecasterRecursiveLGBM
 
 forecaster = ForecasterRecursiveLGBM(
-    steps_ahead=30,
-    window_size=7,
-    verbose=True
+    iteration=0,
+    lags=7,
 )
-forecaster.fit(X_train, y_train)
-forecast = forecaster.predict(steps=30)
+forecaster.fit(y_train)
+forecast = forecaster.predict()
 ```
 
 See [ForecasterRecursive Guide](recursive/ForecasterRecursive.qmd) for detailed examples.
@@ -128,27 +129,29 @@ See [ForecasterRecursive Guide](recursive/ForecasterRecursive.qmd) for detailed 
 
 The `ExogBuilder` class constructs exogenous (external) features:
 
-```python
+```{python}
+#| eval: false
 from spotforecast2_safe.preprocessing import ExogBuilder
 
 builder = ExogBuilder(
-    df_exog=weather_data,  # External variables (e.g., temperature)
-    include_lag_features=True
+    periods=[Period(name="hour", n_periods=24, column="hour", input_range=(0, 23))],
+    country_code="DE",
 )
 
-X_with_exog = builder.transform(X)
+X_with_exog = builder.transform(df)
 ```
 
 ### Holiday Integration
 
 Generate holiday calendars for demand forecasting:
 
-```python
-from spotforecast2_safe.utils import generate_holiday
+```{python}
+from spotforecast2_safe.utils import create_holiday_df
 
-holidays = generate_holiday(
-    country='US',
-    year=2023
+holidays = create_holiday_df(
+    start='2023-01-01',
+    end='2023-12-31',
+    country_code='DE',
 )
 ```
 
@@ -158,7 +161,8 @@ See [Holiday Generation API](reference/utils.qmd) for details.
 
 Save trained models for production deployment:
 
-```python
+```{python}
+#| eval: false
 from spotforecast2_safe.manager.persistence import save_model, load_model
 
 # Save model and metadata
@@ -178,22 +182,24 @@ All spotforecast2-safe operations maintain these critical properties:
 
 Same input always produces identical output (bit-level reproducible):
 
-```python
-X, y1 = rolling_features.fit_transform(df['value'])
-X, y2 = rolling_features.fit_transform(df['value'])
-assert np.array_equal(y1, y2)  # True
+```{python}
+#| eval: false
+X1 = rolling_features.fit_transform(df['value'])
+X2 = rolling_features.fit_transform(df['value'])
+assert (X1 == X2).all().all()  # True
 ```
 
 ### Fail-Safe Operation
 
 Invalid data raises explicit errors instead of silent failures:
 
-```python
-# This raises ValueError, not NaN propagation
+```{python}
+#| eval: false
+# This raises an error, not NaN propagation
 df_with_nans = pd.DataFrame({'value': [1, np.nan, 3]})
 try:
-    X, y = rolling_features.fit_transform(df_with_nans['value'])
-except ValueError as e:
+    X = rolling_features.fit_transform(df_with_nans['value'])
+except Exception as e:
     print(f"Data validation error: {e}")
 ```
 
@@ -201,7 +207,7 @@ except ValueError as e:
 
 All transformations are traceable with clear, white-box code:
 
-```python
+```{python}
 # Source code is visible via:
 # 1. Docstrings (in editor)
 # 2. Automatic API documentation (mkdocs)
@@ -210,42 +216,36 @@ All transformations are traceable with clear, white-box code:
 
 ## Complete Example: End-to-End Forecasting
 
-```python
+```{python}
+#| eval: false
 import pandas as pd
 import numpy as np
-from spotforecast2_safe.preprocessing import ForecasterRecursiveLGBM, RollingFeatures
-from spotforecast2_safe.data import Period
-from spotforecast2_safe.utils import generate_holiday
+from spotforecast2_safe.preprocessing import RollingFeatures
+from spotforecast2_safe.manager.models import ForecasterRecursiveLGBM
+from spotforecast2_safe.utils import create_holiday_df
 
 # 1. Prepare data
-dates = pd.date_range('2020-01-01', periods=365*3, freq='D')
-values = np.sin(np.arange(len(dates))*2*np.pi/365) + np.random.randn(len(dates))*0.1
-df = pd.DataFrame({'date': dates, 'value': values})
-df.set_index('date', inplace=True)
+dates = pd.date_range('2020-01-01', periods=365*3, freq='h', tz='UTC')
+values = np.sin(np.arange(len(dates))*2*np.pi/8760) + np.random.randn(len(dates))*0.1
+y = pd.Series(values, index=dates)
 
-# 2. Define periods
-period = Period(
-    train_end='2022-12-31',
-    test_start='2023-01-01',
-    test_end='2023-12-31'
-)
+# 2. Define train/test split dates
+train_end = '2022-12-31'
 
-# 3. Create features
-rolling = RollingFeatures(window_size=14)
-X, y = rolling.fit_transform(df['value'])
+# 3. Create rolling features
+rolling = RollingFeatures(stats='mean', window_sizes=24)
+X = rolling.fit_transform(y)
 
 # 4. Split data
-train_mask = df.index <= period.train_end
-X_train, y_train = X[train_mask], y[train_mask]
-X_test, y_test = X[~train_mask], y[~train_mask]
+y_train = y[y.index <= train_end]
 
 # 5. Train forecaster
-forecaster = ForecasterRecursiveLGBM(steps_ahead=30, window_size=14)
-forecaster.fit(X_train, y_train)
+forecaster = ForecasterRecursiveLGBM(iteration=0, lags=24)
+forecaster.fit(y_train)
 
 # 6. Generate forecast
-forecast = forecaster.predict(steps=30)
-print(f"30-day forecast: {forecast}")
+forecast = forecaster.predict()
+print(f"Forecast: {forecast}")
 ```
 
 ## Documentation Organization

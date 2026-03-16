@@ -53,7 +53,9 @@ the class level in their __init__.
 
 #### Attributes {.doc-section .doc-section-attributes}
 
-
+| Name                  | Type   | Description                                                                       |
+|-----------------------|--------|-----------------------------------------------------------------------------------|
+| __spotforecast_tags__ |        | Dictionary with forecaster tags that characterize the behavior of the forecaster. |
 
 #### Examples {.doc-section .doc-section-examples}
 
