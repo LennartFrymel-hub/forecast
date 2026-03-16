@@ -1,0 +1,22 @@
+# data.fetch_data.get_package_data_home { #spotforecast2_safe.data.fetch_data.get_package_data_home }
+
+```python
+data.fetch_data.get_package_data_home()
+```
+
+Return the location of the internal package datasets.
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                   | Description                                                        |
+|--------|------------------------|--------------------------------------------------------------------|
+|        | [Path](`pathlib.Path`) | pathlib.Path: The path to the spotforecast package data directory. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+from spotforecast2_safe.data.fetch_data import get_package_data_home
+package_data_dir = get_package_data_home()
+print(package_data_dir.name)
+print(package_data_dir.parent.name)
+```

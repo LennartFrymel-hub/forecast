@@ -12,7 +12,9 @@ Utilities for fetching and loading time series, weather, and holiday data.
 | [data.fetch_data.fetch_weather_data](data.fetch_data.fetch_weather_data.qmd#spotforecast2_safe.data.fetch_data.fetch_weather_data) | Fetches weather data for the dataset period plus forecast horizon. |
 | [data.fetch_data.get_cache_home](data.fetch_data.get_cache_home.qmd#spotforecast2_safe.data.fetch_data.get_cache_home) | Return the location where persistent models are to be cached. |
 | [data.fetch_data.get_data_home](data.fetch_data.get_data_home.qmd#spotforecast2_safe.data.fetch_data.get_data_home) | Return the location where datasets are to be stored. |
-| [data.data](data.data.qmd#spotforecast2_safe.data.data) | Data structures for input and processed data. |
+| [data.fetch_data.get_package_data_home](data.fetch_data.get_package_data_home.qmd#spotforecast2_safe.data.fetch_data.get_package_data_home) | Return the location of the internal package datasets. |
+| [data.fetch_data.load_timeseries](data.fetch_data.load_timeseries.qmd#spotforecast2_safe.data.fetch_data.load_timeseries) | Load the actual-load time series from ``interim/energy_load.csv``. |
+| [data.fetch_data.load_timeseries_forecast](data.fetch_data.load_timeseries_forecast.qmd#spotforecast2_safe.data.fetch_data.load_timeseries_forecast) | Load the day-ahead forecast time series from ``interim/energy_load.csv``. |
 | [data.data](data.data.qmd#spotforecast2_safe.data.data) | Data structures for input and processed data. |
 
 ## Preprocessing
@@ -49,6 +51,7 @@ Utilities for aggregated and n-to-n predictions.
 | --- | --- |
 | [processing.agg_predict.agg_predict](processing.agg_predict.agg_predict.qmd#spotforecast2_safe.processing.agg_predict.agg_predict) | Aggregates multiple prediction columns into a single combined prediction series. |
 | [processing.n2n_predict.n2n_predict](processing.n2n_predict.n2n_predict.qmd#spotforecast2_safe.processing.n2n_predict.n2n_predict) | End-to-end baseline forecasting using equivalent date method. |
+| [processing.n2n_predict_with_covariates.n2n_predict_with_covariates](processing.n2n_predict_with_covariates.n2n_predict_with_covariates.qmd#spotforecast2_safe.processing.n2n_predict_with_covariates.n2n_predict_with_covariates) | End-to-end recursive forecasting with exogenous covariates. |
 
 ## Forecaster
 

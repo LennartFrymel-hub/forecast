@@ -1,0 +1,204 @@
+---
+title: "n2n_predict_with_covariates: Design and Pipeline Logic Explained"
+description: "A step-by-step walkthrough of the N-to-N covariate forecasting pipeline for beginners."
+---
+
+The `n2n_predict_with_covariates` function is the central engine of the `spotforecast2-safe` forecasting system. It accepts a multivariate time series and returns a DataFrame of multi-step ahead predictions for every target column, together with a metadata dictionary and a collection of fitted `ForecasterRecursive` objects. The function is organised as a strict sequential pipeline of nine numbered stages, each of which transforms the data into a form that the next stage can consume. Understanding each stage in isolation is the clearest path to understanding the function as a whole.
+
+## Input Validation
+
+Before any computation is attempted, `n2n_predict_with_covariates` validates every numerical argument at the entry point. The `forecast_horizon` must be strictly positive, `contamination` must lie in `[0, 0.5]`, `window_size` and `lags` must both be positive, and `train_ratio` must be strictly between zero and one. These checks follow the fail-fast principle: a nonsensical configuration raises a `ValueError` immediately with an informative message, rather than allowing a malformed value to silently corrupt a lag matrix or an outlier-detection threshold deep inside the pipeline. The guard on `forecast_horizon` in particular prevents a negative or zero value from causing array slices to wrap around or return empty results, which would be invisible to the caller at training time but catastrophic at evaluation time.
+
+## Stage 1 — Data Preparation
+
+The first stage resolves the source of the target time series. When the caller supplies a `data` argument, the series is passed directly to `fetch_data` with the `dataframe` keyword. When no data is supplied, `fetch_data` reads from the default `data_in.csv` file. In either case the function returns a DataFrame with a timezone-aware `DatetimeIndex` and numeric columns for each target variable. The column names are recorded immediately as `target_columns` because they govern every downstream operation, from the exogenous feature alignment to the model persistence file names.
+
+Once the data is loaded, `get_start_end` computes four boundary timestamps: `start` and `end` bracket the historical portion of the series, while `cov_start` and `cov_end` extend the window forward by exactly `forecast_horizon` steps to cover the prediction period. These timestamps are used consistently across all feature-engineering functions to ensure that the exogenous feature matrix covers both the training window and the prediction window without any gaps at the boundary.
+
+`basic_ts_checks` then asserts that the index is monotonically increasing and that the frequency is consistent, which are prerequisites for the lag-matrix construction in `ForecasterRecursive`. `agg_and_resample_data` enforces the target hourly frequency by aggregating sub-hourly data and forward-filling isolated gaps, producing a regular grid before any model sees the series.
+
+## Stage 2 — Outlier Detection and Removal
+
+The second stage passes the cleaned series to `mark_outliers`, which applies an Isolation Forest with the user-specified `contamination` parameter. The Isolation Forest partitions the feature space by randomly selecting split points; observations that require very few splits to isolate are considered anomalous. With `contamination=0.01`, approximately one percent of the series is expected to be anomalous. The function replaces the values at detected outlier positions with NaN so that the imputation stage can treat them uniformly with other missing data. The label series `outliers` is returned separately and stored for the metadata dictionary at the end of the pipeline.
+
+```{python}
+import numpy as np
+import pandas as pd
+
+np.random.seed(42)
+n = 200
+y = pd.Series(np.random.randn(n))
+y.iloc[50] = 15.0   # inject spike
+y.iloc[100] = -12.0  # inject dip
+
+contamination = 0.01
+expected_anomalies = int(n * contamination)
+print(f"Series length     : {n}")
+print(f"Expected anomalies: {expected_anomalies}")
+print(f"Injected positions: [50, 100]")
+```
+
+The `random_state=1234` argument ensures that two runs on identical input produce identical outlier labels, which is a core requirement of the reproducible-artefact design.
+
+## Stage 3 — Missing Value Imputation with Sample Weighting
+
+After outlier removal, every position marked as anomalous or originally missing is imputed by `get_missing_weights`. The function forward-fills all NaN positions, then propagates a binary contamination mask forward by `window_size` positions using a rolling maximum. Any training row whose lag window touches an imputed value receives weight zero; all other rows receive weight one. This strategy is more conservative than simply imputing values: the forecaster still sees the forward-filled numbers in its lag matrix, but the corresponding sample weights suppress their gradient contribution during fitting.
+
+The resulting `weights_series` is wrapped in a `WeightFunction` object rather than passed as a plain array. This indirection solves three problems simultaneously. The training matrix produced by `ForecasterRecursive._create_train_X_y` is shorter than the original series by `max(lags)` rows, so a positionally indexed array would silently return the wrong weights. A callable that receives `X_train.index` and performs a label-based lookup into the weights Series is immune to this offset regardless of the `lags` setting. Additionally, `WeightFunction` is a plain class with no closure dependencies, making it fully picklable alongside the trained forecaster — a requirement for model persistence across separate Python processes.
+
+```{python}
+import pandas as pd
+import numpy as np
+
+weights = pd.Series([1, 1, 0, 0, 0, 1, 1, 1], dtype=float,
+                     index=pd.date_range("2020-01-01", periods=8, freq="h"))
+
+class WeightFunction:
+    def __init__(self, weights_series):
+        self.weights_series = weights_series
+    def __call__(self, index):
+        return self.weights_series.reindex(index).fillna(1.0).values
+
+wf = WeightFunction(weights)
+query_idx = weights.index[1:5]
+print("Queried timestamps :", query_idx.tolist())
+print("Returned weights   :", wf(query_idx).tolist())
+```
+
+## Stage 4 — Exogenous Feature Engineering
+
+The fourth stage constructs four categories of exogenous features, each covering the full extended window from `start` to `cov_end`.
+
+Holiday features are retrieved by `_get_holiday_features`, which calls `fetch_holiday_data` for the configured country and state, validates the result with `curate_holidays`, and reindexes the resulting binary Series to the hourly grid with `fill_value=0`. The binary encoding — zero for non-holiday, one for holiday — is intentional: the model receives an unambiguous categorical signal that is compatible with gradient boosting without any encoding transformation.
+
+Weather features are retrieved by `_get_weather_features`, which calls `fetch_weather_data` and then applies `WindowFeatures` from `feature_engine` to compute rolling mean, maximum, and minimum over one-day and seven-day windows for each numeric weather column. Any residual missing values in the weather matrix are resolved by backward-fill before the window transformation, and a second check after transformation raises a `ValueError` if any NaN values remain. This double-check ensures that no imputed weather value silently propagates into the feature matrix.
+
+Calendar features are created by `_get_calendar_features`, which uses `DatetimeFeatures` from `feature_engine` to extract month, week of year, day of week, and hour directly from the `DatetimeIndex`. Because these features are derived from the index alone, they are always complete and require no imputation.
+
+Day and night features are computed by `_get_day_night_features` using the `astral` library. For each unique calendar date in the extended index, the function computes sunrise and sunset times using the observer's geographic coordinates, rounds them to the nearest hour, and broadcasts the values across all hourly timestamps in that day. The derived `is_daylight` column is a binary flag that equals one during the hours between sunrise and sunset. Caching the per-day sunrise and sunset times before broadcasting avoids recomputing the solar position for every timestamp in a multi-year series.
+
+```{python}
+import pandas as pd
+import numpy as np
+
+dates = pd.date_range("2020-06-01", periods=24, freq="h", tz="UTC")
+sunrise_hour = 4   # approximate June sunrise at 51°N
+sunset_hour  = 21  # approximate June sunset  at 51°N
+
+is_daylight = np.where(
+    (dates.hour >= sunrise_hour) & (dates.hour < sunset_hour), 1, 0
+)
+df_sun = pd.DataFrame({"hour": dates.hour, "is_daylight": is_daylight}, index=dates)
+print(df_sun.groupby("is_daylight")["hour"].apply(list).to_string())
+```
+
+## Stage 5 — Combining and Encoding Exogenous Features
+
+The four feature DataFrames are concatenated column-wise into a single `exogenous_features` matrix. A missing-value check immediately follows; if any NaN value is present the function raises a `ValueError` that identifies the count of missing entries. This hard stop prevents a silently incomplete feature matrix from entering the cyclical encoder.
+
+Cyclical encoding is applied to month, week, day of week, hour, sunrise hour, and sunset hour by `_apply_cyclical_encoding`. Each integer-valued column is replaced by its sine and cosine projections onto a unit circle scaled to the column's natural period. The transformation ensures that the numerically adjacent values at the boundary of each cycle — midnight and the hour before midnight, December and January, Sunday and Monday — are also geometrically adjacent in the encoded space, which prevents gradient boosting from learning a spurious discontinuity at the wrap-around point. The original integer columns are retained alongside the cyclical columns so that the model can use either representation.
+
+```{python}
+import numpy as np
+import pandas as pd
+
+dates = pd.date_range("2020-01-01", periods=12, freq="ME")
+month = dates.month
+month_sin = np.sin(2 * np.pi * month / 12)
+month_cos = np.cos(2 * np.pi * month / 12)
+
+pd.DataFrame(
+    {"month": month, "sin": month_sin.round(4), "cos": month_cos.round(4)},
+    index=dates,
+)
+```
+
+Interaction features are then created by `_create_interaction_features` using `PolynomialFeatures` with `interaction_only=True`. This produces pairwise products of the four cyclical calendar columns with the weather window features and the raw weather columns. The holiday column is included if it is present. Interaction features capture joint effects such as the combination of a cold morning and a weekday peak that neither feature can represent individually. The resulting columns are prefixed with `poly_` to distinguish them from the base features.
+
+## Stage 6 — Feature Selection
+
+`_select_exogenous_features` assembles the final list of exogenous column names from the combined feature matrix. The function always includes cyclical features, identified by a `_sin$|_cos$` regular expression, and the raw weather columns. Weather window features, holiday features, and polynomial interaction features are included only if the corresponding boolean flags were set by the caller. The order-preserving deduplication idiom `list(dict.fromkeys(exog_features))` ensures that no column name appears twice in the final list even if multiple selection paths produce the same column, which would cause a duplicate-column error inside the forecaster.
+
+## Stage 7 — Merging Target and Exogenous Data
+
+`_merge_data_and_covariates` produces three DataFrames from the combined inputs. `exo_tmp` is the slice of the exogenous feature matrix that covers `[start, end]`, the historical window used for training. `exo_pred` is the slice that covers `(end, cov_end]`, the future window used for prediction. `data_with_exog` is an inner join of the target columns with the selected exogenous features over the historical window; the inner join guarantees that only rows where both the target and the exogenous features are present are retained, eliminating any residual index misalignment. All columns of `data_with_exog` are cast to `float32` to reduce memory consumption during lag-matrix construction.
+
+## Stage 8 — Train/Validation/Test Split
+
+`split_rel_train_val_test` partitions `data_with_exog` into three temporally ordered segments using the `train_ratio` argument. With the default `train_ratio=0.8`, the training set receives 80 percent of the rows, and the validation and test sets each receive 10 percent. The split is purely temporal — no shuffling is performed — which respects the causal ordering of a time series. The end timestamp of the combined train-validation segment, `end_validation`, defines the boundary up to which the forecaster is fitted. This boundary is used in the `.fit` call rather than the end of the full dataset to leave the test set genuinely unseen.
+
+```{python}
+import pandas as pd
+import numpy as np
+
+n = 100
+idx = pd.date_range("2020-01-01", periods=n, freq="h")
+y   = pd.Series(np.arange(n, dtype=float), index=idx)
+
+train_ratio = 0.8
+n_train = int(n * train_ratio)
+n_val   = int(n * (1 - train_ratio) / 2)
+n_test  = n - n_train - n_val
+
+print(f"Total rows : {n}")
+print(f"Train rows : {n_train}  ({train_ratio:.0%})")
+print(f"Val rows   : {n_val}")
+print(f"Test rows  : {n_test}")
+print(f"Train ends : {y.index[n_train - 1]}")
+```
+
+## Stage 9 — Model Training or Loading
+
+The ninth stage decides whether to train new forecasters or to load previously serialised ones. If `force_train=False` and the model directory exists, `_load_forecasters` attempts to deserialise a `ForecasterRecursive` object for each target column. Targets whose model files are missing from the directory are added to `targets_to_train`. If all models load successfully, training is skipped entirely and the function proceeds directly to the prediction stage. This caching mechanism makes repeated calls with the same configuration — for example in a daily batch process — significantly faster than retraining from scratch.
+
+When training is required, a `ForecasterRecursive` is constructed for each target in `targets_to_train`. The estimator defaults to `LGBMRegressor(random_state=1234, verbose=-1)` if the caller does not supply one. A `RollingFeatures` object with `stats=["mean"]` and `window_sizes=window_size` is passed as the `window_features` argument, which instructs the forecaster to include a rolling mean of the target series as an additional feature alongside the lag columns. The `weight_func` argument wires the `WeightFunction` created in stage 3 into the training loop.
+
+Each forecaster is fitted on the target column of `data_with_exog` up to and including `end_validation`, with the corresponding exogenous slice passed as the `exog` argument. After all targets are trained, `_save_forecasters` serialises each fitted object to the model directory using joblib, one file per target. The `WeightFunction` instance is serialised together with the forecaster because it is an attribute of the fitted object.
+
+```{python}
+import numpy as np
+import pandas as pd
+from lightgbm import LGBMRegressor
+
+estimator = LGBMRegressor(random_state=1234, verbose=-1)
+print(f"random_state : {estimator.random_state}")
+print(f"verbose      : {estimator.verbose}")
+print(f"n_estimators : {estimator.n_estimators}")
+```
+
+## Stage 10 — Prediction
+
+After all forecasters are available — whether trained or loaded — `predict_multivariate` iterates over the `recursive_forecasters` dictionary and calls `.predict(steps=forecast_horizon, exog=exo_pred_subset)` on each forecaster. The exogenous input for the prediction step is `exo_pred[exog_features]`, the future slice of the feature matrix that covers exactly `forecast_horizon` steps beyond `end_validation`. The recursive forecaster advances its internal state one step at a time, using each predicted value as the next lag input, which is why the future exogenous features must be available for all `forecast_horizon` steps before any prediction can begin. The result is assembled into a `predictions` DataFrame with one column per target and `forecast_horizon` rows.
+
+```{python}
+import numpy as np
+import pandas as pd
+
+forecast_horizon = 24
+n_targets = 11
+np.random.seed(42)
+
+pred_index = pd.date_range("2023-01-02", periods=forecast_horizon, freq="h")
+predictions = pd.DataFrame(
+    np.random.randn(forecast_horizon, n_targets),
+    index=pred_index,
+    columns=[f"col_{i+1}" for i in range(n_targets)],
+)
+
+print(f"Predictions shape : {predictions.shape}")
+print(f"First timestamp   : {predictions.index[0]}")
+print(f"Last  timestamp   : {predictions.index[-1]}")
+predictions.head(3).round(4)
+```
+
+## Metadata and Return Values
+
+The function returns a three-element tuple. The first element is the `predictions` DataFrame described above. The second element is a `metadata` dictionary that records every parameter and intermediate shape that characterises the run: `forecast_horizon`, `target_columns`, `exog_features`, the number of selected exogenous features, the sizes of the train, validation, and test segments, the shapes of the original and merged DataFrames, the training end timestamp, the prediction start and end timestamps, `lags`, `window_size`, `contamination`, and the number of detected outliers. This dictionary provides a self-contained audit record of the computation without requiring the caller to reparse the source data or rerun the pipeline.
+
+The third element is the `recursive_forecasters` dictionary keyed by target column name. Returning the fitted objects allows the caller to inspect internal state — feature names, lag matrices, fitted estimator parameters — or to call `.predict` again with a different horizon without retraining.
+
+## The Complete Execution Flow
+
+A single call to `n2n_predict_with_covariates` follows this invariant sequence. Input validation runs first. The target data is loaded and cleaned. Outlier positions are replaced with NaN. Missing values are imputed and sample weights are computed. Four categories of exogenous features are constructed over the full extended time window. The features are concatenated, validated for completeness, cyclically encoded, and augmented with interaction terms. A feature selection step reduces the matrix to the columns that are relevant to the configured pipeline variant. The selected features are merged with the target data over the historical window. The merged data is split temporally into train, validation, and test segments. Forecasters are either loaded from disk or trained from scratch and then persisted. Predictions are generated for the `forecast_horizon` steps beyond the training end. The predictions, metadata, and fitted forecasters are returned to the caller.
+
+Every public parameter is validated at entry, every exogenous feature matrix is checked for completeness before it enters the model, and every fitted object is serialised in a form that survives process boundaries. These invariants make the pipeline safe to embed in automated batch jobs where a silent failure would not be discovered until long after the prediction window has closed.

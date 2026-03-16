@@ -70,6 +70,13 @@ uv run quartodoc interlinks
 uv run quarto render --no-cache
 ```
 
+or
+
+```bash
+uv run python docs/quartodoc_build.py; uv run quartodoc interlinks; uv run quarto render --no-cache
+```
+
+
 Open the generated documentation in a local browser:
 ```bash
 open _site/index.html 
