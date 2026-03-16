@@ -1,0 +1,158 @@
+---
+title: "task_safe_demo: Design and Test Logic Explained"
+description: "A step-by-step walkthrough of the task_safe_demo test suite for beginners."
+---
+
+The `task_safe_demo` script is the canonical end-to-end demonstration of the `spotforecast2-safe` forecasting system. It compares three forecasting pipelines against a common ground truth and logs every execution step in a safety-critical way. The test suite in `tests/test_task_safe_demo.py` does not invoke the full pipeline directly — instead it decomposes the script's internal components into isolated, verifiable units. Understanding each test class therefore means understanding what the script does and why each piece must behave in a specific way.
+
+## The Configuration Contract
+
+Before any computation begins, `task_safe_demo` constructs a `DemoConfig` object. `DemoConfig` is a frozen dataclass, which means its fields cannot be modified after creation. This immutability is intentional: in safety-critical systems a configuration that can be silently overwritten mid-run is a liability, not a convenience.
+
+The `TestDemoConfig` class verifies that the defaults are meaningful. A `forecast_horizon` of 24 corresponds to a 24-step-ahead prediction, typically one full day of hourly data. A `contamination` of 0.01 tells the outlier detector to treat roughly 1% of the training set as anomalous. The `window_size` of 72 defines how many timesteps are used in the rolling feature window, and `random_seed=42` pins all stochastic operations to a reproducible state.
+
+The 11-element `weights` list is equally deliberate. The task aggregates predictions from 11 time series columns into a single combined forecast using a signed weighted average. Some weights are negative, which means those columns enter the combination with reversed sign. The test confirms there are exactly 7 positive weights and 4 negative weights — a contract that must hold for the aggregation arithmetic to produce the intended result.
+
+```{python}
+from spotforecast2_safe.manager.datasets.demo_data import DemoConfig
+
+config = DemoConfig()
+print(f"forecast_horizon : {config.forecast_horizon}")
+print(f"contamination    : {config.contamination}")
+print(f"window_size      : {config.window_size}")
+print(f"random_seed      : {config.random_seed}")
+print(f"weights          : {config.weights}")
+```
+
+## Metrics as the Evaluation Language
+
+Once predictions exist they must be evaluated. The `calculate_metrics` function returns a dictionary with two keys, `MAE` and `MSE`, computed directly from the difference series `actual - predicted`. The `TestCalculateMetrics` class establishes three behavioral guarantees.
+
+When a model's predictions are identical to the actuals, both metrics must be exactly zero. This sounds obvious but is the anchor point for all threshold-based safety assertions downstream. When predictions are uniformly offset by a constant — say, every prediction is one unit too high — the MAE equals that offset and the MSE equals its square. The third scenario introduces a NaN in the actual series and confirms that pandas' default `mean()` skips missing values, so the metric calculation degrades gracefully rather than producing a silent NaN result.
+
+```{python}
+import pandas as pd
+import numpy as np
+from spotforecast2_safe.manager.metrics import calculate_metrics
+
+actual    = pd.Series([1.0, 2.0, 3.0, 4.0, 5.0])
+predicted = pd.Series([2.0, 3.0, 4.0, 5.0, 6.0])
+metrics   = calculate_metrics(actual, predicted)
+print(f"constant offset → MAE={metrics['MAE']:.1f}, MSE={metrics['MSE']:.1f}")
+
+actual_with_nan = pd.Series([1.0, np.nan, 3.0, 4.0, 5.0])
+metrics_nan = calculate_metrics(actual_with_nan, predicted)
+print(f"with NaN        → MAE={metrics_nan['MAE']:.4f} (no NaN propagation)")
+```
+
+## Logging as an Audit Trail
+
+The `TestLogging` class is not about forecasting — it is about the operational contract. `task_safe_demo` routes all messages through a dual-handler logger: one handler writes to the terminal for real-time visibility, the other persists a timestamped log file for post-hoc auditing. The test verifies that after calling `setup_logging` the resulting logger object has at least one handler attached and that its level is set to `DEBUG`, so nothing is silently suppressed.
+
+The second test confirms that the formatter string `%(name)s` is present in the handler's format template. This may appear pedantic, but in a safety-critical context the ability to trace a log message back to its originating module is part of the auditability requirement. A formatter without `%(name)s` would produce ambiguous output that cannot be attributed to a specific component.
+
+## Boolean Argument Parsing
+
+Command-line scripts receive all arguments as strings. The `--force_train` and `--logging` flags therefore need a parser that converts user-supplied tokens like `"true"`, `"True"`, `"t"`, `"yes"`, or `"1"` to the Python boolean `True`. The `_parse_bool` function handles this by normalising the input to lowercase before matching against known sets.
+
+The `TestBooleanParsing` class checks that all eight canonical true-like strings produce `True`, all eight false-like strings produce `False`, and that an unrecognised input like `"maybe"` raises a `ValueError` rather than silently defaulting. Silent defaulting is precisely the class of failure that safety-critical code must eliminate: if a user miskeys `--force_train mabye`, the process should stop immediately with an informative error rather than silently choosing a default that may trigger unintended retraining.
+
+## Prediction Aggregation
+
+The core of `task_safe_demo` is the comparison of three distinct pipelines. Each pipeline produces one prediction Series per column — 11 columns in the default configuration. The `agg_predict` function reduces this DataFrame to a single combined forecast by computing a signed weighted average.
+
+The `TestAggregatePredict` class covers two scenarios. The first uses equal positive weights, which is arithmetically a plain mean. The second uses weights `[1.0, -1.0]`, whose sum is zero, so the denominator guard activates and the function returns the raw weighted sum. The test confirms that `col1 - col2` yields the expected difference values, verifying both the sign convention and the zero-denominator branch.
+
+Understanding this aggregation is important because the weights vector is what distinguishes the combined forecast from a naive average. A domain expert may specify negative weights to subtract a known systematic bias or a correlated noise source, so the arithmetic must be exact.
+
+## Data Validation
+
+The `TestDataValidation` class tests the pre-flight check that `task_safe_demo` performs before any model training begins. The script calls `config.data_path.is_file()` and returns exit code 1 immediately if the file is absent. This fail-fast pattern prevents the system from spending minutes training models only to discover at evaluation time that the ground truth does not exist.
+
+The second test in this class constructs a DataFrame with columns A and B and checks which columns from a required set are missing. The result is that column C is absent. This mirrors the schema validation that `load_actual_combined` applies: the function compares the actual file's column set against the columns produced by the baseline pipeline, and any mismatch raises an error with an explicit message rather than propagating silently into the metric computation.
+
+## Forecasting Pipeline Components
+
+The `TestForecastingPipeline` class does not train a model. It verifies that the data structures expected at each stage of the pipeline are correctly formed before computation begins. The baseline forecast requires a `pd.Series` with a `DatetimeIndex`. The covariate forecast additionally requires an exogenous DataFrame with the holiday and weather columns at matching timestamps. The custom LightGBM variant requires an `LGBMRegressor` instantiated with specific hyperparameters that were found through prior optimisation.
+
+The hyperparameter test verifies the exact values of `n_estimators=1059`, `learning_rate≈0.04191`, and `num_leaves=212`. These are not arbitrary — they represent an optimised configuration that is part of the reproducible artefact. Changing them without revalidation would silently degrade forecast quality.
+
+```{python}
+from lightgbm import LGBMRegressor
+import pytest
+
+custom_lgbm = LGBMRegressor(
+    n_estimators=1059,
+    learning_rate=0.04191323446625026,
+    num_leaves=212,
+    min_child_samples=54,
+    subsample=0.5014650987802548,
+    colsample_bytree=0.6080926628683118,
+    random_state=42,
+    verbose=-1,
+)
+print(f"n_estimators  : {custom_lgbm.n_estimators}")
+print(f"num_leaves    : {custom_lgbm.num_leaves}")
+print(f"learning_rate : {custom_lgbm.learning_rate:.5f}")
+```
+
+## Index Alignment
+
+The three pipelines produce predictions on the same time grid. Before metrics can be computed, the index of the ground truth must be aligned to the index of the predictions. The `TestIndexAlignment` class verifies two aspects of this alignment.
+
+The first test creates two Series on an identical `DatetimeIndex` and checks that all timestamps match element-wise. This is the ideal case: after `reindex` the indices are congruent and no NaN values are introduced. The second test intentionally creates a longer index and calls `reindex` on the shorter Series, confirming that positions beyond the original range fill with NaN. The main script responds to such NaN values by calling `dropna` on the actual series and restricting all four prediction Series to the common index, so that metrics are always computed on a complete, aligned subset.
+
+```{python}
+import pandas as pd
+import numpy as np
+
+idx1 = pd.date_range("2020-01-01", periods=5, freq="h")
+idx2 = pd.date_range("2020-01-01", periods=7, freq="h")
+s1   = pd.Series([1.0, 2.0, 3.0, 4.0, 5.0], index=idx1)
+
+s1_reindexed = s1.reindex(idx2)
+print(s1_reindexed)
+```
+
+## Error Handling
+
+The `TestErrorHandling` class covers two failure modes. The first confirms that when the ground truth file is absent, a meaningful error message can be constructed — a precondition for the fail-fast exit code 1 path. The second test calls `n2n_predict_with_covariates` with `forecast_horizon=-1` and expects a `ValueError`. This is the entry-point validation that prevents nonsensical configurations from entering the training loop.
+
+The `forecast_horizon` check is representative of a broader pattern: every public API function in `spotforecast2-safe` validates its numerical arguments at the boundary and raises an explicit typed exception rather than silently producing a malformed result. A negative horizon would cause downstream array slicing to behave unexpectedly, so the validation is placed at the earliest possible point.
+
+## Memory and Performance Considerations
+
+The `TestMemoryAndPerformance` class is less about correctness and more about demonstrating that the data structures used in the pipeline scale to realistic sizes. A 100,000-element `pd.Series` is constructed and verified to have the correct length, confirming that pandas handles large in-memory series without truncation. A 1,000-row by 20-column DataFrame is subsetted to three columns, confirming that column selection produces the expected shape.
+
+The most instructive test in this group computes a weighted average by matrix multiplication: `df.values @ weights`, where `weights` is a length-10 array of equal values. This is more efficient than constructing a loop over columns and produces a length-100 result array. The test verifies the shape of the output, establishing that this idiom is valid for the aggregation pattern used throughout the pipeline.
+
+## Integration: Combining All Components
+
+The `TestIntegration` class verifies properties that only emerge when components work together. The `test_end_to_end_task_structure` test checks that a synthetic Series with a `DatetimeIndex` satisfies `is_monotonic_increasing`, which is a prerequisite for all skforecast operations. A non-monotonic index causes `_create_train_X_y` to produce incorrectly ordered lag matrices, so this invariant must hold at the point where the data enters the forecaster.
+
+The `test_metric_consistency_across_models` test constructs three prediction Series against a common actual and computes MAE and MSE for each. Model C predicts exactly the actuals, so its metrics are identically zero. Models A and B have small symmetric errors around the actuals. The test confirms that the metric dictionary structure is consistent across all three models and that the perfect predictor is correctly identified. This mirrors the final reporting step of `task_safe_demo`, where all three pipelines are evaluated and their metrics are logged for comparison.
+
+```{python}
+import pandas as pd
+
+actual = pd.Series([1.0, 2.0, 3.0, 4.0, 5.0])
+predictions = {
+    "baseline":    pd.Series([1.1, 2.1, 3.1, 4.1, 5.1]),
+    "covariates":  pd.Series([0.9, 1.9, 2.9, 3.9, 4.9]),
+    "custom_lgbm": pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]),
+}
+
+from spotforecast2_safe.manager.metrics import calculate_metrics
+
+results = {
+    name: calculate_metrics(actual, pred)
+    for name, pred in predictions.items()
+}
+pd.DataFrame(results).T.round(4)
+```
+
+## The Complete Execution Flow
+
+Putting all pieces together, a single invocation of `task_safe_demo` follows this sequence. First, `DemoConfig` is constructed and its fields are used throughout. The ground truth file is validated before any model training begins. The baseline pipeline trains on the raw series without covariates. The covariate pipeline repeats this with weather, holiday, and calendar features included as exogenous inputs. The custom LightGBM pipeline reuses the covariate pipeline but substitutes the default estimator with a specifically tuned regressor. Each pipeline's 11-column output is collapsed to a single Series by `agg_predict` using the signed weight vector. Finally, all three combined forecasts are evaluated against the ground truth and their metrics are written to the log.
+
+The test suite mirrors this flow by testing each building block independently, ensuring that a failure in any component surfaces as a specific, attributable test failure rather than a cryptic runtime error at the end of a long training run.

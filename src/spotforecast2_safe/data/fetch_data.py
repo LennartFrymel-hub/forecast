@@ -408,6 +408,7 @@ def fetch_weather_data(
 ) -> pd.DataFrame:
     """Fetches weather data for the dataset period plus forecast horizon.
         Create weather dataframe using API with optional caching.
+
     Args:
         cov_start (str):
             Start date for covariate data.

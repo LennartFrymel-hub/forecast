@@ -35,7 +35,10 @@ def mark_outliers(
         from spotforecast2_safe.preprocessing.outlier import mark_outliers
         path_demo = get_package_data_home() / "demo02.csv"
         data = fetch_data(filename=path_demo)
+        print(data.head())
         cleaned_data, outlier_labels = mark_outliers(data, contamination=0.1, random_state=42, verbose=True)
+        print(cleaned_data.head())
+        print(outlier_labels[:10])
         ```
     """
     for col in data.columns:

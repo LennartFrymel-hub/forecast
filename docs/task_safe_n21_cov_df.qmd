@@ -1,0 +1,188 @@
+---
+title: "task_safe_n_to_1_with_covariates_and_dataframe: Design and Test Logic Explained"
+description: "A step-by-step walkthrough of the N-to-1 covariate forecasting pipeline and its test suite."
+---
+
+The `task_safe_n_to_1_with_covariates_and_dataframe` script extends the baseline forecasting pipeline by adding exogenous covariates — weather observations, public holidays, and automatically engineered calendar features. The outcome is a signed weighted aggregation of 11 per-column recursive forecasts into a single combined prediction. Every public parameter is validated, every sensitive value is masked in log output, and every execution path is wrapped in structured error handling.
+
+The test suite in `tests/test_task_safe_n_to_1_with_covariates.py` decomposes this pipeline into isolated units so that a failure in any stage surfaces as a specific, attributable assertion error rather than a silent mismatch at evaluation time. The classes below follow the logical execution order of the pipeline.
+
+## Covariate Data Preparation
+
+Before any model is trained, the pipeline constructs three categories of exogenous features. The `TestCovariateDataPreperation` class verifies that each category satisfies its structural contract.
+
+Weather data arrives as a DataFrame with a `DatetimeIndex` and columns for temperature, humidity, and wind speed. The test confirms the exact shape `(100, 3)` and the presence of all three column names. This is not cosmetic: downstream feature-engineering code selects columns by name, so a missing column produces a `KeyError` rather than a silently degraded feature set.
+
+Holiday data must be binary — every entry is either `0` (non-holiday) or `1` (holiday). The test calls `set(holidays.unique()).issubset({0, 1})` to confirm that no fractional or multi-valued entries have slipped through. Any departure from binary encoding would distort the model's ability to isolate the holiday effect.
+
+Calendar features — day of week, day of month, month, quarter, weekend flag — are derived directly from the `DatetimeIndex`. The test verifies that `day_of_week` spans 0–6, that `month` spans 1–12, and that the total row count equals 365. These bounds are the minimum necessary to confirm that no date arithmetic has produced impossible values.
+
+Cyclical encoding replaces raw integer months with sine and cosine components so that December and January are numerically close. The test confirms that both components are bounded strictly within `[-1, 1]`, which is the mathematical guarantee of the unit-circle encoding.
+
+```{python}
+import numpy as np
+import pandas as pd
+
+dates = pd.date_range("2020-01-01", periods=365, freq="D")
+month = dates.month
+
+month_sin = np.sin(2 * np.pi * month / 12)
+month_cos = np.cos(2 * np.pi * month / 12)
+
+pd.DataFrame(
+    {"month": month[:6], "sin": month_sin[:6].round(4), "cos": month_cos[:6].round(4)},
+    index=dates[:6],
+)
+```
+
+## Exogenous Variable Validation
+
+The `TestExogenousVariableValidation` class enforces four structural invariants that must hold before the exogenous DataFrame is passed to the forecaster.
+
+The exogenous matrix must have exactly the same number of rows as the target series and an identical index. The test creates both objects on the same `DatetimeIndex` and checks `exog.index.equals(y.index)`. A mismatch here would cause `ForecasterRecursive.fit` to raise an alignment error, but verifying it before training saves the cost of constructing lag matrices for an incompatible input.
+
+Missing features are detected by comparing the actual column list against a required set. If a required column is absent, the gap is made explicit rather than letting a downstream `KeyError` propagate with an opaque stack trace.
+
+NaN handling is tested by confirming that two missing values survive `exog.isna().sum().sum()` and that forward-fill removes all of them. The `ffill()` strategy is appropriate for weather and calendar data because the last observed value is the most conservative assumption in the absence of new information.
+
+```{python}
+exog = pd.DataFrame({
+    "feat1": [1.0, 2.0, np.nan, 4.0, 5.0],
+    "feat2": [10.0, np.nan, 30.0, 40.0, 50.0],
+})
+print(f"NaNs before ffill: {exog.isna().sum().sum()}")
+exog_filled = exog.ffill()
+print(f"NaNs after  ffill: {exog_filled.isna().sum().sum()}")
+```
+
+## Logging and Timestamp Format
+
+The `TestLoggingForCovariates` class tests two aspects of the dual-handler logging system used throughout the covariate pipeline.
+
+The first test verifies that attaching a `StreamHandler` with a standard formatter results in a logger with at least one handler and level `INFO`. The N-to-1 pipeline sets this level rather than `DEBUG` because it is the outermost user-facing task: operators need progress updates, not internal variable traces.
+
+The second test verifies the timestamp format `YYYYMMDD_HHMMSS`. A 15-character string, an underscore at position 8, and an all-digit date component are the three assertions. This format is used in log file names, so any deviation would produce files that sort incorrectly by creation time in a directory listing — a subtle but consequential problem in audit contexts where log files are reviewed chronologically.
+
+## The N-to-1 Forecasting Structure
+
+The `TestNto1ForecastingPipeline` class establishes the data structure contracts for the recursive forecasting stage.
+
+The basic structure test creates a Series of length `100 + horizon` to represent the full available history. The extra `horizon` rows will become the test set; only the first 100 rows feed the training stage. Constructing the Series with this combined length from the start avoids off-by-one errors when slicing at the train/test boundary.
+
+The recursive forecaster is initialised with `LGBMRegressor(n_estimators=100, learning_rate=0.1, random_state=42, verbose=-1)`. The test confirms that the estimator attributes match the provided values, which establishes that the `LGBMRegressor` constructor accepted the parameters without silently ignoring any of them. This is important because some sklearn-compatible estimators silently clip or ignore out-of-range parameters.
+
+Multi-output forecasting produces a one-dimensional array of length `steps`. The test confirms `forecast_array.ndim == 1` to distinguish the multi-step output from a two-dimensional matrix that would indicate an accidental multi-target configuration.
+
+## Feature Engineering with Covariates
+
+The `TestCovariateFeatureEngineering` class validates three feature construction patterns used by the pipeline.
+
+Polynomial features are computed by stacking `x`, `x**2`, and `x**3` into a matrix. The test confirms the shape `(5, 3)` and verifies that the first column is identical to the original input and the second column equals its square. This establishes that no column reordering or normalisation has been applied, which matters because the aggregation weights are positionally indexed.
+
+Lag features are created with `y.shift(i)` for `i` in `[1, 2, 3]`. The test checks that the first row of `lag_1` is NaN, confirming that the shift operation introduces the expected initial missing values rather than wrapping around or filling with zeros.
+
+Rolling window features are computed with `y.rolling(window=7).mean()`. The test confirms that the first six values are NaN — a direct consequence of requiring a full window before computing the first valid mean. Any model trained without respecting this warm-up period would use NaN-contaminated features for the earliest training rows.
+
+```{python}
+y = pd.Series(np.arange(1, 11, dtype=float))
+lags = pd.DataFrame({f"lag_{i}": y.shift(i) for i in range(1, 4)})
+rolling_mean = y.rolling(window=7).mean()
+
+print("Lag features (first 5 rows):")
+print(lags.head())
+print(f"\nRolling mean NaNs in first 6 positions: {rolling_mean.iloc[:6].isna().sum()}")
+```
+
+## Integrating Exogenous Variables into the Feature Matrix
+
+The `TestExogenousIntegration` class tests how exogenous features are merged with lag features to form the complete training matrix.
+
+The feature matrix expansion test creates a base matrix of 5 columns and an exogenous matrix of 3 columns, then combines them with `np.column_stack`. The result must have exactly 8 columns. This verifies that column stacking does not drop any features and does not introduce duplicates.
+
+The lag-and-exog combination test uses `pd.concat([y_lags, exog], axis=1)` and confirms the combined column count is 4 (two lags plus two exogenous features). The presence of both `y_lag_1` and `temp` in the column set confirms that the concatenation preserved column names, which `ForecasterRecursive` uses when calling `estimator.fit`.
+
+## Prediction Aggregation
+
+The `TestPredictionAggregation` class mirrors the `TestAggregatePredict` class from the demo task but extends it with temporal index preservation.
+
+The basic aggregation test uses positive fractional weights `[0.5, 0.3, 0.2]` that sum to 1. Multiplying each column by its weight and summing across columns produces a length-3 Series, confirming that the operation reduces a multi-column DataFrame to a single forecast Series.
+
+The unequal importance test verifies the ordering `high_priority > medium_priority > low_priority` directly in the weights dictionary. This is a boundary check: the weights must encode a strict priority ranking, and any normalisation that flattened this ranking would silently degrade the combined forecast quality.
+
+The temporal index preservation test reconstructs the aggregated Series with the original `DatetimeIndex` and calls `aggregated_series.index.equals(dates)`. This confirms that the matrix multiplication idiom `predictions.values @ np.array(weights)` — which returns a plain `np.ndarray` — does not silently discard the temporal index when it is re-attached via `pd.Series(aggregated, index=dates)`.
+
+```{python}
+dates = pd.date_range("2020-01-01", periods=10, freq="h")
+predictions = pd.DataFrame(
+    np.random.randn(10, 3), index=dates, columns=["loc_1", "loc_2", "loc_3"]
+)
+weights = np.array([0.4, 0.4, 0.2])
+aggregated = pd.Series(predictions.values @ weights, index=dates)
+print(aggregated.head())
+```
+
+## Timezone Handling
+
+The `TestCovariateTimezone` class addresses a recurring source of alignment failures in time series pipelines: mixed timezone-aware and timezone-naive indices.
+
+The first test creates a UTC-indexed Series and confirms that `y.index.tz is not None` and that the timezone string is `"UTC"`. A `None` timezone indicates a tz-naive index, which cannot be compared with a tz-aware index without an explicit `tz_localize` call.
+
+The conversion test uses `tz_convert("US/Eastern")` to move from UTC to Eastern time and confirms that the result has a non-`None` timezone. This is relevant when the pipeline is deployed in a timezone other than UTC: the model's training data and the forecast period must share a consistent timezone, or the lag indices will misalign by a constant offset equal to the UTC offset.
+
+The consistency test creates both `y` and `exog` on the same UTC index and verifies `str(y.index.tz) == str(exog.index.tz)`. A mismatch between the target and exogenous timezone would cause `ForecasterRecursive.fit` to raise an error when it attempts to align the two inputs.
+
+## Forced Training vs. Cached Model Loading
+
+The `TestForcedTraining` class tests the persistence decision logic that controls whether the pipeline trains a new model or loads a previously serialised one.
+
+The `force_train` flag maps directly to the action string `"retrain_model"` when `True` and `"load_cached_model"` when `False`. This test formalises the boolean semantics in isolation from the actual file I/O, confirming that the branching logic is correct before it interacts with the filesystem.
+
+The directory creation test calls `Path.mkdir(parents=True, exist_ok=True)` on a path under `/tmp` and verifies that the directory exists afterwards. The `exist_ok=True` flag prevents a `FileExistsError` on repeated runs, which is the correct behaviour for a pipeline that may be invoked multiple times with the same model directory.
+
+## Error Handling
+
+The `TestErrorHandlingCovariates` class covers three failure modes that are specific to the covariate pipeline.
+
+The missing exog detection test computes the shortfall when only 20 steps of exogenous data are provided for a 24-step forecast horizon. The result `horizon - exog_provided == 4` establishes the arithmetic that the validation layer must implement to produce a meaningful error message rather than an implicit out-of-bounds slice.
+
+The misaligned index test creates `y` with 100 rows and `exog` with 95 rows, then computes their index intersection. The intersection contains 95 elements, confirming that the safe strategy is to restrict computation to the common index rather than raising an error. This mirrors the `dropna`/`intersection` pattern used in the demo task.
+
+The invalid horizon test confirms that `-24` is not a member of the accepted horizons `[6, 12, 24, 48, 168]` and that it is negative. This validates the guard condition that `n2n_predict_with_covariates` enforces at its entry point.
+
+## Kwargs Flexibility
+
+The `TestKwargsFlexibility` class verifies that the `**kwargs` mechanism correctly forwards parameters through the pipeline layers.
+
+The estimator kwargs test confirms that a dictionary with `n_estimators=500`, `learning_rate=0.05`, and `num_leaves=100` retains all three keys and values. The `n_to_1_with_covariates` function collects these in a `forecast_kwargs` dictionary before passing them to `n2n_predict_with_covariates`, so the forwarding chain must preserve each key without mutation.
+
+The forecaster kwargs test checks that `lags=[1, 7, 24]` and `window_size=72` survive the forwarding. Using a list for `lags` instead of a scalar activates the skforecast multi-lag construction path, so the type must be preserved exactly.
+
+The aggregation kwargs test verifies that `method` and `normalize_weights` entries are accessible after construction. These parameters control how `agg_predict` normalises the weight vector, and their presence in the kwargs dictionary is the precondition for the aggregation stage to respect user-specified aggregation semantics.
+
+## Integration: The Complete Pipeline
+
+The `TestIntegrationN2N` class tests the properties that only emerge when all components operate together.
+
+The end-to-end structure test constructs a 100-row hourly Series named `load` alongside a two-column exogenous DataFrame with `temperature` and `hour` columns on the same index. The three assertions — correct Series length, correct exog shape, and identical indices — are the minimum conditions for a successful call to `ForecasterRecursive.fit(y, exog=exog)`.
+
+The output consistency test simulates the pipeline's return value: a `(24, 11)` predictions DataFrame, a 24-element aggregated Series, and a metrics dictionary with `MAE` and `MSE` keys. Verifying the shape of the predictions DataFrame confirms that the multi-output forecasting produced the expected number of timesteps and columns before aggregation.
+
+The reproducibility test seeds `np.random` with `42`, draws 10 values, reseeds, and draws again. Exact equality between the two arrays confirms that the seed resets the PRNG state completely. In the pipeline, `random_state=42` is passed to `LGBMRegressor` for the same reason: two runs with identical input must produce identical output, which is a core requirement of the safety-critical design.
+
+```{python}
+seed = 42
+np.random.seed(seed)
+data_1 = np.random.randn(10)
+
+np.random.seed(seed)
+data_2 = np.random.randn(10)
+
+print(f"Arrays identical: {(data_1 == data_2).all()}")
+print(f"First 5 values:   {data_1[:5].round(4)}")
+```
+
+## The Complete Execution Flow
+
+A single invocation of `task_safe_n_to_1_with_covariates_and_dataframe` follows this sequence. The optional logging system is activated first if `--logging true` is passed. The `fetch_data` call loads the target time series from the configured data file. Feature engineering then constructs the exogenous matrix: calendar features from the `DatetimeIndex`, optionally extended with weather windows, holiday indicators, and polynomial interaction terms. The `n2n_predict_with_covariates` function trains one `ForecasterRecursive` per target column with the assembled exogenous inputs, serialises each model to the model directory, and returns the prediction DataFrame. Geographic coordinates are redacted from all log output at every level per CWE-312 and CWE-532. The 11-column prediction DataFrame is reduced to a single combined forecast by `agg_predict` using the `DEFAULT_WEIGHTS` vector. The combined prediction is printed to stdout and logged to the timestamped log file if logging is enabled.
+
+The test suite mirrors this flow by isolating each stage into a dedicated class, so a regression in any component produces a targeted failure that pinpoints the affected stage without requiring a full pipeline run.

@@ -4,7 +4,7 @@
 # =============================================================================
 # _quarto.yml  —  spotforecast2-safe Documentation
 # =============================================================================
-# Master project configuration for Quarto. This file replaces mkdocs.yml.
+# Master project configuration for Quarto.
 #
 # Build pipeline:
 #   1. docs/pre-render.py  → _variables.yml  (version extraction)
@@ -169,12 +169,21 @@ website:
           - text: "Security Policy"
             file: docs/security.qmd
 
+      - section: "Tasks"
+        contents:
+          - text: "Demo Tasks"
+            file: docs/tasks.qmd
+          - text: "Task Safe Demo Explained"
+            file: docs/task_safe_demo_explained.qmd
+          - text: "Task Safe n-to-1 Explained"
+            file: docs/task_safe_n21_cov_df.qmd
+
+
       - section: "Development & Community"
         contents:
           - text: "Contributing Guide"
             file: docs/contributing.qmd
-          - text: "Tasks"
-            file: docs/tasks.qmd
+
   # ── Page footer ───────────────────────────────────────────────────────────
   page-footer:
     center: |

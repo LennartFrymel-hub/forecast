@@ -15,23 +15,19 @@ data.fetch_data.fetch_weather_data(
 
 Fetches weather data for the dataset period plus forecast horizon.
     Create weather dataframe using API with optional caching.
-Args:
-    cov_start (str):
-        Start date for covariate data.
-    cov_end (str):
-        End date for covariate data.
-    latitude (float):
-        Latitude of the location for weather data. Default is 51.5136 (Dortmund).
-    longitude (float):
-        Longitude of the location for weather data. Default is 7.4653 (Dortmund).
-    timezone (str):
-        Timezone for the weather data.
-    freq (str):
-        Frequency of the weather data.
-    fallback_on_failure (bool):
-        Whether to use fallback data in case of failure.
-    cached (bool):
-        Whether to use cached data.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                | Type             | Description                                                               | Default    |
+|---------------------|------------------|---------------------------------------------------------------------------|------------|
+| cov_start           | [str](`str`)     | Start date for covariate data.                                            | _required_ |
+| cov_end             | [str](`str`)     | End date for covariate data.                                              | _required_ |
+| latitude            | [float](`float`) | Latitude of the location for weather data. Default is 51.5136 (Dortmund). | `51.5136`  |
+| longitude           | [float](`float`) | Longitude of the location for weather data. Default is 7.4653 (Dortmund). | `7.4653`   |
+| timezone            | [str](`str`)     | Timezone for the weather data.                                            | `'UTC'`    |
+| freq                | [str](`str`)     | Frequency of the weather data.                                            | `'h'`      |
+| fallback_on_failure | [bool](`bool`)   | Whether to use fallback data in case of failure.                          | `True`     |
+| cached              | [bool](`bool`)   | Whether to use cached data.                                               | `True`     |
 
 ## Returns {.doc-section .doc-section-returns}
 
