@@ -1,3 +1,10 @@
+## [0.19.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.18.1...v0.19.0-rc.1) (2026-03-17)
+
+
+### Features
+
+* demo03.csv ([04a7fbe](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/04a7fbe3cf52e9e5f13980dbba4717f93f2b96fb))
+
 ## [0.18.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.18.0...v0.18.1) (2026-03-17)
 
 
