@@ -129,7 +129,7 @@ Supply Chain Security Measures
 2. Verify GPG signatures on releases (recommended)
 3. Use `pre-commit` hooks for code quality
 4. Run security checks locally (bandit, Safety)
-5. Follow contribution guidelines in [CONTRIBUTING.md](contributing.qmd)
+
 
 ## Dependency Management
 
@@ -196,7 +196,6 @@ For security inquiries:
 ## See Also
 
 - [Model/Method Card](safe/MODEL_CARD.qmd) - System design and compliance documentation
-- [Contributing Guide](contributing.qmd) - How to contribute safely
 - CHANGELOG.md - Release notes and security patches (in repository)
 - [GitHub Security Advisories](https://github.com/sequential-parameter-optimization/spotforecast2-safe/security/advisories) - Published advisories
 
