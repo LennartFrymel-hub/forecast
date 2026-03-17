@@ -283,7 +283,7 @@ The complete documentation is organized as follows:
   - [Model Persistence](processing/model_persistence.qmd): Production deployment
 - Safety & Compliance: Documentation for auditors and compliance
   - [Model/Method Card](safe/MODEL_CARD.qmd): Compliance and safety design
-  - [Contributing Guide](contributing.qmd): How to contribute to the project
+
 
 ## Next Steps
 
@@ -291,7 +291,7 @@ The complete documentation is organized as follows:
 2. Learn Core Concepts: Read about [Period Management](#period-management) and [Recursive Forecasting](#recursive-forecasting)
 3. Explore Examples: Check out [ForecasterRecursive Guide](recursive/ForecasterRecursive.qmd)
 4. API Reference: Dive into specific modules in [API Documentation](reference/data.fetch_data.fetch_data.qmd)
-5. Contribute: See [Contributing Guide](contributing.qmd) to contribute improvements
+5. Contribute: See Contributing Guide to contribute improvements
 
 ## Troubleshooting
 
@@ -306,13 +306,9 @@ Before reporting a new issue, search the publicly available archives:
 - [Issues Archive](https://github.com/sequential-parameter-optimization/spotforecast2-safe/issues): Browse all reported bugs, feature requests, and their resolutions. Use the search feature to find similar problems.
 - [Discussions Archive](https://github.com/sequential-parameter-optimization/spotforecast2-safe/discussions): Search community questions and answers for help with common tasks.
 
-If you don't find a solution, see the [Reporting Issues guide](contributing.qmd#reporting-issues) to submit a new bug report.
-For more help, see the project's [GitHub Issues](https://github.com/sequential-parameter-optimization/spotforecast2-safe/issues).
-
 ## See Also
 
 - [Complete API Reference](reference/data.fetch_data.fetch_data.qmd)
 - [Model/Method Card](safe/MODEL_CARD.qmd)
 - [Security Policy](security.qmd) - Vulnerability reporting and security best practices
-- [Contributing Guide](contributing.qmd)
 - [GitHub Repository](https://github.com/sequential-parameter-optimization/spotforecast2-safe)

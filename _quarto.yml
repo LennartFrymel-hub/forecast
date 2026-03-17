@@ -345,12 +345,6 @@ website:
           - text: "n2n_predict_with_covariates Explained"
             file: docs/n2n_predict_with_covariates_explained.qmd
 
-
-      - section: "Development & Community"
-        contents:
-          - text: "Contributing Guide"
-            file: docs/contributing.qmd
-
   # ── Page footer ───────────────────────────────────────────────────────────
   page-footer:
     center: |
