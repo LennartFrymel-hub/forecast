@@ -1,3 +1,15 @@
+## [0.18.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.18.0...v0.18.1) (2026-03-17)
+
+
+### Bug Fixes
+
+* contributing.md ([220274c](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/220274caa80353ab7b1ace2d9918596ae027b524))
+
+
+### Documentation
+
+* contributing updated and cleanup ([339e6dc](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/339e6dcf0a9af9d6005d65269f22b2d9ce224766))
+
 ## [0.18.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.18.0...v0.18.1-rc.1) (2026-03-17)
 
 
