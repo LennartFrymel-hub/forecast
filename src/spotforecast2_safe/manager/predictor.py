@@ -21,7 +21,6 @@ def get_model_prediction(
 ) -> Optional[Dict[str, Any]]:
     """
     Get the prediction package from the latest trained model.
-
     This function retrieves the latest iteration of a specified model from the
     cache and calls its `package_prediction` method to obtain a comprehensive
     set of predictions and metrics.
@@ -35,6 +34,10 @@ def get_model_prediction(
     Returns:
         A dictionary containing predictions and metrics if a model is found and
         successfully executes `package_prediction`. Returns None otherwise.
+
+    Notes:
+         `predict_size` is accepted by `get_model_prediction()` but only has effect if the concrete model's `package_prediction()` accepts it.
+         The original `ForecasterRecursiveModel.package_prediction()` does not — so this parameter is currently forward-looking API design, not yet wired end-to-end.
 
     Examples:
         >>> import tempfile

@@ -9,7 +9,6 @@ manager.predictor.get_model_prediction(
 ```
 
 Get the prediction package from the latest trained model.
-
 This function retrieves the latest iteration of a specified model from the
 cache and calls its `package_prediction` method to obtain a comprehensive
 set of predictions and metrics.
@@ -28,6 +27,11 @@ set of predictions and metrics.
 |--------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
 |        | [Optional](`typing.Optional`)\[[Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\]\] | A dictionary containing predictions and metrics if a model is found and |
 |        | [Optional](`typing.Optional`)\[[Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\]\] | successfully executes `package_prediction`. Returns None otherwise.     |
+
+## Notes {.doc-section .doc-section-notes}
+
+`predict_size` is accepted by `get_model_prediction()` but only has effect if the concrete model's `package_prediction()` accepts it.
+The original `ForecasterRecursiveModel.package_prediction()` does not — so this parameter is currently forward-looking API design, not yet wired end-to-end.
 
 ## Examples {.doc-section .doc-section-examples}
 
