@@ -152,7 +152,7 @@ venv.bak/
 .ropeproject
 
 # mkdocs documentation
-/site
+/site/
 
 # mypy
 .mypy_cache/
@@ -212,30 +212,29 @@ __marimo__/
 # VSCode
 .vscode/
 
+# Claude Code
+.claude/settings.json
+
+# Project-specific ignores
 notebooks/01_base_predictor.qmd
 notebooks/02_recursive_predictor.qmd
 scripts/init_pypi.sh
-/local
+/local/
 BRANCH_PROTECTION_GUIDE.md
 TEST_DEBUGGING.md
 COMPLETION_STATUS.md
 IMPLEMENTATION_SUMMARY.md
-forecaster_models/forecaster_col.joblib
-forecaster_models/forecaster_col_1.joblib
-/forecaster_models
-/models_baseline
+/forecaster_models/
+/models_baseline/
 uv.lock
 data/weather_cache.parquet
-/~/spotforecast2_models
-codeql-custom-queries-python/example.ql
+/~/
+codeql-custom-queries-python/
 
-/.quarto/
+# Quarto
+.quarto/
 **/*.quarto_ipynb
-
-# Quarto build output (never commit the rendered site)
 /_site/
-
-# Quarto auto-generated variables file (re-created by docs/pre-render.py)
 /_variables.yml
 
 # quartodoc interlink inventory (regenerated on each build)
@@ -244,4 +243,5 @@ codeql-custom-queries-python/example.ql
 
 # Old MkDocs config backup
 mkdocs.yml.bak
-.claude/settings.json
+
+/.quarto/
