@@ -1,7 +1,91 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from collections.abc import Callable
+
 import pandas as pd
+
+
+def remove_duplicate_timestamps(
+    df: pd.DataFrame,
+    time_col: str = "Time (UTC)",
+    agg: str | Callable = "mean",
+) -> pd.DataFrame:
+    """Resolve duplicate timestamps across all data columns.
+    Groups rows that share the same ``time_col`` value and collapses them
+    using the chosen aggregation.  All columns except ``time_col`` are
+    aggregated.  The resulting frame is sorted chronologically, re-indexed,
+    and returned.
+
+    Args:
+        df: Input dataframe containing ``time_col`` and one or more data
+            columns.
+        time_col: Name of the column that holds timestamps.  Defaults to
+            ``"Time (UTC)"``.
+        agg: Aggregation applied when collapsing duplicate rows.  Accepts
+            any string recognised by
+            :meth:`pandas.core.groupby.GroupBy.agg` (``"mean"``,
+            ``"median"``, ``"min"``, ``"max"``, ``"sum"``, ``"std"``,
+            ``"var"``, ``"first"``, ``"last"``) as well as ``"mode"``
+            (most frequent value per group) or any custom callable.
+            Defaults to ``"mean"``.
+
+    Returns:
+        pd.DataFrame: Deduplicated dataframe with unique ``time_col`` rows,
+        sorted ascending by timestamp.
+
+    Raises:
+        KeyError: If ``time_col`` is not present in ``df``.
+
+    Examples:
+        Mean-aggregate two data columns with the default time column:
+
+        ```{python}
+        import pandas as pd
+        from spotforecast2_safe.preprocessing.curate_data import remove_duplicate_timestamps
+        df = pd.DataFrame(
+             {
+                 "Time (UTC)": [
+                     "2026-01-01 00:00:00",
+                     "2026-01-01 00:00:00",
+                     "2026-01-01 01:00:00",
+                 ],
+                 "Load A": [100.0, 120.0, 130.0],
+                 "Load B": [200.0, 220.0, 210.0],
+             }
+            )
+        out = remove_duplicate_timestamps(df)
+        print(f"len(out): {len(out)}")
+        print(f"Load A: {float(out.loc[0, 'Load A'])}")
+        print(f"Load B: {float(out.loc[0, 'Load B'])}")
+        ```
+
+        Median aggregation on a custom time column:
+
+        ```{python}
+        import pandas as pd
+        from spotforecast2_safe.preprocessing.curate_data import remove_duplicate_timestamps
+        df2 = pd.DataFrame(
+            {
+                "ts": ["2026-01-01", "2026-01-01", "2026-01-02"],
+                "value": [10.0, 30.0, 20.0],
+            }
+        )
+        out2 = remove_duplicate_timestamps(
+            df2, time_col="ts", agg="median"
+        )
+        print(f"Value: {float(out2.loc[0, 'value'])}")
+        ```
+    """
+    if time_col not in df.columns:
+        raise KeyError(
+            f"Time column {time_col!r} not found in dataframe columns: "
+            f"{list(df.columns)}"
+        )
+    agg_fn: str | Callable = (lambda x: x.mode().iloc[0]) if agg == "mode" else agg
+    df = df.groupby(time_col, as_index=False).agg(agg_fn)
+    df = df.sort_values(time_col).reset_index(drop=True)
+    return df
 
 
 def get_start_end(
@@ -25,14 +109,15 @@ def get_start_end(
             Date strings in the format "YYYY-MM-DDTHH:MM" for data and covariate ranges.
 
     Examples:
-        >>> from spotforecast2_safe.preprocessing.curate_data import get_start_end
-        >>> import pandas as pd
-        >>> date_rng = pd.date_range(start='2023-01-01', end='2023-01-10', freq='h')
-        >>> data = pd.DataFrame(date_rng, columns=['date'])
-        >>> data.set_index('date', inplace=True)
-        >>> start, end, cov_start, cov_end = get_start_end(data, forecast_horizon=24, verbose=False)
-        >>> print(start, end, cov_start, cov_end)
-        2023-01-01T00:00 2023-01-10T00:00 2023-01-01T00:00 2023-01-11T00:00
+        ```{python}
+        from spotforecast2_safe.preprocessing.curate_data import get_start_end
+        import pandas as pd
+        date_rng = pd.date_range(start='2023-01-01', end='2023-01-10', freq='h')
+        data = pd.DataFrame(date_rng, columns=['date'])
+        data.set_index('date', inplace=True)
+        start, end, cov_start, cov_end = get_start_end(data, forecast_horizon=24, verbose=False)
+        print(start, end, cov_start, cov_end)
+        ```
     """
     FORECAST_HORIZON = forecast_horizon
 
@@ -233,10 +318,10 @@ def agg_and_resample_data(
         - closed/label: Control how time intervals are labeled
         - .agg({...: by}): Aggregates values within each time bin
 
-    Examples::
+    Examples:
         >>> from spotforecast2_safe.preprocessing.curate_data import agg_and_resample_data
         >>> import pandas as pd
-        >>> date_rng = pd.date_range(start='2023-01-01', end='2023-01-02', freq='15T')
+        >>> date_rng = pd.date_range(start='2023-01-01', end='2023-01-02', freq='15min')
         >>> data = pd.DataFrame(date_rng, columns=['date'])
         >>> data.set_index('date', inplace=True)
         >>> data['value'] = range(len(data))

@@ -36,12 +36,15 @@ Aggregates and resamples the data to (e.g.,hourly) frequency by computing the sp
 - closed/label: Control how time intervals are labeled
 - .agg({...: by}): Aggregates values within each time bin
 
-Examples::
-    >>> from spotforecast2_safe.preprocessing.curate_data import agg_and_resample_data
-    >>> import pandas as pd
-    >>> date_rng = pd.date_range(start='2023-01-01', end='2023-01-02', freq='15T')
-    >>> data = pd.DataFrame(date_rng, columns=['date'])
-    >>> data.set_index('date', inplace=True)
-    >>> data['value'] = range(len(data))
-    >>> resampled_data = agg_and_resample_data(data, rule='h', by='mean')
-    >>> print(resampled_data.head())
+## Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.preprocessing.curate_data import agg_and_resample_data
+>>> import pandas as pd
+>>> date_rng = pd.date_range(start='2023-01-01', end='2023-01-02', freq='15min')
+>>> data = pd.DataFrame(date_rng, columns=['date'])
+>>> data.set_index('date', inplace=True)
+>>> data['value'] = range(len(data))
+>>> resampled_data = agg_and_resample_data(data, rule='h', by='mean')
+>>> print(resampled_data.head())
+```

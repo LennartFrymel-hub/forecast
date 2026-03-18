@@ -23,10 +23,11 @@ If the folder does not already exist, it is automatically created.
 |-----------|---------------------------------------------|----------------------------------------------|
 | data_home | [pathlib](`pathlib`).[Path](`pathlib.Path`) | The path to the spotforecast data directory. |
 
-Examples:
-    ```{python}
-    from spotforecast2_safe.data.fetch_data import get_data_home
-    from pathlib import Path
-    get_data_home()
-    get_data_home(Path('/tmp/spotforecast2_data'))
-    ```
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+from spotforecast2_safe.data.fetch_data import get_data_home
+from pathlib import Path
+get_data_home()
+get_data_home(Path('/tmp/spotforecast2_data'))
+```

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from .curate_data import (
+    remove_duplicate_timestamps,
     get_start_end,
     curate_holidays,
     curate_weather,
@@ -26,6 +27,7 @@ from .linearly_interpolate_ts import LinearlyInterpolateTS
 # No recursive models here anymore
 
 __all__ = [
+    "remove_duplicate_timestamps",
     "get_start_end",
     "curate_holidays",
     "curate_weather",
