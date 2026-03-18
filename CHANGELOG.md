@@ -1,3 +1,15 @@
+## [0.20.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.19.0...v0.20.0) (2026-03-18)
+
+
+### Features
+
+* remove_duplicate_timestamps ([02ff49a](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/02ff49a6833fc02aa06f0e2785ad6f5381d808e1))
+
+
+### Documentation
+
+* typo ([3e6744b](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/3e6744b1dd7ccfb16a3fa7b7608c541c6a50ec39))
+
 ## [0.20.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.19.0...v0.20.0-rc.1) (2026-03-18)
 
 
