@@ -103,6 +103,7 @@ High-level training, prediction, and model persistence orchestration.
 | [manager.trainer.load_iteration](manager.trainer.load_iteration.qmd#spotforecast2_safe.manager.trainer.load_iteration) | Load a saved model at a given iteration. |
 | [manager.predictor.get_model_prediction](manager.predictor.get_model_prediction.qmd#spotforecast2_safe.manager.predictor.get_model_prediction) | Get the prediction package from the latest trained model. |
 | [manager.configurator.config_entsoe.ConfigEntsoe](manager.configurator.config_entsoe.ConfigEntsoe.qmd#spotforecast2_safe.manager.configurator.config_entsoe.ConfigEntsoe) | Configuration for the ENTSO-E forecasting pipeline. |
+| [manager.configurator.config_multi.ConfigMulti](manager.configurator.config_multi.ConfigMulti.qmd#spotforecast2_safe.manager.configurator.config_multi.ConfigMulti) | Configuration for the multi-input forecasting pipeline. |
 | [manager.datasets.demo_data](manager.datasets.demo_data.qmd#spotforecast2_safe.manager.datasets.demo_data) | Demo dataset configuration for safety-critical forecasting tasks. |
 | [manager.datasets.demo_loader](manager.datasets.demo_loader.qmd#spotforecast2_safe.manager.datasets.demo_loader) | Demo data loader for safety-critical forecasting tasks. |
 | [manager.logger](manager.logger.qmd#spotforecast2_safe.manager.logger) |  |

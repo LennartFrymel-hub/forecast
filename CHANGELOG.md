@@ -1,3 +1,10 @@
+## [0.22.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.21.0...v0.22.0-rc.1) (2026-03-18)
+
+
+### Features
+
+* multiConf ([013256f](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/013256ff1ae3e8c511bf6ce70792da6dffca8960))
+
 ## [0.21.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.20.0...v0.21.0) (2026-03-18)
 
 
