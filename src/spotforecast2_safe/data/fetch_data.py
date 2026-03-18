@@ -28,6 +28,7 @@ def get_data_home(data_home: Optional[Union[str, Path]] = None) -> Path:
     Returns:
         data_home (pathlib.Path):
             The path to the spotforecast data directory.
+
     Examples:
         ```{python}
         from spotforecast2_safe.data.fetch_data import get_data_home
