@@ -842,7 +842,7 @@ class ForecasterRecursiveModel:
             y = load_timeseries()
             y = LinearlyInterpolateTS().fit_transform(y)
 
-            # Benchmark
+            # Benchmark (back-test mode only; ignored in genuine-future mode)
             try:
                 future_forecast_series = load_timeseries_forecast()
                 future_forecast_series = LinearlyInterpolateTS().fit_transform(
@@ -867,72 +867,99 @@ class ForecasterRecursiveModel:
                 predict_hours,
                 len(y_test),
             )
-            if len(y_test) > predict_hours:
-                y_test = y_test.iloc[:predict_hours]
-                logger.info("Limited test data to %d hours", predict_hours)
-            else:
-                logger.info("Using all %d available test hours", len(y_test))
 
-            # Fit on training data
+            # Fit on training data (shared by both modes)
             self.forecaster.fit(y=y_train)
 
-            # In-sample predictions
+            # In-sample predictions (shared by both modes)
             train_pred = self.forecaster.predict(steps=len(y_train))
             train_pred.index = y_train.index[-len(train_pred) :]
             y_train_aligned = y_train.loc[train_pred.index]
 
-            # Out-of-sample predictions
-            future_pred = self.forecaster.predict(steps=len(y_test))
-            future_pred.index = y_test.index[: len(future_pred)]
-            y_test_aligned = y_test.loc[future_pred.index]
-
-            # Metrics
             metrics_train = {
                 "mae": mean_absolute_error(y_train_aligned, train_pred),
                 "mape": mean_absolute_percentage_error(y_train_aligned, train_pred),
             }
-            metrics_future = {
-                "mae": mean_absolute_error(y_test_aligned, future_pred),
-                "mape": mean_absolute_percentage_error(y_test_aligned, future_pred),
-            }
 
-            # 24h window metrics
-            f_24h_pred = future_pred.iloc[: min(24, len(future_pred))]
-            f_24h_actual = y_test_aligned.iloc[: min(24, len(y_test_aligned))]
-            metrics_future_24h = {
-                "mae": mean_absolute_error(f_24h_actual, f_24h_pred),
-                "mape": mean_absolute_percentage_error(f_24h_actual, f_24h_pred),
-            }
+            # --- Mode selection ---
+            # Genuine-future mode: end_dev is at or beyond the last observed timestamp,
+            # so there is no held-out test data. Predict `predict_hours` steps into
+            # the true future; skip future metrics (no ground truth).
+            # Back-test mode: a held-out test period exists; compute future metrics.
+            genuine_future_mode = len(y_test) < predict_hours
 
-            logger.info(
-                "Metrics computed: Full horizon (MAE=%.2f, MAPE=%.4f), "
-                "24h window (MAE=%.2f, MAPE=%.4f)",
-                metrics_future["mae"],
-                metrics_future["mape"],
-                metrics_future_24h["mae"],
-                metrics_future_24h["mape"],
-            )
+            if genuine_future_mode:
+                logger.info(
+                    "Genuine-future mode: %d test hours available (< %d required). "
+                    "Predicting %d steps beyond end_dev with no ground truth.",
+                    len(y_test),
+                    predict_hours,
+                    predict_hours,
+                )
+                future_pred = self.forecaster.predict(steps=predict_hours)
 
-            result: Dict[str, Any] = {
-                "train_actual": y_train_aligned,
-                "future_actual": y_test_aligned,
-                "train_pred": train_pred,
-                "future_pred": future_pred,
-                "metrics_train": metrics_train,
-                "metrics_future": metrics_future,
-                "metrics_future_one_day": metrics_future_24h,
-            }
-
-            # Add benchmark if available
-            if future_forecast_series is not None:
-                forecast_test = future_forecast_series.loc[y_test_aligned.index]
-                result["future_forecast"] = forecast_test
-                result["metrics_forecast"] = {
-                    "mae": mean_absolute_error(y_test_aligned, forecast_test),
-                    "mape": mean_absolute_percentage_error(
-                        y_test_aligned, forecast_test
-                    ),
+                result: Dict[str, Any] = {
+                    "train_actual": y_train_aligned,
+                    "future_actual": pd.Series(dtype="float64"),  # no ground truth
+                    "train_pred": train_pred,
+                    "future_pred": future_pred,
+                    "metrics_train": metrics_train,
                 }
+
+            else:
+                # Back-test mode: existing behaviour preserved exactly.
+                if len(y_test) > predict_hours:
+                    y_test = y_test.iloc[:predict_hours]
+                    logger.info("Limited test data to %d hours", predict_hours)
+                else:
+                    logger.info("Using all %d available test hours", len(y_test))
+
+                future_pred = self.forecaster.predict(steps=len(y_test))
+                future_pred.index = y_test.index[: len(future_pred)]
+                y_test_aligned = y_test.loc[future_pred.index]
+
+                metrics_future = {
+                    "mae": mean_absolute_error(y_test_aligned, future_pred),
+                    "mape": mean_absolute_percentage_error(y_test_aligned, future_pred),
+                }
+
+                # 24 h window metrics
+                f_24h_pred = future_pred.iloc[: min(24, len(future_pred))]
+                f_24h_actual = y_test_aligned.iloc[: min(24, len(y_test_aligned))]
+                metrics_future_24h = {
+                    "mae": mean_absolute_error(f_24h_actual, f_24h_pred),
+                    "mape": mean_absolute_percentage_error(f_24h_actual, f_24h_pred),
+                }
+
+                logger.info(
+                    "Metrics computed: Full horizon (MAE=%.2f, MAPE=%.4f), "
+                    "24h window (MAE=%.2f, MAPE=%.4f)",
+                    metrics_future["mae"],
+                    metrics_future["mape"],
+                    metrics_future_24h["mae"],
+                    metrics_future_24h["mape"],
+                )
+
+                result = {
+                    "train_actual": y_train_aligned,
+                    "future_actual": y_test_aligned,
+                    "train_pred": train_pred,
+                    "future_pred": future_pred,
+                    "metrics_train": metrics_train,
+                    "metrics_future": metrics_future,
+                    "metrics_future_one_day": metrics_future_24h,
+                }
+
+                # Add benchmark if available
+                if future_forecast_series is not None:
+                    forecast_test = future_forecast_series.loc[y_test_aligned.index]
+                    result["future_forecast"] = forecast_test
+                    result["metrics_forecast"] = {
+                        "mae": mean_absolute_error(y_test_aligned, forecast_test),
+                        "mape": mean_absolute_percentage_error(
+                            y_test_aligned, forecast_test
+                        ),
+                    }
 
             return result
 
