@@ -142,6 +142,85 @@ class ForecasterRecursiveModel:
         self.best_lags: Optional[List[int]] = None
         self.metrics = ["mean_absolute_error", "mean_absolute_percentage_error"]
 
+    # Maps config attribute name → model __init__ kwarg name.
+    # Only entries where the names differ need to be listed; identical
+    # names are forwarded as-is by from_config().
+    _CONFIG_ATTR_MAP: Dict[str, str] = {
+        "API_COUNTRY_CODE": "country_code",
+        "end_train_default": "end_dev",
+    }
+
+    @classmethod
+    def from_config(
+        cls, iteration: int, config: Any, **overrides: Any
+    ) -> "ForecasterRecursiveModel":
+        """Create a model instance with defaults drawn from a config object.
+
+        Extracts every ``__init__`` parameter that exists as a config
+        attribute, translating the two known name mismatches
+        (``API_COUNTRY_CODE`` → ``country_code``,
+        ``end_train_default`` → ``end_dev``).  Caller-supplied
+        *overrides* take precedence over config values.
+
+        Args:
+            iteration: Current iteration index.
+            config: A config object (e.g. ``ConfigMulti`` or ``ConfigEntsoe``)
+                whose attributes overlap with the model's ``__init__`` kwargs.
+            **overrides: Explicit keyword arguments that override config values.
+
+        Returns:
+            An instance of *cls* (or the calling subclass).
+
+        Examples:
+            >>> from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
+            >>> from spotforecast2_safe.manager.models.forecaster_recursive_model import (
+            ...     ForecasterRecursiveModel,
+            ... )
+            >>> cfg = ConfigMulti(api_country_code="FR", predict_size=48)
+            >>> model = ForecasterRecursiveModel.from_config(iteration=1, config=cfg)
+            >>> model.predict_size
+            48
+        """
+        import inspect
+
+        # Discover which kwargs __init__ accepts across the full MRO.
+        # Subclass __init__ often uses **kwargs to forward to super(),
+        # so we walk every class in the chain to collect all explicit params.
+        init_params: set = set()
+        for klass in cls.__mro__:
+            if klass is object:
+                continue
+            init_fn = klass.__dict__.get("__init__")
+            if init_fn is None:
+                continue
+            sig = inspect.signature(init_fn)
+            for name, p in sig.parameters.items():
+                if name == "self":
+                    continue
+                if p.kind in (
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    inspect.Parameter.KEYWORD_ONLY,
+                ):
+                    init_params.add(name)
+        init_params.discard("iteration")  # handled as a positional arg
+
+        kwargs: Dict[str, Any] = {}
+
+        # 1. Translated names (config attr → model kwarg)
+        for cfg_attr, kwarg_name in cls._CONFIG_ATTR_MAP.items():
+            if hasattr(config, cfg_attr) and kwarg_name in init_params:
+                kwargs[kwarg_name] = getattr(config, cfg_attr)
+
+        # 2. Identically named attributes
+        for param_name in init_params:
+            if param_name not in kwargs and hasattr(config, param_name):
+                kwargs[param_name] = getattr(config, param_name)
+
+        # 3. Caller overrides win
+        kwargs.update(overrides)
+
+        return cls(iteration=iteration, **kwargs)
+
     def get_params(self, deep: bool = True) -> Dict[str, object]:
         """
         Get parameters for this forecaster model.

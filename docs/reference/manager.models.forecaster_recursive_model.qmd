@@ -70,6 +70,7 @@ True
 | [backtest](#spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel.backtest) | Back-test the forecaster on the test data. |
 | [fit](#spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel.fit) | Fit the underlying forecaster. |
 | [fit_with_best](#spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel.fit_with_best) | Fit the forecaster using the recorded best hyperparameters. |
+| [from_config](#spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel.from_config) | Create a model instance with defaults drawn from a config object. |
 | [get_error_forecast](#spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel.get_error_forecast) | Compute the error of the ENTSO-E benchmark forecast. |
 | [get_error_training](#spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel.get_error_training) | Compute in-sample error on the training data. |
 | [get_feature_importance](#spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel.get_feature_importance) | Return feature importances from the underlying estimator. |
@@ -177,6 +178,51 @@ fits the forecaster on the full training + dev set up to
 | Name   | Type                       | Description                                 |
 |--------|----------------------------|---------------------------------------------|
 |        | [ValueError](`ValueError`) | If the forecaster has not been initialized. |
+
+##### from_config { #spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel.from_config }
+
+```python
+manager.models.forecaster_recursive_model.ForecasterRecursiveModel.from_config(
+    iteration,
+    config,
+    **overrides,
+)
+```
+
+Create a model instance with defaults drawn from a config object.
+
+Extracts every ``__init__`` parameter that exists as a config
+attribute, translating the two known name mismatches
+(``API_COUNTRY_CODE`` → ``country_code``,
+``end_train_default`` → ``end_dev``).  Caller-supplied
+*overrides* take precedence over config values.
+
+###### Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                | Description                                                                                                               | Default    |
+|-------------|---------------------|---------------------------------------------------------------------------------------------------------------------------|------------|
+| iteration   | [int](`int`)        | Current iteration index.                                                                                                  | _required_ |
+| config      | [Any](`typing.Any`) | A config object (e.g. ``ConfigMulti`` or ``ConfigEntsoe``) whose attributes overlap with the model's ``__init__`` kwargs. | _required_ |
+| **overrides | [Any](`typing.Any`) | Explicit keyword arguments that override config values.                                                                   | `{}`       |
+
+###### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                | Description                                     |
+|--------|---------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
+|        | [ForecasterRecursiveModel](`spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel`) | An instance of *cls* (or the calling subclass). |
+
+###### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
+>>> from spotforecast2_safe.manager.models.forecaster_recursive_model import (
+...     ForecasterRecursiveModel,
+... )
+>>> cfg = ConfigMulti(api_country_code="FR", predict_size=48)
+>>> model = ForecasterRecursiveModel.from_config(iteration=1, config=cfg)
+>>> model.predict_size
+48
+```
 
 ##### get_error_forecast { #spotforecast2_safe.manager.models.forecaster_recursive_model.ForecasterRecursiveModel.get_error_forecast }
 

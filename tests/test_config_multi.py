@@ -24,6 +24,7 @@ from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _default() -> ConfigMulti:
     """Return a ConfigMulti with default parameters."""
     return ConfigMulti()
@@ -124,7 +125,9 @@ class TestConfigMultiCustomInit:
         assert cfg.lags_consider == lags
 
     def test_custom_periods(self):
-        custom = [Period(name="daily", n_periods=24, column="hour", input_range=(1, 24))]
+        custom = [
+            Period(name="daily", n_periods=24, column="hour", input_range=(1, 24))
+        ]
         cfg = ConfigMulti(periods=custom)
         assert len(cfg.periods) == 1
         assert cfg.periods[0].n_periods == 24
@@ -315,7 +318,9 @@ class TestConfigMultiSetParamsDeep:
         """Period is a frozen dataclass; set_params must replace, not mutate."""
         cfg = _default()
         original_periods = list(cfg.periods)
-        original_daily_n = next(p for p in original_periods if p.name == "daily").n_periods
+        original_daily_n = next(
+            p for p in original_periods if p.name == "daily"
+        ).n_periods
         cfg.set_params(periods__daily__n_periods=99)
         # original_periods list still holds the old Period instances
         old_daily = next(p for p in original_periods if p.name == "daily")
@@ -337,7 +342,9 @@ class TestConfigMultiSetParamsErrors:
 
     def test_invalid_period_name_raises(self):
         cfg = _default()
-        with pytest.raises(ValueError, match="Period with name 'nonexistent' not found"):
+        with pytest.raises(
+            ValueError, match="Period with name 'nonexistent' not found"
+        ):
             cfg.set_params(periods__nonexistent__n_periods=10)
 
     def test_invalid_deep_param_format_raises(self):
