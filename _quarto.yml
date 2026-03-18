@@ -124,6 +124,8 @@ website:
                     file: docs/reference/preprocessing.curate_data.curate_weather.qmd
                   - text: "get_start_end"
                     file: docs/reference/preprocessing.curate_data.get_start_end.qmd
+                  - text: "remove_duplicate_timestamps"
+                    file: docs/reference/preprocessing.curate_data.remove_duplicate_timestamps.qmd
               - section: "Imputation"
                 contents:
                   - text: "WeightFunction"
@@ -313,6 +315,8 @@ website:
             file: docs/preprocessing/outliers.qmd
           - text: "Data Imputation & Gap Weighting"
             file: docs/preprocessing/imputation.qmd
+          - text: "Resolve Duplicate Timestamps"
+            file: docs/preprocessing/duplicate_timestamps.qmd
           - text: "Period Configuration Rationale"
             file: docs/PERIOD_CONFIGURATION_RATIONALE.qmd
 
@@ -429,6 +433,7 @@ quartodoc:
         - preprocessing.curate_data.curate_holidays
         - preprocessing.curate_data.curate_weather
         - preprocessing.curate_data.get_start_end
+        - preprocessing.curate_data.remove_duplicate_timestamps
         - preprocessing.outlier.get_outliers
         - preprocessing.outlier.manual_outlier_removal
         - preprocessing.outlier.mark_outliers

@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 
 from spotforecast2_safe.preprocessing.curate_data import get_start_end
+from spotforecast2_safe.preprocessing.curate_data import remove_duplicate_timestamps
 
 
 class TestGetStartEnd:
@@ -335,3 +336,135 @@ class TestGetStartEndEdgeCases:
 
         assert start == "2023-01-01T00:00"
         assert end == "2023-01-10T00:00"
+
+
+class TestRemoveDuplicateTimestamps:
+    """Test suite for remove_duplicate_timestamps."""
+
+    def test_averages_and_sorts_multi_column(self):
+        """Mean-aggregates duplicate timestamps across multiple columns."""
+        df = pd.DataFrame(
+            {
+                "Time (UTC)": pd.to_datetime(
+                    [
+                        "2026-01-01 01:00:00",
+                        "2026-01-01 00:00:00",
+                        "2026-01-01 00:00:00",
+                    ],
+                    utc=True,
+                ),
+                "Load A": [130.0, 100.0, 120.0],
+                "Load B": [50.0, 10.0, 30.0],
+            }
+        )
+
+        out = remove_duplicate_timestamps(df=df)
+
+        assert len(out) == 2
+        assert out["Time (UTC)"].is_monotonic_increasing
+        assert out.loc[0, "Load A"] == pytest.approx(110.0)
+        assert out.loc[1, "Load A"] == pytest.approx(130.0)
+        assert out.loc[0, "Load B"] == pytest.approx(20.0)
+
+    def test_raises_on_missing_time_col(self):
+        """Raises KeyError when time_col is absent from the dataframe."""
+        df = pd.DataFrame({"ts": ["2026-01-01 00:00:00"], "load": [1.0]})
+
+        with pytest.raises(KeyError):
+            remove_duplicate_timestamps(df=df)
+
+    def test_custom_time_col(self):
+        """Respects a user-supplied time_col name."""
+        df = pd.DataFrame(
+            {
+                "ts": [
+                    "2026-01-01 00:00:00",
+                    "2026-01-01 00:00:00",
+                    "2026-01-02 00:00:00",
+                ],
+                "value": [10.0, 30.0, 50.0],
+            }
+        )
+
+        out = remove_duplicate_timestamps(df=df, time_col="ts")
+
+        assert len(out) == 2
+        assert out.loc[0, "value"] == pytest.approx(20.0)
+
+    def test_agg_median(self):
+        """Median aggregation takes the midpoint, not the mean."""
+        df = pd.DataFrame(
+            {
+                "Time (UTC)": ["2026-01-01", "2026-01-01", "2026-01-01"],
+                "value": [10.0, 20.0, 90.0],
+            }
+        )
+
+        out = remove_duplicate_timestamps(df=df, agg="median")
+
+        assert float(out.loc[0, "value"]) == pytest.approx(20.0)
+
+    def test_agg_min(self):
+        """Min aggregation returns the smallest value per group."""
+        df = pd.DataFrame(
+            {
+                "Time (UTC)": ["2026-01-01", "2026-01-01"],
+                "value": [10.0, 90.0],
+            }
+        )
+
+        out = remove_duplicate_timestamps(df=df, agg="min")
+
+        assert float(out.loc[0, "value"]) == pytest.approx(10.0)
+
+    def test_agg_max(self):
+        """Max aggregation returns the largest value per group."""
+        df = pd.DataFrame(
+            {
+                "Time (UTC)": ["2026-01-01", "2026-01-01"],
+                "value": [10.0, 90.0],
+            }
+        )
+
+        out = remove_duplicate_timestamps(df=df, agg="max")
+
+        assert float(out.loc[0, "value"]) == pytest.approx(90.0)
+
+    def test_agg_mode(self):
+        """Mode aggregation returns the most frequent value per group."""
+        df = pd.DataFrame(
+            {
+                "Time (UTC)": ["2026-01-01", "2026-01-01", "2026-01-01"],
+                "value": [10.0, 10.0, 90.0],
+            }
+        )
+
+        out = remove_duplicate_timestamps(df=df, agg="mode")
+
+        assert float(out.loc[0, "value"]) == pytest.approx(10.0)
+
+    def test_agg_callable(self):
+        """Accepts a custom callable aggregation function."""
+        df = pd.DataFrame(
+            {
+                "Time (UTC)": ["2026-01-01", "2026-01-01"],
+                "value": [10.0, 90.0],
+            }
+        )
+
+        out = remove_duplicate_timestamps(df=df, agg=lambda x: 42.0)
+
+        assert float(out.loc[0, "value"]) == pytest.approx(42.0)
+
+    def test_no_duplicates_unchanged_length(self):
+        """Frame with no duplicates passes through with the same row count."""
+        df = pd.DataFrame(
+            {
+                "Time (UTC)": ["2026-01-01 00:00:00", "2026-01-01 01:00:00"],
+                "value": [1.0, 2.0],
+            }
+        )
+
+        out = remove_duplicate_timestamps(df=df)
+
+        assert len(out) == 2
