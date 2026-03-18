@@ -216,6 +216,8 @@ website:
                 file: docs/reference/manager.predictor.get_model_prediction.qmd
               - text: "ConfigEntsoe"
                 file: docs/reference/manager.configurator.config_entsoe.ConfigEntsoe.qmd
+              - text: "ConfigMulti"
+                file: docs/reference/manager.configurator.config_multi.ConfigMulti.qmd
               - text: "logger"
                 file: docs/reference/manager.logger.qmd
               - text: "persistence"
@@ -498,6 +500,7 @@ quartodoc:
         - manager.trainer.load_iteration
         - manager.predictor.get_model_prediction
         - manager.configurator.config_entsoe.ConfigEntsoe
+        - manager.configurator.config_multi.ConfigMulti
         - manager.datasets.demo_data
         - manager.datasets.demo_loader
         - manager.logger

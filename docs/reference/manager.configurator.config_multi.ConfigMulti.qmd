@@ -1,0 +1,173 @@
+# manager.configurator.config_multi.ConfigMulti { #spotforecast2_safe.manager.configurator.config_multi.ConfigMulti }
+
+```python
+manager.configurator.config_multi.ConfigMulti(
+    api_country_code='DE',
+    periods=None,
+    lags_consider=None,
+    train_size=None,
+    end_train_default='2025-12-31 00:00+00:00',
+    delta_val=None,
+    predict_size=24,
+    refit_size=7,
+    random_state=314159,
+    n_hyperparameters_trials=20,
+    data_filename='interim/energy_load.csv',
+)
+```
+
+Configuration for the multi-input forecasting pipeline.
+
+This class manages all configuration parameters for the multi-input task,
+including API settings, training/prediction intervals, and feature
+engineering specifications. All parameters can be customized during
+initialization or used with sensible defaults.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                     | Type                                                                                                 | Description                                                      | Default                     |
+|--------------------------|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|-----------------------------|
+| api_country_code         | [str](`str`)                                                                                         | ISO country code.                                                | `'DE'`                      |
+| periods                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\]\] | List of Period objects defining cyclical feature encodings.      | `None`                      |
+| lags_consider            | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[int](`int`)\]\]                               | List of lag values to consider for feature selection.            | `None`                      |
+| train_size               | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                      | Time window for training data.                                   | `None`                      |
+| end_train_default        | [str](`str`)                                                                                         | Default end date for training period (ISO format with timezone). | `'2025-12-31 00:00+00:00'`  |
+| delta_val                | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                      | Validation window size.                                          | `None`                      |
+| predict_size             | [int](`int`)                                                                                         | Number of hours to predict ahead.                                | `24`                        |
+| refit_size               | [int](`int`)                                                                                         | Number of days between model refits.                             | `7`                         |
+| random_state             | [int](`int`)                                                                                         | Random seed for reproducibility.                                 | `314159`                    |
+| n_hyperparameters_trials | [int](`int`)                                                                                         | Number of trials for hyperparameter optimization.                | `20`                        |
+| data_filename            | [str](`str`)                                                                                         | Path to the interim merged data file.                            | `'interim/energy_load.csv'` |
+
+## Attributes {.doc-section .doc-section-attributes}
+
+| Name                     | Type                                                                | Description                               |
+|--------------------------|---------------------------------------------------------------------|-------------------------------------------|
+| API_COUNTRY_CODE         | [str](`str`)                                                        | ISO country code for API queries.         |
+| periods                  | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\] | Cyclical feature encoding specifications. |
+| lags_consider            | [List](`typing.List`)\[[int](`int`)\]                               | Lag values for autoregressive features.   |
+| train_size               | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                      | Training data window.                     |
+| end_train_default        | [str](`str`)                                                        | Default training end date.                |
+| delta_val                | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                      | Validation window.                        |
+| predict_size             | [int](`int`)                                                        | Prediction horizon in hours.              |
+| refit_size               | [int](`int`)                                                        | Refit interval in days.                   |
+| random_state             | [int](`int`)                                                        | Random seed.                              |
+| n_hyperparameters_trials | [int](`int`)                                                        | Hyperparameter tuning trials.             |
+
+## Notes {.doc-section .doc-section-notes}
+
+The default period configurations use specific `n_periods` to balance resolution and smoothing:
+- **Daily**: `n_periods=12` (24h) provides ~2h resolution, smoothing hourly noise and halving dimensionality.
+- **Weekly**: `n_periods` typically matches range (1:1) to distinguish day-of-week patterns.
+- **Yearly**: `n_periods=12` (365d) provides ~1 month resolution, capturing broad seasonal trends without overfitting.
+
+See `docs/PERIOD_CONFIGURATION_RATIONALE.md` for a detailed analysis.
+
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+import pandas as pd
+from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
+from spotforecast2_safe import Config # for comparison with default values
+config = ConfigMulti()
+print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
+print(f"Predict size: {config.predict_size}")
+print(f"Random state: {config.random_state}")
+
+# Use default configuration
+config = Config()
+print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
+print(f"Predict size: {config.predict_size}")
+print(f"Random state: {config.random_state}")
+
+# Create custom configuration
+custom_config = Config(
+    api_country_code='FR',
+    predict_size=48,
+    random_state=42
+)
+print(f"API_COUNTRY_CODE: {custom_config.API_COUNTRY_CODE}")
+print(f"Predict size: {custom_config.predict_size}")
+print(f"Random state: {custom_config.random_state}")
+
+# Verify training window
+print(f"Training window: {config.train_size == pd.Timedelta(days=3 * 365)}")
+
+# Check default periods
+print(f"Number of periods: {len(config.periods)}")
+print(f"First period name: {config.periods[0].name}")
+```
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [get_params](#spotforecast2_safe.manager.configurator.config_multi.ConfigMulti.get_params) | Get parameters for this configuration object. |
+| [set_params](#spotforecast2_safe.manager.configurator.config_multi.ConfigMulti.set_params) | Set the parameters of this configuration object. |
+
+### get_params { #spotforecast2_safe.manager.configurator.config_multi.ConfigMulti.get_params }
+
+```python
+manager.configurator.config_multi.ConfigMulti.get_params(deep=True)
+```
+
+Get parameters for this configuration object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type           | Description                                                                                               | Default   |
+|--------|----------------|-----------------------------------------------------------------------------------------------------------|-----------|
+| deep   | [bool](`bool`) | If True, will return the parameters for this configuration and contained sub-objects that are estimators. | `True`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                      | Description                                           |
+|--------|-----------------------------------------------------------|-------------------------------------------------------|
+| params | [Dict](`typing.Dict`)\[[str](`str`), [object](`object`)\] | Dictionary of parameter names mapped to their values. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```{python}
+from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
+config = ConfigMulti(api_country_code="FR")
+p = config.get_params()
+print(f"API_COUNTRY_CODE: {p['api_country_code']}")
+print(f"Predict size: {p['predict_size']}")
+print(f"Random state: {p['random_state']}")
+```
+
+### set_params { #spotforecast2_safe.manager.configurator.config_multi.ConfigMulti.set_params }
+
+```python
+manager.configurator.config_multi.ConfigMulti.set_params(params=None, **kwargs)
+```
+
+Set the parameters of this configuration object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type                                                      | Description                                                                                                                                           | Default   |
+|----------|-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| params   | [Dict](`typing.Dict`)\[[str](`str`), [object](`object`)\] | Optional dictionary of parameter names mapped to their new values.                                                                                    | `None`    |
+| **kwargs | [object](`object`)                                        | Additional parameter names mapped to their new values. It supports configuring nested 'Period' objects using the `periods__<name>__<param>` notation. | `{}`      |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name        | Type                                                                              | Description                                                                    |
+|-------------|-----------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| ConfigMulti | [ConfigMulti](`spotforecast2_safe.manager.configurator.config_multi.ConfigMulti`) | The configuration instance with updated parameters (supports method chaining). |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```{python}
+from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
+config = ConfigMulti()
+_ = config.set_params(api_country_code="FR", predict_size=48)
+print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
+print(f"Predict size: {config.predict_size}")
+print(f"Random state: {config.random_state}")
+
+# Deep parameter setting
+_ = config.set_params(periods__daily__n_periods=24)
+print(next(p.n_periods for p in config.periods if p.name == "daily"))
+```
