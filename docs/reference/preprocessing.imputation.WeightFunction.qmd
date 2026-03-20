@@ -11,6 +11,13 @@ compatible with ForecasterRecursive's weight_func parameter. Unlike
 local functions with closures, instances of this class can be pickled
 using standard pickle/joblib.
 
+When all weights for the requested index sum to zero (e.g. the entire
+training window falls inside gap-penalty zones after outlier detection),
+``__call__`` returns ``None`` instead of an all-zero array.
+``ForecasterRecursive.create_sample_weights`` treats a ``None`` return as
+"no weighting", avoiding a ``ValueError`` while still applying the
+weighted imputation for windows that do contain positive weights.
+
 ## Parameters {.doc-section .doc-section-parameters}
 
 | Name           | Type                                     | Description                                     | Default    |
@@ -26,6 +33,11 @@ using standard pickle/joblib.
 >>> weight_func = WeightFunction(weights)
 >>> weight_func(pd.Index([0, 1]))
 array([1. , 0.9])
+>>> # Returns None when all weights in the window are zero
+>>> zero_weights = pd.Series([0.0, 0.0, 0.0], index=[0, 1, 2])
+>>> wf_zero = WeightFunction(zero_weights)
+>>> wf_zero(pd.Index([0, 1])) is None
+True
 >>> # Can be pickled
 >>> pickled = pickle.dumps(weight_func)
 >>> unpickled = pickle.loads(pickled)

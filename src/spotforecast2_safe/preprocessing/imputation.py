@@ -80,12 +80,15 @@ class WeightFunction:
             >>> wf = WeightFunction(weights)
             >>> wf(pd.Index([0, 1]))
             array([1. , 0.5])
-            >>> # Degenerate window → None
-            >>> wf(pd.Index([2]))  is None
+            >>> # Scalar access always returns the stored weight (no None fallback)
+            >>> wf(2)
+            0.0
+            >>> # pd.Index with all-zero weights → None (ForecasterRecursive path)
+            >>> wf(pd.Index([2])) is None
             True
         """
         result = custom_weights(index, self.weights_series)
-        if np.sum(result) == 0:
+        if isinstance(index, pd.Index) and np.sum(result) == 0:
             logger.warning(
                 "WeightFunction: all sample weights for the requested index are "
                 "zero (the window falls entirely within gap-penalty zones). "

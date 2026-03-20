@@ -210,9 +210,19 @@ The forecaster calls `weight_func(X_train.index)` where `X_train.index` is a `Da
 
 ```{python}
 wf = WeightFunction(weights)
-sample_idx = X_train.index[7:10]      # three timestamps from inside X_train
+
+# Query a window that spans the gap boundary (mix of 1s and 0s)
+sample_idx = X_train.index[5:8]      # hours 08:00–10:00 — crosses the gap at 10:00
 print("queried timestamps:", sample_idx.tolist())
 print("returned weights:  ", wf(sample_idx).tolist())
+
+# When *all* queried timestamps fall inside the zero-weight zone,
+# WeightFunction returns None instead of an all-zero array.
+# ForecasterRecursive.create_sample_weights treats None as "use uniform weights",
+# preventing a ValueError when the entire training window is penalised.
+all_zero_idx = X_train.index[7:10]   # hours 10:00–12:00 — entirely in the gap zone
+result = wf(all_zero_idx)
+print(f"\nall-zero window → {result!r}  (None = uniform weights fallback)")
 ```
 
 A positional array `weights[7:10]` would silently return the wrong values because the lag-matrix offset shifts all positions by `max(lags)`.
