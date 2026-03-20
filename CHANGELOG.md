@@ -1,3 +1,11 @@
+## [0.23.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.23.0...v0.23.1) (2026-03-20)
+
+
+### Bug Fixes
+
+* imputation ([e126562](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/e126562a70919e0cf070b34983b5dbb8241c10de))
+* imputation zero weights ([160bf15](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/160bf157b9431d21136073e7e678d276c249f9da))
+
 ## [0.23.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.23.0...v0.23.1-rc.1) (2026-03-20)
 
 
