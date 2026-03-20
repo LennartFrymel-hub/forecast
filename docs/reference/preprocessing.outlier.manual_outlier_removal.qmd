@@ -11,19 +11,16 @@ preprocessing.outlier.manual_outlier_removal(
 ```
 
 Manual outlier removal function.
-Args:
-    data (pd.DataFrame):
-        The input dataset.
-    column (str):
-        The column name in which to perform manual outlier removal.
-    lower_threshold (float | None):
-        The lower threshold below which values are considered outliers.
-        If None, no lower threshold is applied.
-    upper_threshold (float | None):
-        The upper threshold above which values are considered outliers.
-        If None, no upper threshold is applied.
-    verbose (bool):
-        Whether to print additional information.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name            | Type                                           | Description                                                                                             | Default    |
+|-----------------|------------------------------------------------|---------------------------------------------------------------------------------------------------------|------------|
+| data            | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The input dataset.                                                                                      | _required_ |
+| column          | [str](`str`)                                   | The column name in which to perform manual outlier removal.                                             | _required_ |
+| lower_threshold | [float](`float`) \| None                       | The lower threshold below which values are considered outliers. If None, no lower threshold is applied. | `None`     |
+| upper_threshold | [float](`float`) \| None                       | The upper threshold above which values are considered outliers. If None, no upper threshold is applied. | `None`     |
+| verbose         | [bool](`bool`)                                 | Whether to print additional information.                                                                | `False`    |
 
 ## Returns {.doc-section .doc-section-returns}
 

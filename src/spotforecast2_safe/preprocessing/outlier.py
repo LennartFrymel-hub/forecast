@@ -65,6 +65,7 @@ def manual_outlier_removal(
     verbose: bool = False,
 ) -> tuple[pd.DataFrame, int]:
     """Manual outlier removal function.
+
     Args:
         data (pd.DataFrame):
             The input dataset.
