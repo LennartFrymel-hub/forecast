@@ -1,3 +1,10 @@
+## [0.25.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.24.0...v0.25.0) (2026-03-20)
+
+
+### Features
+
+* ConfMulti extended ([0f80417](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/0f80417e9003e690efa91f11ac160a6a7803ad8d))
+
 ## [0.25.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.24.0...v0.25.0-rc.1) (2026-03-20)
 
 
