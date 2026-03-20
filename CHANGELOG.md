@@ -1,3 +1,10 @@
+## [0.24.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.23.1...v0.24.0-rc.1) (2026-03-20)
+
+
+### Features
+
+* demo10 and 11 daatasets ([2bebfa4](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/2bebfa42d0ef6fd8b4b65e3570b0e4c6a0657a5b))
+
 ## [0.23.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.23.0...v0.23.1) (2026-03-20)
 
 
