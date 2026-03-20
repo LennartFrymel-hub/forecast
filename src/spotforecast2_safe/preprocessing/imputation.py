@@ -2,9 +2,12 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
+import logging
 import pandas as pd
-from typing import Union
+from typing import Optional, Union
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class WeightFunction:
@@ -14,6 +17,13 @@ class WeightFunction:
     compatible with ForecasterRecursive's weight_func parameter. Unlike
     local functions with closures, instances of this class can be pickled
     using standard pickle/joblib.
+
+    When all weights for the requested index sum to zero (e.g. the entire
+    training window falls inside gap-penalty zones after outlier detection),
+    ``__call__`` returns ``None`` instead of an all-zero array.
+    ``ForecasterRecursive.create_sample_weights`` treats a ``None`` return as
+    "no weighting", avoiding a ``ValueError`` while still applying the
+    weighted imputation for windows that do contain positive weights.
 
     Args:
         weights_series: Series containing weight values for each index.
@@ -25,6 +35,11 @@ class WeightFunction:
         >>> weight_func = WeightFunction(weights)
         >>> weight_func(pd.Index([0, 1]))
         array([1. , 0.9])
+        >>> # Returns None when all weights in the window are zero
+        >>> zero_weights = pd.Series([0.0, 0.0, 0.0], index=[0, 1, 2])
+        >>> wf_zero = WeightFunction(zero_weights)
+        >>> wf_zero(pd.Index([0, 1])) is None
+        True
         >>> # Can be pickled
         >>> pickled = pickle.dumps(weight_func)
         >>> unpickled = pickle.loads(pickled)
@@ -42,16 +57,42 @@ class WeightFunction:
 
     def __call__(
         self, index: Union[pd.Index, np.ndarray, list]
-    ) -> Union[float, np.ndarray]:
-        """Return sample weights for given index.
+    ) -> Optional[np.ndarray]:
+        """Return sample weights for the given index, or None if all weights are zero.
+
+        Computes the weights via :func:`custom_weights`.  When every weight in
+        the result sums to zero — which happens when the entire requested window
+        falls within gap-penalty zones created by outlier detection — the method
+        logs a warning and returns ``None``.  ``ForecasterRecursive`` interprets
+        a ``None`` return as "use uniform weights", preventing a
+        ``ValueError: sample_weight cannot be normalized`` crash.
 
         Args:
             index: Index or indices to get weights for.
 
         Returns:
-            Weight value(s) corresponding to the index.
+            Numpy array of weight values, or ``None`` when the sum of all
+            weights is zero (degenerate window).
+
+        Examples:
+            >>> import pandas as pd
+            >>> weights = pd.Series([1.0, 0.5, 0.0], index=[0, 1, 2])
+            >>> wf = WeightFunction(weights)
+            >>> wf(pd.Index([0, 1]))
+            array([1. , 0.5])
+            >>> # Degenerate window → None
+            >>> wf(pd.Index([2]))  is None
+            True
         """
-        return custom_weights(index, self.weights_series)
+        result = custom_weights(index, self.weights_series)
+        if np.sum(result) == 0:
+            logger.warning(
+                "WeightFunction: all sample weights for the requested index are "
+                "zero (the window falls entirely within gap-penalty zones). "
+                "Returning None so ForecasterRecursive uses uniform weighting."
+            )
+            return None
+        return result
 
     def __repr__(self):
         """String representation."""
