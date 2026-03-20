@@ -30,6 +30,20 @@ class ConfigMulti:
         random_state (int): Random seed for reproducibility.
         n_hyperparameters_trials (int): Number of trials for hyperparameter optimization.
         data_filename (str): Path to the interim merged data file.
+        use_outlier_detection (bool): If True, apply IsolationForest-based outlier removal.
+        contamination (float): Proportion of outliers for IsolationForest (0 < contamination < 0.5).
+        imputation_method (str): Gap-filling strategy — ``"weighted"`` (n2n-style rolling weights)
+            or ``"linear"`` (linear interpolation).
+        window_size (int): Rolling window size in hours for gap detection (weighted imputation).
+        use_exogenous_features (bool): If True, build weather/calendar/day-night/holiday features.
+        latitude (float): Latitude of the target location in decimal degrees.
+        longitude (float): Longitude of the target location in decimal degrees.
+        timezone (str): IANA timezone string for the target location (e.g. ``"Europe/Berlin"``).
+        country_code (str): ISO 3166-1 alpha-2 country code for holiday generation.
+        state (str): ISO 3166-2 subdivision code for regional holidays (e.g. ``"NW"``).
+        include_weather_windows (bool): If True, include rolling weather-window features.
+        include_holiday_features (bool): If True, include public-holiday indicator features.
+        include_poly_features (bool): If True, include polynomial interaction features.
 
     Attributes:
         API_COUNTRY_CODE (str): ISO country code for API queries.
@@ -42,6 +56,19 @@ class ConfigMulti:
         refit_size (int): Refit interval in days.
         random_state (int): Random seed.
         n_hyperparameters_trials (int): Hyperparameter tuning trials.
+        use_outlier_detection (bool): IsolationForest outlier removal toggle.
+        contamination (float): IsolationForest contamination fraction.
+        imputation_method (str): Gap-filling strategy (``"weighted"`` or ``"linear"``).
+        window_size (int): Rolling window size for weighted imputation.
+        use_exogenous_features (bool): Exogenous feature construction toggle.
+        latitude (float): Location latitude.
+        longitude (float): Location longitude.
+        timezone (str): IANA timezone string.
+        country_code (str): Country code for holiday generation.
+        state (str): Subdivision code for regional holidays.
+        include_weather_windows (bool): Weather-window feature toggle.
+        include_holiday_features (bool): Holiday feature toggle.
+        include_poly_features (bool): Polynomial feature toggle.
 
     Notes:
         The default period configurations use specific `n_periods` to balance resolution and smoothing:
@@ -99,6 +126,23 @@ class ConfigMulti:
         random_state: int = 314159,
         n_hyperparameters_trials: int = 20,
         data_filename: str = "interim/energy_load.csv",
+        # Outlier detection
+        use_outlier_detection: bool = True,
+        contamination: float = 0.01,
+        # Imputation
+        imputation_method: str = "weighted",
+        window_size: int = 72,
+        # Exogenous features
+        use_exogenous_features: bool = True,
+        latitude: float = 51.5136,
+        longitude: float = 7.4653,
+        timezone: str = "UTC",
+        country_code: str = "DE",
+        state: str = "NW",
+        # Feature selection toggles
+        include_weather_windows: bool = False,
+        include_holiday_features: bool = False,
+        include_poly_features: bool = False,
     ):
         """Initialize ConfigMulti with specified or default parameters."""
         self.API_COUNTRY_CODE = api_country_code
@@ -146,6 +190,23 @@ class ConfigMulti:
         self.random_state = random_state
         self.n_hyperparameters_trials = n_hyperparameters_trials
         self.data_filename = data_filename
+        # Outlier detection
+        self.use_outlier_detection = use_outlier_detection
+        self.contamination = contamination
+        # Imputation
+        self.imputation_method = imputation_method
+        self.window_size = window_size
+        # Exogenous features
+        self.use_exogenous_features = use_exogenous_features
+        self.latitude = latitude
+        self.longitude = longitude
+        self.timezone = timezone
+        self.country_code = country_code
+        self.state = state
+        # Feature selection toggles
+        self.include_weather_windows = include_weather_windows
+        self.include_holiday_features = include_holiday_features
+        self.include_poly_features = include_poly_features
 
     def get_params(self, deep: bool = True) -> Dict[str, object]:
         """
@@ -180,6 +241,23 @@ class ConfigMulti:
             "random_state": self.random_state,
             "n_hyperparameters_trials": self.n_hyperparameters_trials,
             "data_filename": self.data_filename,
+            # Outlier detection
+            "use_outlier_detection": self.use_outlier_detection,
+            "contamination": self.contamination,
+            # Imputation
+            "imputation_method": self.imputation_method,
+            "window_size": self.window_size,
+            # Exogenous features
+            "use_exogenous_features": self.use_exogenous_features,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "timezone": self.timezone,
+            "country_code": self.country_code,
+            "state": self.state,
+            # Feature selection toggles
+            "include_weather_windows": self.include_weather_windows,
+            "include_holiday_features": self.include_holiday_features,
+            "include_poly_features": self.include_poly_features,
         }
 
         # Expose period sub-objects via the '__' notation if deep=True
