@@ -175,6 +175,7 @@ class TestConfigMultiGetParams:
             "random_state",
             "n_hyperparameters_trials",
             "data_filename",
+            "targets",
         }
         assert expected_keys.issubset(p.keys())
 
@@ -357,3 +358,102 @@ class TestConfigMultiSetParamsErrors:
         cfg = _default()
         with pytest.raises(ValueError, match="Invalid deep parameter format"):
             cfg.set_params(**{"periods__daily__n_periods__extra": 10})
+
+
+# ---------------------------------------------------------------------------
+# targets attribute
+# ---------------------------------------------------------------------------
+
+
+class TestConfigMultiTargets:
+    """Verify the targets attribute behaves correctly."""
+
+    def test_targets_default_is_none(self):
+        assert _default().targets is None
+
+    def test_targets_set_in_constructor(self):
+        cfg = ConfigMulti(targets=["A", "B", "C"])
+        assert cfg.targets == ["A", "B", "C"]
+
+    def test_targets_empty_list(self):
+        cfg = ConfigMulti(targets=[])
+        assert cfg.targets == []
+
+    def test_targets_single_element(self):
+        cfg = ConfigMulti(targets=["A"])
+        assert cfg.targets == ["A"]
+
+    def test_targets_direct_assignment(self):
+        cfg = _default()
+        cfg.targets = ["X", "Y"]
+        assert cfg.targets == ["X", "Y"]
+
+    def test_targets_direct_assignment_to_none(self):
+        cfg = ConfigMulti(targets=["A", "B"])
+        cfg.targets = None
+        assert cfg.targets is None
+
+    def test_targets_in_get_params(self):
+        cfg = ConfigMulti(targets=["A", "B"])
+        p = cfg.get_params()
+        assert "targets" in p
+        assert p["targets"] == ["A", "B"]
+
+    def test_targets_none_in_get_params(self):
+        p = _default().get_params()
+        assert "targets" in p
+        assert p["targets"] is None
+
+    def test_targets_in_get_params_shallow(self):
+        cfg = ConfigMulti(targets=["A"])
+        p = cfg.get_params(deep=False)
+        assert "targets" in p
+        assert p["targets"] == ["A"]
+
+    def test_targets_in_get_params_deep(self):
+        cfg = ConfigMulti(targets=["A"])
+        p = cfg.get_params(deep=True)
+        assert "targets" in p
+        assert p["targets"] == ["A"]
+
+    def test_set_params_updates_targets(self):
+        cfg = _default()
+        cfg.set_params(targets=["A", "B"])
+        assert cfg.targets == ["A", "B"]
+
+    def test_set_params_targets_via_dict(self):
+        cfg = _default()
+        cfg.set_params(params={"targets": ["C", "D"]})
+        assert cfg.targets == ["C", "D"]
+
+    def test_set_params_targets_to_none(self):
+        cfg = ConfigMulti(targets=["A"])
+        cfg.set_params(targets=None)
+        assert cfg.targets is None
+
+    def test_set_params_targets_method_chaining(self):
+        cfg = _default()
+        result = cfg.set_params(targets=["A"]).set_params(predict_size=48)
+        assert result.targets == ["A"]
+        assert result.predict_size == 48
+
+    def test_targets_contains_flat_key_in_get_params(self):
+        """Ensure targets key present even when deep=True (no nesting for targets)."""
+        cfg = ConfigMulti(targets=["A", "B"])
+        p = cfg.get_params(deep=True)
+        # targets is a flat key — no periods__-style expansion expected
+        assert p["targets"] == ["A", "B"]
+        assert not any(k.startswith("targets__") for k in p)
+
+    def test_targets_list_not_shared_between_instances(self):
+        """Mutating one config's targets must not affect another."""
+        cfg1 = ConfigMulti(targets=["A", "B"])
+        cfg2 = ConfigMulti(targets=["A", "B"])
+        cfg1.targets.append("C")
+        assert "C" not in cfg2.targets
+
+    def test_targets_preserved_alongside_other_params(self):
+        cfg = ConfigMulti(targets=["A"], predict_size=48, random_state=7)
+        assert cfg.targets == ["A"]
+        assert cfg.predict_size == 48
+        assert cfg.random_state == 7
