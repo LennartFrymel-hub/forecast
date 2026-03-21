@@ -30,6 +30,12 @@ class ConfigMulti:
         random_state (int): Random seed for reproducibility.
         n_hyperparameters_trials (int): Number of trials for hyperparameter optimization.
         data_filename (str): Path to the interim merged data file.
+        targets (Optional[List[str]]): List of target column names to train models for.
+            When ``None`` (default), no targets are pre-selected; set this attribute
+            after loading the dataset (e.g. ``config.targets = df.columns.tolist()``).
+            Replaces standalone ``TARGETS`` and ``target_columns`` variables in
+            pipeline scripts, providing a single source of truth for the active
+            target set.
         use_outlier_detection (bool): If True, apply IsolationForest-based outlier removal.
         contamination (float): Proportion of outliers for IsolationForest (0 < contamination < 0.5).
         imputation_method (str): Gap-filling strategy — ``"weighted"`` (n2n-style rolling weights)
@@ -56,6 +62,8 @@ class ConfigMulti:
         refit_size (int): Refit interval in days.
         random_state (int): Random seed.
         n_hyperparameters_trials (int): Hyperparameter tuning trials.
+        targets (Optional[List[str]]): Active target column names. ``None`` until
+            explicitly set from the loaded dataset.
         use_outlier_detection (bool): IsolationForest outlier removal toggle.
         contamination (float): IsolationForest contamination fraction.
         imputation_method (str): Gap-filling strategy (``"weighted"`` or ``"linear"``).
@@ -87,6 +95,11 @@ class ConfigMulti:
         print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
         print(f"Predict size: {config.predict_size}")
         print(f"Random state: {config.random_state}")
+        print(f"Targets (default): {config.targets}")
+
+        # Set targets after loading data
+        config.targets = ["A", "B", "C"]
+        print(f"Targets (after setting): {config.targets}")
 
         # Use default configuration
         config = Config()
@@ -94,15 +107,17 @@ class ConfigMulti:
         print(f"Predict size: {config.predict_size}")
         print(f"Random state: {config.random_state}")
 
-        # Create custom configuration
+        # Create custom configuration with targets
         custom_config = Config(
             api_country_code='FR',
             predict_size=48,
-            random_state=42
+            random_state=42,
+            targets=["A", "B"]
         )
         print(f"API_COUNTRY_CODE: {custom_config.API_COUNTRY_CODE}")
         print(f"Predict size: {custom_config.predict_size}")
         print(f"Random state: {custom_config.random_state}")
+        print(f"Targets: {custom_config.targets}")
 
         # Verify training window
         print(f"Training window: {config.train_size == pd.Timedelta(days=3 * 365)}")
@@ -126,6 +141,7 @@ class ConfigMulti:
         random_state: int = 314159,
         n_hyperparameters_trials: int = 20,
         data_filename: str = "interim/energy_load.csv",
+        targets: Optional[List[str]] = None,
         # Outlier detection
         use_outlier_detection: bool = True,
         contamination: float = 0.01,
@@ -190,6 +206,7 @@ class ConfigMulti:
         self.random_state = random_state
         self.n_hyperparameters_trials = n_hyperparameters_trials
         self.data_filename = data_filename
+        self.targets = targets
         # Outlier detection
         self.use_outlier_detection = use_outlier_detection
         self.contamination = contamination
@@ -241,6 +258,7 @@ class ConfigMulti:
             "random_state": self.random_state,
             "n_hyperparameters_trials": self.n_hyperparameters_trials,
             "data_filename": self.data_filename,
+            "targets": self.targets,
             # Outlier detection
             "use_outlier_detection": self.use_outlier_detection,
             "contamination": self.contamination,
