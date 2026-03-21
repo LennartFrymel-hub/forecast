@@ -95,8 +95,8 @@ class TestResetIndexCustomName:
         assert "DateTime" not in result.columns
 
     def test_custom_name_matches_datetime_values(self):
-        df = _make_df(n=3)
-        expected = df.index.tolist()
+        df = _make_df(n=3)  # tz-naive; reset_index localizes to UTC
+        expected = df.index.tz_localize("UTC").tolist()
         result = reset_index(df, index_name="MyTime")
         assert list(result["MyTime"]) == expected
 
@@ -196,3 +196,57 @@ class TestResetIndexEdgeCases:
         result = reset_index(df, index_name="NewName")
         assert "NewName" in result.columns
         assert "OldName" not in result.columns
+
+    def test_range_index_input_does_not_raise(self):
+        """Regression: RangeIndex has no tzinfo — must not raise AttributeError."""
+        df = pd.DataFrame({"value": range(3)})  # default RangeIndex
+        result = reset_index(df)
+        assert isinstance(result.index, pd.RangeIndex)
+
+    def test_integer_index_input_does_not_raise(self):
+        """Non-DatetimeIndex with no tzinfo must not raise AttributeError."""
+        df = pd.DataFrame({"value": range(3)}, index=[10, 20, 30])
+        result = reset_index(df, index_name="idx")
+        assert "idx" in result.columns
+
+
+# ---------------------------------------------------------------------------
+# Timezone localization of naive DatetimeIndex
+# ---------------------------------------------------------------------------
+
+
+class TestResetIndexNaiveLocalization:
+    """Naive DatetimeIndex must be localized before reset; aware index unchanged."""
+
+    def test_naive_index_localized_to_utc_by_default(self):
+        df = _make_df(n=3)  # tz-naive
+        result = reset_index(df)
+        col = result["DateTime"]
+        assert col.dt.tz is not None
+        assert str(col.dt.tz) == "UTC"
+
+    def test_naive_index_localized_to_custom_timezone(self):
+        df = _make_df(n=3)  # tz-naive
+        result = reset_index(df, timezone="Europe/Berlin")
+        col = result["DateTime"]
+        assert col.dt.tz is not None
+        assert "Berlin" in str(col.dt.tz)
+
+    def test_aware_index_not_re_localized(self):
+        """Already tz-aware index must pass through unchanged."""
+        df = _make_df(n=3, tz="UTC")
+        result = reset_index(df)
+        col = result["DateTime"]
+        assert str(col.dt.tz) == "UTC"
+
+    def test_aware_non_utc_index_not_re_localized(self):
+        df = _make_df(n=3, tz="Europe/Berlin")
+        result = reset_index(df)
+        col = result["DateTime"]
+        assert "Berlin" in str(col.dt.tz)
+
+    def test_result_is_always_range_index(self):
+        for tz in (None, "UTC", "Europe/Berlin"):
+            df = _make_df(n=3, tz=tz)
+            result = reset_index(df)
+            assert isinstance(result.index, pd.RangeIndex)

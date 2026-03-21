@@ -366,7 +366,7 @@ def reset_index(df: pd.DataFrame, index_name: str = "DateTime", timezone: str = 
         ```
     """
     df.index.name = index_name
-    df = df.reset_index()
-    if df.index.tzinfo is None:
+    if isinstance(df.index, pd.DatetimeIndex) and df.index.tzinfo is None:
         df.index = df.index.tz_localize(timezone)
+    df = df.reset_index()
     return df
