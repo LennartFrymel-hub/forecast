@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from astral import LocationInfo
+import importlib
 
 from spotforecast2_safe.manager.exo import (
     get_calendar_features,
@@ -326,7 +327,7 @@ class TestExoPackageImports:
         )
 
     def test_all_declared_in___all__(self):
-        import spotforecast2_safe.manager.exo as exo_module
+        exo_module = importlib.import_module("spotforecast2_safe.manager.exo")
 
         assert "get_calendar_features" in exo_module.__all__
         assert "get_day_night_features" in exo_module.__all__
