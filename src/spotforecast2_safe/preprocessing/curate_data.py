@@ -342,12 +342,13 @@ def agg_and_resample_data(
     return data
 
 
-def reset_index(df: pd.DataFrame, index_name: str = "DateTime") -> pd.DataFrame:
+def reset_index(df: pd.DataFrame, index_name: str = "DateTime", timezone: str = "UTC") -> pd.DataFrame:
     """Resets the index of the dataframe and assigns a name to the index column.
 
     Args:
         df (pd.DataFrame): The input dataframe with a datetime index.
         index_name (str): The name to assign to the index column after resetting. Default is "DateTime".
+        timezone (str): The timezone to localize the index to if it is naive. Default is "UTC".
 
     Returns:
         pd.DataFrame: The dataframe with the reset index.
@@ -365,5 +366,7 @@ def reset_index(df: pd.DataFrame, index_name: str = "DateTime") -> pd.DataFrame:
         ```
     """
     df.index.name = index_name
+    if isinstance(df.index, pd.DatetimeIndex) and df.index.tzinfo is None:
+        df.index = df.index.tz_localize(timezone)
     df = df.reset_index()
     return df
