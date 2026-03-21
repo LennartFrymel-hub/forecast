@@ -1,0 +1,33 @@
+# preprocessing.curate_data.reset_index { #spotforecast2_safe.preprocessing.curate_data.reset_index }
+
+```python
+preprocessing.curate_data.reset_index(df, index_name='DateTime')
+```
+
+Resets the index of the dataframe and assigns a name to the index column.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type                                           | Description                                                                    | Default      |
+|------------|------------------------------------------------|--------------------------------------------------------------------------------|--------------|
+| df         | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The input dataframe with a datetime index.                                     | _required_   |
+| index_name | [str](`str`)                                   | The name to assign to the index column after resetting. Default is "DateTime". | `'DateTime'` |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                       |
+|--------|------------------------------------------------|---------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: The dataframe with the reset index. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+import pandas as pd
+from spotforecast2_safe.preprocessing.curate_data import reset_index
+date_rng = pd.date_range(start='2023-01-01', end='2023-01-02', freq='h')
+data = pd.DataFrame(date_rng, columns=['date'])
+data.set_index('date', inplace=True)
+data['value'] = range(len(data))
+reset_data = reset_index(data, index_name='DateTime')
+print(reset_data.head())
+```

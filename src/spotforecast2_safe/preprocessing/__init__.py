@@ -8,6 +8,7 @@ from .curate_data import (
     curate_weather,
     basic_ts_checks,
     agg_and_resample_data,
+    reset_index,
 )
 from .outlier import (
     mark_outliers,
@@ -33,6 +34,7 @@ __all__ = [
     "curate_weather",
     "basic_ts_checks",
     "agg_and_resample_data",
+    "reset_index",
     "mark_outliers",
     "manual_outlier_removal",
     "get_outliers",

@@ -31,6 +31,7 @@ feature engineering, and temporal train/test splitting.
 | [preprocessing.curate_data.curate_weather](preprocessing.curate_data.curate_weather.qmd#spotforecast2_safe.preprocessing.curate_data.curate_weather) | Checks if the weather dataframe has the correct shape. |
 | [preprocessing.curate_data.get_start_end](preprocessing.curate_data.get_start_end.qmd#spotforecast2_safe.preprocessing.curate_data.get_start_end) | Get start and end date strings for data and covariate ranges. |
 | [preprocessing.curate_data.remove_duplicate_timestamps](preprocessing.curate_data.remove_duplicate_timestamps.qmd#spotforecast2_safe.preprocessing.curate_data.remove_duplicate_timestamps) | Resolve duplicate timestamps across all data columns. |
+| [preprocessing.curate_data.reset_index](preprocessing.curate_data.reset_index.qmd#spotforecast2_safe.preprocessing.curate_data.reset_index) | Resets the index of the dataframe and assigns a name to the index column. |
 | [preprocessing.outlier.get_outliers](preprocessing.outlier.get_outliers.qmd#spotforecast2_safe.preprocessing.outlier.get_outliers) | Detect outliers in each column using Isolation Forest. |
 | [preprocessing.outlier.manual_outlier_removal](preprocessing.outlier.manual_outlier_removal.qmd#spotforecast2_safe.preprocessing.outlier.manual_outlier_removal) | Manual outlier removal function. |
 | [preprocessing.outlier.mark_outliers](preprocessing.outlier.mark_outliers.qmd#spotforecast2_safe.preprocessing.outlier.mark_outliers) | Marks outliers as NaN in the dataset using Isolation Forest. |

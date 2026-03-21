@@ -14,12 +14,17 @@ class ConfigMulti:
     """Configuration for the multi-input forecasting pipeline.
 
     This class manages all configuration parameters for the multi-input task,
-    including API settings, training/prediction intervals, and feature
+    including training/prediction intervals, data sources, and feature
     engineering specifications. All parameters can be customized during
     initialization or used with sensible defaults.
 
+    ``country_code`` serves as the single ISO country code used for both
+    API queries (exposed via the ``API_COUNTRY_CODE`` property for backward
+    compatibility) and holiday feature generation.
+
     Args:
-        api_country_code (str): ISO country code.
+        country_code (str): ISO 3166-1 alpha-2 country code (e.g. ``"DE"``).
+            Used for both API queries and holiday feature generation.
         periods (Optional[List[Period]]): List of Period objects defining cyclical feature encodings.
         lags_consider (Optional[List[int]]): List of lag values to consider for feature selection.
         train_size (Optional[pd.Timedelta]): Time window for training data.
@@ -45,14 +50,25 @@ class ConfigMulti:
         latitude (float): Latitude of the target location in decimal degrees.
         longitude (float): Longitude of the target location in decimal degrees.
         timezone (str): IANA timezone string for the target location (e.g. ``"Europe/Berlin"``).
-        country_code (str): ISO 3166-1 alpha-2 country code for holiday generation.
         state (str): ISO 3166-2 subdivision code for regional holidays (e.g. ``"NW"``).
         include_weather_windows (bool): If True, include rolling weather-window features.
         include_holiday_features (bool): If True, include public-holiday indicator features.
         include_poly_features (bool): If True, include polynomial interaction features.
+        index_name (str): Name assigned to the datetime column when the index is reset.
+            Defaults to ``"DateTime"``.
+        data_source (str): Primary data file name (e.g. ``"data_in.csv"``).
+            Defaults to ``"data_in.csv"``.
+        data_test (str): Test data file name (e.g. ``"data_test.csv"``).
+            Defaults to ``"data_test.csv"``.
+        start_download (Optional[str]): Start of the download/data range as a string
+            (format ``"YYYYMMDDHHMM"``). Derived from the loaded dataset; ``None`` until set.
+        end_download (Optional[str]): End of the download/data range as a string
+            (format ``"YYYYMMDDHHMM"``). Derived from the loaded dataset; ``None`` until set.
 
     Attributes:
-        API_COUNTRY_CODE (str): ISO country code for API queries.
+        API_COUNTRY_CODE (str): Read-only property — returns ``country_code``.
+            Preserved for backward compatibility with ``ForecasterRecursiveModel``.
+        country_code (str): ISO country code for API queries and holiday generation.
         periods (List[Period]): Cyclical feature encoding specifications.
         lags_consider (List[int]): Lag values for autoregressive features.
         train_size (pd.Timedelta): Training data window.
@@ -72,11 +88,15 @@ class ConfigMulti:
         latitude (float): Location latitude.
         longitude (float): Location longitude.
         timezone (str): IANA timezone string.
-        country_code (str): Country code for holiday generation.
         state (str): Subdivision code for regional holidays.
         include_weather_windows (bool): Weather-window feature toggle.
         include_holiday_features (bool): Holiday feature toggle.
         include_poly_features (bool): Polynomial feature toggle.
+        index_name (str): Datetime column name used when resetting the index.
+        data_source (str): Primary data file name.
+        data_test (str): Test data file name.
+        start_download (Optional[str]): Start of the data download range.
+        end_download (Optional[str]): End of the data download range.
 
     Notes:
         The default period configurations use specific `n_periods` to balance resolution and smoothing:
@@ -91,22 +111,35 @@ class ConfigMulti:
         import pandas as pd
         from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
         config = ConfigMulti()
+        print(f"country_code: {config.country_code}")
         print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
         print(f"Predict size: {config.predict_size}")
         print(f"Random state: {config.random_state}")
         print(f"Targets (default): {config.targets}")
+        print(f"index_name: {config.index_name}")
+        print(f"data_source: {config.data_source}")
+        print(f"data_test: {config.data_test}")
+        print(f"start_download: {config.start_download}")
+        print(f"end_download: {config.end_download}")
 
-        # Set targets after loading data
+        # Set targets and download range after loading data
         config.targets = ["A", "B", "C"]
+        config.start_download = "202401010000"
+        config.end_download = "202412312300"
         print(f"Targets (after setting): {config.targets}")
+        print(f"start_download: {config.start_download}")
 
-        # Create custom configuration with targets
+        # Create custom configuration — country_code serves both API and holiday purposes
         custom_config = ConfigMulti(
-            api_country_code='FR',
+            country_code='FR',
             predict_size=48,
             random_state=42,
-            targets=["A", "B"]
+            targets=["A", "B"],
+            data_source="data_in.csv",
+            data_test="data_test.csv",
+            index_name="DateTime",
         )
+        print(f"country_code: {custom_config.country_code}")
         print(f"API_COUNTRY_CODE: {custom_config.API_COUNTRY_CODE}")
         print(f"Predict size: {custom_config.predict_size}")
         print(f"Random state: {custom_config.random_state}")
@@ -123,7 +156,7 @@ class ConfigMulti:
 
     def __init__(
         self,
-        api_country_code: str = "DE",
+        country_code: str = "DE",
         periods: Optional[List[Period]] = None,
         lags_consider: Optional[List[int]] = None,
         train_size: Optional[pd.Timedelta] = None,
@@ -146,15 +179,22 @@ class ConfigMulti:
         latitude: float = 51.5136,
         longitude: float = 7.4653,
         timezone: str = "UTC",
-        country_code: str = "DE",
         state: str = "NW",
         # Feature selection toggles
         include_weather_windows: bool = False,
         include_holiday_features: bool = False,
         include_poly_features: bool = False,
+        # Data source and index
+        index_name: str = "DateTime",
+        data_source: str = "data_in.csv",
+        data_test: str = "data_test.csv",
+        start_download: Optional[str] = None,
+        end_download: Optional[str] = None,
     ):
         """Initialize ConfigMulti with specified or default parameters."""
-        self.API_COUNTRY_CODE = api_country_code
+        # country_code is the single source of truth for the ISO country code.
+        # API_COUNTRY_CODE is a property alias for backward compatibility.
+        self.country_code = country_code
 
         # Default periods use deliberate n_periods choices:
         # - daily: n_periods=12 for 24 hours (2:1 ratio) provides 2-hour resolution,
@@ -211,12 +251,27 @@ class ConfigMulti:
         self.latitude = latitude
         self.longitude = longitude
         self.timezone = timezone
-        self.country_code = country_code
         self.state = state
         # Feature selection toggles
         self.include_weather_windows = include_weather_windows
         self.include_holiday_features = include_holiday_features
         self.include_poly_features = include_poly_features
+        # Data source and index
+        self.index_name = index_name
+        self.data_source = data_source
+        self.data_test = data_test
+        self.start_download = start_download
+        self.end_download = end_download
+
+    @property
+    def API_COUNTRY_CODE(self) -> str:
+        """Read-only alias for ``country_code``.
+
+        Preserved for backward compatibility with ``ForecasterRecursiveModel``,
+        which reads ``config.API_COUNTRY_CODE`` via its ``_CONFIG_ATTR_MAP``.
+        Use ``country_code`` for all new code.
+        """
+        return self.country_code
 
     def get_params(self, deep: bool = True) -> Dict[str, object]:
         """
@@ -232,15 +287,18 @@ class ConfigMulti:
         Examples:
             ```{python}
             from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
-            config = ConfigMulti(api_country_code="FR")
+            config = ConfigMulti(country_code="FR")
             p = config.get_params()
-            print(f"API_COUNTRY_CODE: {p['api_country_code']}")
+            print(f"country_code: {p['country_code']}")
             print(f"Predict size: {p['predict_size']}")
             print(f"Random state: {p['random_state']}")
+            print(f"index_name: {p['index_name']}")
+            print(f"data_source: {p['data_source']}")
+            print(f"data_test: {p['data_test']}")
             ```
         """
         params = {
-            "api_country_code": self.API_COUNTRY_CODE,
+            "country_code": self.country_code,
             "periods": self.periods,
             "lags_consider": self.lags_consider,
             "train_size": self.train_size,
@@ -263,12 +321,17 @@ class ConfigMulti:
             "latitude": self.latitude,
             "longitude": self.longitude,
             "timezone": self.timezone,
-            "country_code": self.country_code,
             "state": self.state,
             # Feature selection toggles
             "include_weather_windows": self.include_weather_windows,
             "include_holiday_features": self.include_holiday_features,
             "include_poly_features": self.include_poly_features,
+            # Data source and index
+            "index_name": self.index_name,
+            "data_source": self.data_source,
+            "data_test": self.data_test,
+            "start_download": self.start_download,
+            "end_download": self.end_download,
         }
 
         # Expose period sub-objects via the '__' notation if deep=True
@@ -302,10 +365,15 @@ class ConfigMulti:
             ```{python}
             from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
             config = ConfigMulti()
-            _ = config.set_params(api_country_code="FR", predict_size=48)
+            _ = config.set_params(country_code="FR", predict_size=48)
+            print(f"country_code: {config.country_code}")
             print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
             print(f"Predict size: {config.predict_size}")
             print(f"Random state: {config.random_state}")
+
+            # Set derived download range after loading data
+            _ = config.set_params(start_download="202401010000", end_download="202412312300")
+            print(f"start_download: {config.start_download}")
 
             # Deep parameter setting
             _ = config.set_params(periods__daily__n_periods=24)
@@ -342,9 +410,9 @@ class ConfigMulti:
 
         # Set standard parameters first
         for key, value in flat_params.items():
-            if key == "api_country_code":
-                self.API_COUNTRY_CODE = value
-            elif hasattr(self, key):
+            if hasattr(self, key) and not isinstance(
+                getattr(type(self), key, None), property
+            ):
                 setattr(self, key, value)
             else:
                 raise ValueError(
