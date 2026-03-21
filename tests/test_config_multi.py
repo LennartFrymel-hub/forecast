@@ -38,7 +38,11 @@ def _default() -> ConfigMulti:
 class TestConfigMultiDefaults:
     """Verify that all default values match the documented defaults."""
 
-    def test_api_country_code_default(self):
+    def test_country_code_default(self):
+        assert _default().country_code == "DE"
+
+    def test_api_country_code_property_returns_country_code(self):
+        """API_COUNTRY_CODE is a read-only property aliasing country_code."""
         assert _default().API_COUNTRY_CODE == "DE"
 
     def test_predict_size_default(self):
@@ -102,8 +106,12 @@ class TestConfigMultiDefaults:
 class TestConfigMultiCustomInit:
     """Verify that constructor arguments override defaults."""
 
-    def test_custom_api_country_code(self):
-        cfg = ConfigMulti(api_country_code="FR")
+    def test_custom_country_code(self):
+        cfg = ConfigMulti(country_code="FR")
+        assert cfg.country_code == "FR"
+
+    def test_api_country_code_reflects_country_code(self):
+        cfg = ConfigMulti(country_code="FR")
         assert cfg.API_COUNTRY_CODE == "FR"
 
     def test_custom_predict_size(self):
@@ -164,7 +172,7 @@ class TestConfigMultiGetParams:
     def test_get_params_contains_all_flat_keys(self):
         p = _default().get_params(deep=False)
         expected_keys = {
-            "api_country_code",
+            "country_code",
             "periods",
             "lags_consider",
             "train_size",
@@ -176,12 +184,17 @@ class TestConfigMultiGetParams:
             "n_hyperparameters_trials",
             "data_filename",
             "targets",
+            "index_name",
+            "data_source",
+            "data_test",
+            "start_download",
+            "end_download",
         }
         assert expected_keys.issubset(p.keys())
 
-    def test_get_params_api_country_code_value(self):
-        cfg = ConfigMulti(api_country_code="ES")
-        assert cfg.get_params()["api_country_code"] == "ES"
+    def test_get_params_country_code_value(self):
+        cfg = ConfigMulti(country_code="ES")
+        assert cfg.get_params()["country_code"] == "ES"
 
     def test_get_params_predict_size_value(self):
         cfg = ConfigMulti(predict_size=48)
@@ -221,9 +234,10 @@ class TestConfigMultiGetParams:
 class TestConfigMultiSetParamsFlat:
     """Verify set_params() correctly updates flat (top-level) attributes."""
 
-    def test_set_api_country_code_via_kwargs(self):
+    def test_set_country_code_via_kwargs(self):
         cfg = _default()
-        cfg.set_params(api_country_code="PL")
+        cfg.set_params(country_code="PL")
+        assert cfg.country_code == "PL"
         assert cfg.API_COUNTRY_CODE == "PL"
 
     def test_set_predict_size_via_kwargs(self):
@@ -457,3 +471,160 @@ class TestConfigMultiTargets:
         assert cfg.targets == ["A"]
         assert cfg.predict_size == 48
         assert cfg.random_state == 7
+
+
+# ---------------------------------------------------------------------------
+# country_code / API_COUNTRY_CODE
+# ---------------------------------------------------------------------------
+
+
+class TestConfigMultiCountryCode:
+    """Verify country_code is the single source of truth; API_COUNTRY_CODE is a property alias."""
+
+    def test_country_code_default(self):
+        assert _default().country_code == "DE"
+
+    def test_api_country_code_property_matches_country_code(self):
+        assert _default().API_COUNTRY_CODE == _default().country_code
+
+    def test_custom_country_code_reflected_in_property(self):
+        cfg = ConfigMulti(country_code="FR")
+        assert cfg.API_COUNTRY_CODE == "FR"
+
+    def test_api_country_code_is_property(self):
+        """API_COUNTRY_CODE must be a property, not a mutable instance attribute."""
+        assert isinstance(type(_default()).__dict__["API_COUNTRY_CODE"], property)
+
+    def test_api_country_code_cannot_be_set_directly(self):
+        """Setting API_COUNTRY_CODE directly must raise AttributeError (read-only property)."""
+        cfg = _default()
+        with pytest.raises(AttributeError):
+            cfg.API_COUNTRY_CODE = "ES"
+
+    def test_set_params_country_code_updates_property(self):
+        cfg = _default()
+        cfg.set_params(country_code="IT")
+        assert cfg.API_COUNTRY_CODE == "IT"
+
+    def test_country_code_in_get_params(self):
+        cfg = ConfigMulti(country_code="ES")
+        assert cfg.get_params()["country_code"] == "ES"
+
+    def test_api_country_code_not_in_get_params(self):
+        """api_country_code was removed; only country_code should appear."""
+        p = _default().get_params()
+        assert "api_country_code" not in p
+
+
+# ---------------------------------------------------------------------------
+# New attributes: index_name, data_source, data_test, start_download, end_download
+# ---------------------------------------------------------------------------
+
+
+class TestConfigMultiNewAttributes:
+    """Verify defaults and custom values for the new data-source attributes."""
+
+    def test_index_name_default(self):
+        assert _default().index_name == "DateTime"
+
+    def test_data_source_default(self):
+        assert _default().data_source == "data_in.csv"
+
+    def test_data_test_default(self):
+        assert _default().data_test == "data_test.csv"
+
+    def test_start_download_default_is_none(self):
+        assert _default().start_download is None
+
+    def test_end_download_default_is_none(self):
+        assert _default().end_download is None
+
+    def test_custom_index_name(self):
+        cfg = ConfigMulti(index_name="Timestamp")
+        assert cfg.index_name == "Timestamp"
+
+    def test_custom_data_source(self):
+        cfg = ConfigMulti(data_source="demo10.csv")
+        assert cfg.data_source == "demo10.csv"
+
+    def test_custom_data_test(self):
+        cfg = ConfigMulti(data_test="demo11.csv")
+        assert cfg.data_test == "demo11.csv"
+
+    def test_custom_start_download(self):
+        cfg = ConfigMulti(start_download="202401010000")
+        assert cfg.start_download == "202401010000"
+
+    def test_custom_end_download(self):
+        cfg = ConfigMulti(end_download="202412312300")
+        assert cfg.end_download == "202412312300"
+
+    def test_new_attrs_in_get_params(self):
+        p = _default().get_params()
+        assert "index_name" in p
+        assert "data_source" in p
+        assert "data_test" in p
+        assert "start_download" in p
+        assert "end_download" in p
+
+    def test_new_attrs_values_in_get_params(self):
+        cfg = ConfigMulti(
+            index_name="ts",
+            data_source="data_in.csv",
+            data_test="data_test.csv",
+            start_download="202401010000",
+            end_download="202412312300",
+        )
+        p = cfg.get_params()
+        assert p["index_name"] == "ts"
+        assert p["data_source"] == "data_in.csv"
+        assert p["data_test"] == "data_test.csv"
+        assert p["start_download"] == "202401010000"
+        assert p["end_download"] == "202412312300"
+
+    def test_set_params_index_name(self):
+        cfg = _default()
+        cfg.set_params(index_name="ts")
+        assert cfg.index_name == "ts"
+
+    def test_set_params_data_source(self):
+        cfg = _default()
+        cfg.set_params(data_source="demo10.csv")
+        assert cfg.data_source == "demo10.csv"
+
+    def test_set_params_data_test(self):
+        cfg = _default()
+        cfg.set_params(data_test="demo11.csv")
+        assert cfg.data_test == "demo11.csv"
+
+    def test_set_params_start_download(self):
+        cfg = _default()
+        cfg.set_params(start_download="202401010000")
+        assert cfg.start_download == "202401010000"
+
+    def test_set_params_end_download(self):
+        cfg = _default()
+        cfg.set_params(end_download="202412312300")
+        assert cfg.end_download == "202412312300"
+
+    def test_direct_assignment_start_download(self):
+        cfg = _default()
+        cfg.start_download = "202401010000"
+        assert cfg.start_download == "202401010000"
+
+    def test_direct_assignment_end_download(self):
+        cfg = _default()
+        cfg.end_download = "202412312300"
+        assert cfg.end_download == "202412312300"
+
+    def test_new_attrs_preserved_alongside_targets(self):
+        cfg = ConfigMulti(
+            targets=["A"],
+            index_name="DateTime",
+            data_source="data_in.csv",
+            start_download="202401010000",
+        )
+        assert cfg.targets == ["A"]
+        assert cfg.index_name == "DateTime"
+        assert cfg.data_source == "data_in.csv"
+        assert cfg.start_download == "202401010000"

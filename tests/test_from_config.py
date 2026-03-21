@@ -75,7 +75,9 @@ class TestFromConfigNameTranslation:
     """Verify the two known name mismatches are correctly translated."""
 
     def test_api_country_code_maps_to_country_code(self):
-        cfg = _cfg(api_country_code="FR")
+        # API_COUNTRY_CODE is a read-only property alias for country_code;
+        # set country_code directly to change the ISO code.
+        cfg = _cfg(country_code="FR")
         model = ForecasterRecursiveModel.from_config(iteration=0, config=cfg)
         # country_code is stored inside the preprocessor
         assert model.preprocessor.country_code == "FR"
@@ -164,7 +166,7 @@ class TestFromConfigBothConfigTypes:
         assert model.preprocessor.country_code == "ES"
 
     def test_config_multi(self):
-        cfg = ConfigMulti(api_country_code="PL", predict_size=36)
+        cfg = ConfigMulti(country_code="PL", predict_size=36)
         model = ForecasterRecursiveModel.from_config(iteration=0, config=cfg)
         assert model.predict_size == 36
         assert model.preprocessor.country_code == "PL"

@@ -176,7 +176,7 @@ class ForecasterRecursiveModel:
             >>> from spotforecast2_safe.manager.models.forecaster_recursive_model import (
             ...     ForecasterRecursiveModel,
             ... )
-            >>> cfg = ConfigMulti(api_country_code="FR", predict_size=48)
+            >>> cfg = ConfigMulti(country_code="FR", predict_size=48)
             >>> model = ForecasterRecursiveModel.from_config(iteration=1, config=cfg)
             >>> model.predict_size
             48

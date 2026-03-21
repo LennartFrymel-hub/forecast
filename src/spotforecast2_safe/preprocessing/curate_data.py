@@ -340,3 +340,30 @@ def agg_and_resample_data(
         )
         print(f"Resampled data shape: {data.shape}")
     return data
+
+
+def reset_index(df: pd.DataFrame, index_name: str = "DateTime") -> pd.DataFrame:
+    """Resets the index of the dataframe and assigns a name to the index column.
+
+    Args:
+        df (pd.DataFrame): The input dataframe with a datetime index.
+        index_name (str): The name to assign to the index column after resetting. Default is "DateTime".
+
+    Returns:
+        pd.DataFrame: The dataframe with the reset index.
+
+    Examples:
+        ```{python}
+        import pandas as pd
+        from spotforecast2_safe.preprocessing.curate_data import reset_index
+        date_rng = pd.date_range(start='2023-01-01', end='2023-01-02', freq='h')
+        data = pd.DataFrame(date_rng, columns=['date'])
+        data.set_index('date', inplace=True)
+        data['value'] = range(len(data))
+        reset_data = reset_index(data, index_name='DateTime')
+        print(reset_data.head())
+        ```
+    """
+    df.index.name = index_name
+    df = df.reset_index()
+    return df

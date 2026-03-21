@@ -2,7 +2,7 @@
 
 ```python
 manager.configurator.config_multi.ConfigMulti(
-    api_country_code='DE',
+    country_code='DE',
     periods=None,
     lags_consider=None,
     train_size=None,
@@ -22,26 +22,34 @@ manager.configurator.config_multi.ConfigMulti(
     latitude=51.5136,
     longitude=7.4653,
     timezone='UTC',
-    country_code='DE',
     state='NW',
     include_weather_windows=False,
     include_holiday_features=False,
     include_poly_features=False,
+    index_name='DateTime',
+    data_source='data_in.csv',
+    data_test='data_test.csv',
+    start_download=None,
+    end_download=None,
 )
 ```
 
 Configuration for the multi-input forecasting pipeline.
 
 This class manages all configuration parameters for the multi-input task,
-including API settings, training/prediction intervals, and feature
+including training/prediction intervals, data sources, and feature
 engineering specifications. All parameters can be customized during
 initialization or used with sensible defaults.
+
+``country_code`` serves as the single ISO country code used for both
+API queries (exposed via the ``API_COUNTRY_CODE`` property for backward
+compatibility) and holiday feature generation.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
 | Name                     | Type                                                                                                 | Description                                                                                                                                                                                                                                                                                                                                              | Default                     |
 |--------------------------|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------|
-| api_country_code         | [str](`str`)                                                                                         | ISO country code.                                                                                                                                                                                                                                                                                                                                        | `'DE'`                      |
+| country_code             | [str](`str`)                                                                                         | ISO 3166-1 alpha-2 country code (e.g. ``"DE"``). Used for both API queries and holiday feature generation.                                                                                                                                                                                                                                               | `'DE'`                      |
 | periods                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\]\] | List of Period objects defining cyclical feature encodings.                                                                                                                                                                                                                                                                                              | `None`                      |
 | lags_consider            | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[int](`int`)\]\]                               | List of lag values to consider for feature selection.                                                                                                                                                                                                                                                                                                    | `None`                      |
 | train_size               | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                      | Time window for training data.                                                                                                                                                                                                                                                                                                                           | `None`                      |
@@ -61,40 +69,49 @@ initialization or used with sensible defaults.
 | latitude                 | [float](`float`)                                                                                     | Latitude of the target location in decimal degrees.                                                                                                                                                                                                                                                                                                      | `51.5136`                   |
 | longitude                | [float](`float`)                                                                                     | Longitude of the target location in decimal degrees.                                                                                                                                                                                                                                                                                                     | `7.4653`                    |
 | timezone                 | [str](`str`)                                                                                         | IANA timezone string for the target location (e.g. ``"Europe/Berlin"``).                                                                                                                                                                                                                                                                                 | `'UTC'`                     |
-| country_code             | [str](`str`)                                                                                         | ISO 3166-1 alpha-2 country code for holiday generation.                                                                                                                                                                                                                                                                                                  | `'DE'`                      |
 | state                    | [str](`str`)                                                                                         | ISO 3166-2 subdivision code for regional holidays (e.g. ``"NW"``).                                                                                                                                                                                                                                                                                       | `'NW'`                      |
 | include_weather_windows  | [bool](`bool`)                                                                                       | If True, include rolling weather-window features.                                                                                                                                                                                                                                                                                                        | `False`                     |
 | include_holiday_features | [bool](`bool`)                                                                                       | If True, include public-holiday indicator features.                                                                                                                                                                                                                                                                                                      | `False`                     |
 | include_poly_features    | [bool](`bool`)                                                                                       | If True, include polynomial interaction features.                                                                                                                                                                                                                                                                                                        | `False`                     |
+| index_name               | [str](`str`)                                                                                         | Name assigned to the datetime column when the index is reset. Defaults to ``"DateTime"``.                                                                                                                                                                                                                                                                | `'DateTime'`                |
+| data_source              | [str](`str`)                                                                                         | Primary data file name (e.g. ``"data_in.csv"``). Defaults to ``"data_in.csv"``.                                                                                                                                                                                                                                                                          | `'data_in.csv'`             |
+| data_test                | [str](`str`)                                                                                         | Test data file name (e.g. ``"data_test.csv"``). Defaults to ``"data_test.csv"``.                                                                                                                                                                                                                                                                         | `'data_test.csv'`           |
+| start_download           | [Optional](`typing.Optional`)\[[str](`str`)\]                                                        | Start of the download/data range as a string (format ``"YYYYMMDDHHMM"``). Derived from the loaded dataset; ``None`` until set.                                                                                                                                                                                                                           | `None`                      |
+| end_download             | [Optional](`typing.Optional`)\[[str](`str`)\]                                                        | End of the download/data range as a string (format ``"YYYYMMDDHHMM"``). Derived from the loaded dataset; ``None`` until set.                                                                                                                                                                                                                             | `None`                      |
 
 ## Attributes {.doc-section .doc-section-attributes}
 
-| Name                     | Type                                                                   | Description                                                                        |
-|--------------------------|------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| API_COUNTRY_CODE         | [str](`str`)                                                           | ISO country code for API queries.                                                  |
-| periods                  | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\]    | Cyclical feature encoding specifications.                                          |
-| lags_consider            | [List](`typing.List`)\[[int](`int`)\]                                  | Lag values for autoregressive features.                                            |
-| train_size               | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                         | Training data window.                                                              |
-| end_train_default        | [str](`str`)                                                           | Default training end date.                                                         |
-| delta_val                | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                         | Validation window.                                                                 |
-| predict_size             | [int](`int`)                                                           | Prediction horizon in hours.                                                       |
-| refit_size               | [int](`int`)                                                           | Refit interval in days.                                                            |
-| random_state             | [int](`int`)                                                           | Random seed.                                                                       |
-| n_hyperparameters_trials | [int](`int`)                                                           | Hyperparameter tuning trials.                                                      |
-| targets                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\] | Active target column names. ``None`` until explicitly set from the loaded dataset. |
-| use_outlier_detection    | [bool](`bool`)                                                         | IsolationForest outlier removal toggle.                                            |
-| contamination            | [float](`float`)                                                       | IsolationForest contamination fraction.                                            |
-| imputation_method        | [str](`str`)                                                           | Gap-filling strategy (``"weighted"`` or ``"linear"``).                             |
-| window_size              | [int](`int`)                                                           | Rolling window size for weighted imputation.                                       |
-| use_exogenous_features   | [bool](`bool`)                                                         | Exogenous feature construction toggle.                                             |
-| latitude                 | [float](`float`)                                                       | Location latitude.                                                                 |
-| longitude                | [float](`float`)                                                       | Location longitude.                                                                |
-| timezone                 | [str](`str`)                                                           | IANA timezone string.                                                              |
-| country_code             | [str](`str`)                                                           | Country code for holiday generation.                                               |
-| state                    | [str](`str`)                                                           | Subdivision code for regional holidays.                                            |
-| include_weather_windows  | [bool](`bool`)                                                         | Weather-window feature toggle.                                                     |
-| include_holiday_features | [bool](`bool`)                                                         | Holiday feature toggle.                                                            |
-| include_poly_features    | [bool](`bool`)                                                         | Polynomial feature toggle.                                                         |
+| Name                     | Type                                                                   | Description                                                                                                            |
+|--------------------------|------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| API_COUNTRY_CODE         | [str](`str`)                                                           | Read-only property — returns ``country_code``. Preserved for backward compatibility with ``ForecasterRecursiveModel``. |
+| country_code             | [str](`str`)                                                           | ISO country code for API queries and holiday generation.                                                               |
+| periods                  | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\]    | Cyclical feature encoding specifications.                                                                              |
+| lags_consider            | [List](`typing.List`)\[[int](`int`)\]                                  | Lag values for autoregressive features.                                                                                |
+| train_size               | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                         | Training data window.                                                                                                  |
+| end_train_default        | [str](`str`)                                                           | Default training end date.                                                                                             |
+| delta_val                | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                         | Validation window.                                                                                                     |
+| predict_size             | [int](`int`)                                                           | Prediction horizon in hours.                                                                                           |
+| refit_size               | [int](`int`)                                                           | Refit interval in days.                                                                                                |
+| random_state             | [int](`int`)                                                           | Random seed.                                                                                                           |
+| n_hyperparameters_trials | [int](`int`)                                                           | Hyperparameter tuning trials.                                                                                          |
+| targets                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\] | Active target column names. ``None`` until explicitly set from the loaded dataset.                                     |
+| use_outlier_detection    | [bool](`bool`)                                                         | IsolationForest outlier removal toggle.                                                                                |
+| contamination            | [float](`float`)                                                       | IsolationForest contamination fraction.                                                                                |
+| imputation_method        | [str](`str`)                                                           | Gap-filling strategy (``"weighted"`` or ``"linear"``).                                                                 |
+| window_size              | [int](`int`)                                                           | Rolling window size for weighted imputation.                                                                           |
+| use_exogenous_features   | [bool](`bool`)                                                         | Exogenous feature construction toggle.                                                                                 |
+| latitude                 | [float](`float`)                                                       | Location latitude.                                                                                                     |
+| longitude                | [float](`float`)                                                       | Location longitude.                                                                                                    |
+| timezone                 | [str](`str`)                                                           | IANA timezone string.                                                                                                  |
+| state                    | [str](`str`)                                                           | Subdivision code for regional holidays.                                                                                |
+| include_weather_windows  | [bool](`bool`)                                                         | Weather-window feature toggle.                                                                                         |
+| include_holiday_features | [bool](`bool`)                                                         | Holiday feature toggle.                                                                                                |
+| include_poly_features    | [bool](`bool`)                                                         | Polynomial feature toggle.                                                                                             |
+| index_name               | [str](`str`)                                                           | Datetime column name used when resetting the index.                                                                    |
+| data_source              | [str](`str`)                                                           | Primary data file name.                                                                                                |
+| data_test                | [str](`str`)                                                           | Test data file name.                                                                                                   |
+| start_download           | [Optional](`typing.Optional`)\[[str](`str`)\]                          | Start of the data download range.                                                                                      |
+| end_download             | [Optional](`typing.Optional`)\[[str](`str`)\]                          | End of the data download range.                                                                                        |
 
 ## Notes {.doc-section .doc-section-notes}
 
@@ -111,22 +128,35 @@ See `docs/PERIOD_CONFIGURATION_RATIONALE.md` for a detailed analysis.
 import pandas as pd
 from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
 config = ConfigMulti()
+print(f"country_code: {config.country_code}")
 print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
 print(f"Predict size: {config.predict_size}")
 print(f"Random state: {config.random_state}")
 print(f"Targets (default): {config.targets}")
+print(f"index_name: {config.index_name}")
+print(f"data_source: {config.data_source}")
+print(f"data_test: {config.data_test}")
+print(f"start_download: {config.start_download}")
+print(f"end_download: {config.end_download}")
 
-# Set targets after loading data
+# Set targets and download range after loading data
 config.targets = ["A", "B", "C"]
+config.start_download = "202401010000"
+config.end_download = "202412312300"
 print(f"Targets (after setting): {config.targets}")
+print(f"start_download: {config.start_download}")
 
-# Create custom configuration with targets
+# Create custom configuration — country_code serves both API and holiday purposes
 custom_config = ConfigMulti(
-    api_country_code='FR',
+    country_code='FR',
     predict_size=48,
     random_state=42,
-    targets=["A", "B"]
+    targets=["A", "B"],
+    data_source="data_in.csv",
+    data_test="data_test.csv",
+    index_name="DateTime",
 )
+print(f"country_code: {custom_config.country_code}")
 print(f"API_COUNTRY_CODE: {custom_config.API_COUNTRY_CODE}")
 print(f"Predict size: {custom_config.predict_size}")
 print(f"Random state: {custom_config.random_state}")
@@ -171,11 +201,14 @@ Get parameters for this configuration object.
 
 ```{python}
 from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
-config = ConfigMulti(api_country_code="FR")
+config = ConfigMulti(country_code="FR")
 p = config.get_params()
-print(f"API_COUNTRY_CODE: {p['api_country_code']}")
+print(f"country_code: {p['country_code']}")
 print(f"Predict size: {p['predict_size']}")
 print(f"Random state: {p['random_state']}")
+print(f"index_name: {p['index_name']}")
+print(f"data_source: {p['data_source']}")
+print(f"data_test: {p['data_test']}")
 ```
 
 ### set_params { #spotforecast2_safe.manager.configurator.config_multi.ConfigMulti.set_params }
@@ -204,10 +237,15 @@ Set the parameters of this configuration object.
 ```{python}
 from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
 config = ConfigMulti()
-_ = config.set_params(api_country_code="FR", predict_size=48)
+_ = config.set_params(country_code="FR", predict_size=48)
+print(f"country_code: {config.country_code}")
 print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
 print(f"Predict size: {config.predict_size}")
 print(f"Random state: {config.random_state}")
+
+# Set derived download range after loading data
+_ = config.set_params(start_download="202401010000", end_download="202412312300")
+print(f"start_download: {config.start_download}")
 
 # Deep parameter setting
 _ = config.set_params(periods__daily__n_periods=24)

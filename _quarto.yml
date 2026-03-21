@@ -126,6 +126,8 @@ website:
                     file: docs/reference/preprocessing.curate_data.get_start_end.qmd
                   - text: "remove_duplicate_timestamps"
                     file: docs/reference/preprocessing.curate_data.remove_duplicate_timestamps.qmd
+                  - text: "reset_index"
+                    file: docs/reference/preprocessing.curate_data.reset_index.qmd
               - section: "Imputation"
                 contents:
                   - text: "WeightFunction"
@@ -436,6 +438,7 @@ quartodoc:
         - preprocessing.curate_data.curate_weather
         - preprocessing.curate_data.get_start_end
         - preprocessing.curate_data.remove_duplicate_timestamps
+        - preprocessing.curate_data.reset_index
         - preprocessing.outlier.get_outliers
         - preprocessing.outlier.manual_outlier_removal
         - preprocessing.outlier.mark_outliers
