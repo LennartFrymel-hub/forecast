@@ -31,6 +31,11 @@ manager.configurator.config_multi.ConfigMulti(
     data_test='data_test.csv',
     start_download=None,
     end_download=None,
+    data_start=None,
+    data_end=None,
+    cov_start=None,
+    cov_end=None,
+    bounds=None,
 )
 ```
 
@@ -78,40 +83,50 @@ compatibility) and holiday feature generation.
 | data_test                | [str](`str`)                                                                                         | Test data file name (e.g. ``"data_test.csv"``). Defaults to ``"data_test.csv"``.                                                                                                                                                                                                                                                                         | `'data_test.csv'`           |
 | start_download           | [Optional](`typing.Optional`)\[[str](`str`)\]                                                        | Start of the download/data range as a string (format ``"YYYYMMDDHHMM"``). Derived from the loaded dataset; ``None`` until set.                                                                                                                                                                                                                           | `None`                      |
 | end_download             | [Optional](`typing.Optional`)\[[str](`str`)\]                                                        | End of the download/data range as a string (format ``"YYYYMMDDHHMM"``). Derived from the loaded dataset; ``None`` until set.                                                                                                                                                                                                                             | `None`                      |
+| data_start               | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timestamp](`pandas.Timestamp`)\]                      | First timestamp of the pipeline data range. Derived from the loaded dataset via ``get_start_end()``; ``None`` until set.                                                                                                                                                                                                                                 | `None`                      |
+| data_end                 | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timestamp](`pandas.Timestamp`)\]                      | Last timestamp of the pipeline data range. Derived from the loaded dataset via ``get_start_end()``; ``None`` until set.                                                                                                                                                                                                                                  | `None`                      |
+| cov_start                | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timestamp](`pandas.Timestamp`)\]                      | Start of the covariate range (same as ``data_start``). Derived from the loaded dataset via ``get_start_end()``; ``None`` until set.                                                                                                                                                                                                                      | `None`                      |
+| cov_end                  | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timestamp](`pandas.Timestamp`)\]                      | End of the covariate range (extends ``data_end`` by ``predict_size`` hours). Derived via ``get_start_end()``; ``None`` until set.                                                                                                                                                                                                                        | `None`                      |
+| bounds                   | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[tuple](`tuple`)\]\]                           | Per-column outlier bounds as a list of ``(lower, upper)`` tuples, one entry per target column. ``None`` until set.                                                                                                                                                                                                                                       | `None`                      |
 
 ## Attributes {.doc-section .doc-section-attributes}
 
-| Name                     | Type                                                                   | Description                                                                                                            |
-|--------------------------|------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| API_COUNTRY_CODE         | [str](`str`)                                                           | Read-only property — returns ``country_code``. Preserved for backward compatibility with ``ForecasterRecursiveModel``. |
-| country_code             | [str](`str`)                                                           | ISO country code for API queries and holiday generation.                                                               |
-| periods                  | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\]    | Cyclical feature encoding specifications.                                                                              |
-| lags_consider            | [List](`typing.List`)\[[int](`int`)\]                                  | Lag values for autoregressive features.                                                                                |
-| train_size               | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                         | Training data window.                                                                                                  |
-| end_train_default        | [str](`str`)                                                           | Default training end date.                                                                                             |
-| delta_val                | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                         | Validation window.                                                                                                     |
-| predict_size             | [int](`int`)                                                           | Prediction horizon in hours.                                                                                           |
-| refit_size               | [int](`int`)                                                           | Refit interval in days.                                                                                                |
-| random_state             | [int](`int`)                                                           | Random seed.                                                                                                           |
-| n_hyperparameters_trials | [int](`int`)                                                           | Hyperparameter tuning trials.                                                                                          |
-| targets                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\] | Active target column names. ``None`` until explicitly set from the loaded dataset.                                     |
-| use_outlier_detection    | [bool](`bool`)                                                         | IsolationForest outlier removal toggle.                                                                                |
-| contamination            | [float](`float`)                                                       | IsolationForest contamination fraction.                                                                                |
-| imputation_method        | [str](`str`)                                                           | Gap-filling strategy (``"weighted"`` or ``"linear"``).                                                                 |
-| window_size              | [int](`int`)                                                           | Rolling window size for weighted imputation.                                                                           |
-| use_exogenous_features   | [bool](`bool`)                                                         | Exogenous feature construction toggle.                                                                                 |
-| latitude                 | [float](`float`)                                                       | Location latitude.                                                                                                     |
-| longitude                | [float](`float`)                                                       | Location longitude.                                                                                                    |
-| timezone                 | [str](`str`)                                                           | IANA timezone string.                                                                                                  |
-| state                    | [str](`str`)                                                           | Subdivision code for regional holidays.                                                                                |
-| include_weather_windows  | [bool](`bool`)                                                         | Weather-window feature toggle.                                                                                         |
-| include_holiday_features | [bool](`bool`)                                                         | Holiday feature toggle.                                                                                                |
-| include_poly_features    | [bool](`bool`)                                                         | Polynomial feature toggle.                                                                                             |
-| index_name               | [str](`str`)                                                           | Datetime column name used when resetting the index.                                                                    |
-| data_source              | [str](`str`)                                                           | Primary data file name.                                                                                                |
-| data_test                | [str](`str`)                                                           | Test data file name.                                                                                                   |
-| start_download           | [Optional](`typing.Optional`)\[[str](`str`)\]                          | Start of the data download range.                                                                                      |
-| end_download             | [Optional](`typing.Optional`)\[[str](`str`)\]                          | End of the data download range.                                                                                        |
+| Name                     | Type                                                                            | Description                                                                                                            |
+|--------------------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| API_COUNTRY_CODE         | [str](`str`)                                                                    | Read-only property — returns ``country_code``. Preserved for backward compatibility with ``ForecasterRecursiveModel``. |
+| country_code             | [str](`str`)                                                                    | ISO country code for API queries and holiday generation.                                                               |
+| periods                  | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\]             | Cyclical feature encoding specifications.                                                                              |
+| lags_consider            | [List](`typing.List`)\[[int](`int`)\]                                           | Lag values for autoregressive features.                                                                                |
+| train_size               | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                                  | Training data window.                                                                                                  |
+| end_train_default        | [str](`str`)                                                                    | Default training end date.                                                                                             |
+| delta_val                | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                                  | Validation window.                                                                                                     |
+| predict_size             | [int](`int`)                                                                    | Prediction horizon in hours.                                                                                           |
+| refit_size               | [int](`int`)                                                                    | Refit interval in days.                                                                                                |
+| random_state             | [int](`int`)                                                                    | Random seed.                                                                                                           |
+| n_hyperparameters_trials | [int](`int`)                                                                    | Hyperparameter tuning trials.                                                                                          |
+| targets                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\]          | Active target column names. ``None`` until explicitly set from the loaded dataset.                                     |
+| use_outlier_detection    | [bool](`bool`)                                                                  | IsolationForest outlier removal toggle.                                                                                |
+| contamination            | [float](`float`)                                                                | IsolationForest contamination fraction.                                                                                |
+| imputation_method        | [str](`str`)                                                                    | Gap-filling strategy (``"weighted"`` or ``"linear"``).                                                                 |
+| window_size              | [int](`int`)                                                                    | Rolling window size for weighted imputation.                                                                           |
+| use_exogenous_features   | [bool](`bool`)                                                                  | Exogenous feature construction toggle.                                                                                 |
+| latitude                 | [float](`float`)                                                                | Location latitude.                                                                                                     |
+| longitude                | [float](`float`)                                                                | Location longitude.                                                                                                    |
+| timezone                 | [str](`str`)                                                                    | IANA timezone string.                                                                                                  |
+| state                    | [str](`str`)                                                                    | Subdivision code for regional holidays.                                                                                |
+| include_weather_windows  | [bool](`bool`)                                                                  | Weather-window feature toggle.                                                                                         |
+| include_holiday_features | [bool](`bool`)                                                                  | Holiday feature toggle.                                                                                                |
+| include_poly_features    | [bool](`bool`)                                                                  | Polynomial feature toggle.                                                                                             |
+| index_name               | [str](`str`)                                                                    | Datetime column name used when resetting the index.                                                                    |
+| data_source              | [str](`str`)                                                                    | Primary data file name.                                                                                                |
+| data_test                | [str](`str`)                                                                    | Test data file name.                                                                                                   |
+| start_download           | [Optional](`typing.Optional`)\[[str](`str`)\]                                   | Start of the data download range.                                                                                      |
+| end_download             | [Optional](`typing.Optional`)\[[str](`str`)\]                                   | End of the data download range.                                                                                        |
+| data_start               | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | First timestamp of the pipeline data.                                                                                  |
+| data_end                 | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Last timestamp of the pipeline data.                                                                                   |
+| cov_start                | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Start of the covariate date range.                                                                                     |
+| cov_end                  | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | End of the covariate date range.                                                                                       |
+| bounds                   | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[tuple](`tuple`)\]\]      | Per-column outlier bounds ``(lower, upper)``.                                                                          |
 
 ## Notes {.doc-section .doc-section-notes}
 
@@ -138,13 +153,25 @@ print(f"data_source: {config.data_source}")
 print(f"data_test: {config.data_test}")
 print(f"start_download: {config.start_download}")
 print(f"end_download: {config.end_download}")
+print(f"data_start: {config.data_start}")
+print(f"data_end: {config.data_end}")
+print(f"cov_start: {config.cov_start}")
+print(f"cov_end: {config.cov_end}")
+print(f"bounds: {config.bounds}")
 
-# Set targets and download range after loading data
+# Set targets and derived ranges after loading data
 config.targets = ["A", "B", "C"]
 config.start_download = "202401010000"
 config.end_download = "202412312300"
+config.data_start = pd.Timestamp("2022-01-01", tz="UTC")
+config.data_end = pd.Timestamp("2024-12-31", tz="UTC")
+config.cov_start = pd.Timestamp("2022-01-01", tz="UTC")
+config.cov_end = pd.Timestamp("2025-01-01", tz="UTC")
+config.bounds = [(-2500, 4500), (-10, 3000)]
 print(f"Targets (after setting): {config.targets}")
 print(f"start_download: {config.start_download}")
+print(f"data_start: {config.data_start}")
+print(f"bounds: {config.bounds}")
 
 # Create custom configuration — country_code serves both API and holiday purposes
 custom_config = ConfigMulti(
@@ -209,6 +236,11 @@ print(f"Random state: {p['random_state']}")
 print(f"index_name: {p['index_name']}")
 print(f"data_source: {p['data_source']}")
 print(f"data_test: {p['data_test']}")
+print(f"data_start: {p['data_start']}")
+print(f"data_end: {p['data_end']}")
+print(f"cov_start: {p['cov_start']}")
+print(f"cov_end: {p['cov_end']}")
+print(f"bounds: {p['bounds']}")
 ```
 
 ### set_params { #spotforecast2_safe.manager.configurator.config_multi.ConfigMulti.set_params }

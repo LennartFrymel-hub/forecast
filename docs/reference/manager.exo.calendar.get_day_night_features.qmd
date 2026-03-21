@@ -1,0 +1,72 @@
+# manager.exo.calendar.get_day_night_features { #spotforecast2_safe.manager.exo.calendar.get_day_night_features }
+
+```python
+manager.exo.calendar.get_day_night_features(
+    start,
+    cov_end,
+    location,
+    freq='h',
+    timezone='UTC',
+)
+```
+
+Create day/night features using astronomical sunrise and sunset times.
+
+Sunrise and sunset times are computed once per unique calendar date
+(using :func:`astral.sun.sun`) and then broadcast to all timestamps
+in the requested hourly grid, which avoids redundant computation for
+large date ranges.
+
+The returned DataFrame contains four columns:
+
+- ``sunrise_hour`` — rounded sunrise hour (0–23).
+- ``sunset_hour`` — rounded sunset hour (0–23).
+- ``daylight_hours`` — ``sunset_hour - sunrise_hour``.
+- ``is_daylight`` — ``1`` if the timestamp is between sunrise and
+  sunset, else ``0``.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type                                                                                    | Description                                                                                                | Default    |
+|----------|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|------------|
+| start    | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Start of the time range.  String values are parsed with ``utc=True``.                                      | _required_ |
+| cov_end  | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Inclusive end of the time range.  String values are parsed with ``utc=True``.                              | _required_ |
+| location | [LocationInfo](`astral.LocationInfo`)                                                   | :class:`~astral.LocationInfo` instance describing the geographic location (latitude, longitude, timezone). | _required_ |
+| freq     | [str](`str`)                                                                            | Pandas-compatible frequency string for the output index. Defaults to ``"h"`` (hourly).                     | `'h'`      |
+| timezone | [str](`str`)                                                                            | Timezone label applied to the generated index. Defaults to ``"UTC"``.                                      | `'UTC'`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                      |
+|--------|------------------------------------------------|------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: DataFrame with columns ``sunrise_hour``,           |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | ``sunset_hour``, ``daylight_hours``, ``is_daylight``.  The index |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | is a tz-aware :class:`~pandas.DatetimeIndex` with the requested  |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | ``freq``.                                                        |
+
+Examples:
+
+    ```{python}
+    import pandas as pd
+    from astral import LocationInfo
+    from spotforecast2_safe.manager.exo.calendar import get_day_night_features
+
+    start = pd.Timestamp("2024-06-01", tz="UTC")
+    cov_end = pd.Timestamp("2024-06-07 23:00", tz="UTC")
+
+    location = LocationInfo(
+        latitude=51.5136,
+        longitude=7.4653,
+        timezone="UTC",
+    )
+    features = get_day_night_features(
+        start=start,
+        cov_end=cov_end,
+        location=location,
+        freq="h",
+        timezone="UTC",
+    )
+    print("shape:", features.shape)
+    print("columns:", features.columns.tolist())
+    print(features.head(3))
+    ```

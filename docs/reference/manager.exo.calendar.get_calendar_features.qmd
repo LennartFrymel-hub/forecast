@@ -1,0 +1,62 @@
+# manager.exo.calendar.get_calendar_features { #spotforecast2_safe.manager.exo.calendar.get_calendar_features }
+
+```python
+manager.exo.calendar.get_calendar_features(
+    start,
+    cov_end,
+    freq='h',
+    timezone='UTC',
+    features_to_extract=None,
+)
+```
+
+Create calendar-based features for a contiguous time range.
+
+Uses :class:`~feature_engine.datetime.DatetimeFeatures` to extract
+temporal components from a regularly spaced ``DatetimeIndex``.  The
+resulting DataFrame has the same index as the generated time grid and
+one integer column per requested feature.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                | Type                                                                                    | Description                                                                                | Default    |
+|---------------------|-----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|------------|
+| start               | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Start of the time range.  String values are parsed with ``utc=True``.                      | _required_ |
+| cov_end             | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Inclusive end of the time range.  String values are parsed with ``utc=True``.              | _required_ |
+| freq                | [str](`str`)                                                                            | Pandas-compatible frequency string for the output index. Defaults to ``"h"`` (hourly).     | `'h'`      |
+| timezone            | [str](`str`)                                                                            | Timezone label applied to the generated index. Defaults to ``"UTC"``.                      | `'UTC'`    |
+| features_to_extract | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\]                  | Calendar components to extract.  Defaults to ``["month", "week", "day_of_week", "hour"]``. | `None`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                     |
+|--------|------------------------------------------------|-----------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: DataFrame with integer columns for each extracted |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | calendar feature.  The index is a tz-aware                      |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | class:`~pandas.DatetimeIndex` with the requested ``freq``.      |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                             |
+|--------|----------------------------|-----------------------------------------|
+|        | [ValueError](`ValueError`) | If ``start`` is later than ``cov_end``. |
+
+Examples:
+
+    ```{python}
+    import pandas as pd
+    from spotforecast2_safe.manager.exo.calendar import get_calendar_features
+
+    start = pd.Timestamp("2024-01-01", tz="UTC")
+    cov_end = pd.Timestamp("2024-01-07 23:00", tz="UTC")
+
+    features = get_calendar_features(
+        start=start,
+        cov_end=cov_end,
+        freq="h",
+        timezone="UTC",
+    )
+    print("shape:", features.shape)
+    print("columns:", features.columns.tolist())
+    print(features.head(3))
+    ```

@@ -12,6 +12,7 @@ This module provides utilities for:
 - Model evaluation metrics
 - Dataset configurations (see manager.datasets submodule)
 - CLI argument parsing utilities
+- Exogenous feature engineering (see manager.exo submodule)
 """
 
 from spotforecast2_safe.manager.logger import setup_logging
@@ -26,6 +27,18 @@ from spotforecast2_safe.manager.persistence import (
 from spotforecast2_safe.manager.predictor import get_model_prediction
 from spotforecast2_safe.manager.tools import _parse_bool
 from spotforecast2_safe.manager.trainer import get_last_model
+from spotforecast2_safe.manager.exo import (
+    get_calendar_features,
+    get_day_night_features,
+    get_holiday_features,
+    get_weather_features,
+)
+from spotforecast2_safe.manager.features import (
+    apply_cyclical_encoding,
+    create_interaction_features,
+    merge_data_and_covariates,
+    select_exogenous_features,
+)
 
 __all__ = [
     # Logger
@@ -44,4 +57,14 @@ __all__ = [
     "get_last_model",
     # Tools
     "_parse_bool",
+    # Exo feature engineering
+    "get_calendar_features",
+    "get_day_night_features",
+    "get_holiday_features",
+    "get_weather_features",
+    # Feature engineering helpers
+    "apply_cyclical_encoding",
+    "create_interaction_features",
+    "merge_data_and_covariates",
+    "select_exogenous_features",
 ]

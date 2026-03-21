@@ -700,7 +700,9 @@ class TestConfigMultiDerivedAttributes:
     def test_derived_attrs_custom_values_in_get_params(self):
         ts = pd.Timestamp("2023-06-15", tz="UTC")
         b = [(0, 1000)]
-        cfg = ConfigMulti(data_start=ts, data_end=ts, cov_start=ts, cov_end=ts, bounds=b)
+        cfg = ConfigMulti(
+            data_start=ts, data_end=ts, cov_start=ts, cov_end=ts, bounds=b
+        )
         p = cfg.get_params()
         assert p["data_start"] == ts
         assert p["data_end"] == ts
@@ -746,7 +748,9 @@ class TestConfigMultiDerivedAttributes:
         ts_ce = pd.Timestamp("2025-01-01", tz="UTC")
         b = [(0, 100)]
         cfg = ConfigMulti()
-        cfg.set_params(data_start=ts_s, data_end=ts_e, cov_start=ts_s, cov_end=ts_ce, bounds=b)
+        cfg.set_params(
+            data_start=ts_s, data_end=ts_e, cov_start=ts_s, cov_end=ts_ce, bounds=b
+        )
         assert cfg.data_start == ts_s
         assert cfg.data_end == ts_e
         assert cfg.cov_start == ts_s

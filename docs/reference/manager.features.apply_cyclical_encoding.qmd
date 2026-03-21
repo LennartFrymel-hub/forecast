@@ -1,0 +1,60 @@
+# manager.features.apply_cyclical_encoding { #spotforecast2_safe.manager.features.apply_cyclical_encoding }
+
+```python
+manager.features.apply_cyclical_encoding(
+    data,
+    features_to_encode=None,
+    max_values=None,
+    drop_original=False,
+)
+```
+
+Apply cyclical (sine/cosine) encoding to periodic integer features.
+
+Converts periodic calendar and solar features into sine/cosine pairs so
+that a distance-based model can recognise that hour 23 is close to hour 0.
+Columns that appear in *features_to_encode* but are absent from *data* are
+silently skipped.
+
+Uses :class:`~feature_engine.creation.CyclicalFeatures` internally, so
+the new columns follow the ``<feature>_sin`` / ``<feature>_cos`` naming
+convention.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name               | Type                                                                                 | Description                                                                                                                                                                                                                  | Default    |
+|--------------------|--------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| data               | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                       | DataFrame whose columns contain the periodic features to encode. The index is preserved unchanged.                                                                                                                           | _required_ |
+| features_to_encode | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\]               | Column names subject to cyclical encoding. Defaults to ``["month", "week", "day_of_week", "hour", "sunrise_hour", "sunset_hour"]``.                                                                                          | `None`     |
+| max_values         | [Optional](`typing.Optional`)\[[Dict](`typing.Dict`)\[[str](`str`), [int](`int`)\]\] | Mapping from feature name to its natural period (inclusive maximum).  Defaults to the standard calendar / solar periods: ``month→12``, ``week→52``, ``day_of_week→6``, ``hour→24``, ``sunrise_hour→24``, ``sunset_hour→24``. | `None`     |
+| drop_original      | [bool](`bool`)                                                                       | If ``True``, the original integer columns are removed from the output DataFrame.  Defaults to ``False``.                                                                                                                     | `False`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                            |
+|--------|------------------------------------------------|------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: Copy of *data* with sine and cosine columns appended (or |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | replaced when *drop_original* is ``True``).                            |
+
+## Examples {.doc-section .doc-section-examples}
+
+Encode hour and month from a small hourly time series:
+
+```{python}
+import pandas as pd
+from spotforecast2_safe.manager.features import apply_cyclical_encoding
+
+idx = pd.date_range("2024-01-01", periods=48, freq="h", tz="UTC")
+df = pd.DataFrame(
+    {"month": idx.month, "hour": idx.hour},
+    index=idx,
+)
+
+result = apply_cyclical_encoding(
+    df,
+    features_to_encode=["month", "hour"],
+    max_values={"month": 12, "hour": 24},
+)
+print("columns:", result.columns.tolist())
+print("shape:  ", result.shape)
+```
