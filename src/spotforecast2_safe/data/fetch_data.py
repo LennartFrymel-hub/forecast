@@ -2,14 +2,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import pandas as pd
-from spotforecast2_safe.data.data import Data
 from pathlib import Path
 from os import environ
 from typing import Optional, Union
 from spotforecast2_safe.utils.generate_holiday import create_holiday_df
+from spotforecast2_safe.utils.convert_to_utc import convert_to_utc
 from pandas import Timestamp
 from spotforecast2_safe.weather.weather_client import WeatherService
-import logging
 
 
 def get_data_home(data_home: Optional[Union[str, Path]] = None) -> Path:
@@ -127,7 +126,234 @@ def get_cache_home(cache_home: Optional[Union[str, Path]] = None) -> Path:
     return cache_home
 
 
-unused_logger = logging.getLogger(__name__)
+def fetch_data(
+    filename: Optional[Union[str, Path]] = None,
+    dataframe: Optional[pd.DataFrame] = None,
+    columns: Optional[list] = None,
+    index_col: int = 0,
+    parse_dates: bool = True,
+    dayfirst: bool = False,
+    timezone: str = "UTC",
+) -> pd.DataFrame:
+    """Fetches a dataset from a CSV file or processes a DataFrame.
+
+    Args:
+        filename (str or Path, optional):
+            Full absolute path of the CSV file containing the dataset
+            (e.g., ``'/home/data/my_data.csv'``).  Required when
+            *dataframe* is ``None``.  Use :func:`get_data_home` or
+            :func:`get_package_data_home` to build the path:
+
+            .. code-block:: python
+
+                fetch_data(filename=get_data_home() / "my_data.csv")
+
+        dataframe (pd.DataFrame, optional):
+            A pandas DataFrame to process. If provided, it will be processed with
+            proper timezone handling. Mutually exclusive with filename.
+        columns (list, optional):
+            List of columns to be included in the dataset. If None, all columns are included.
+            If an empty list is provided, a ValueError is raised. Default: None.
+        index_col (int):
+            Column index to be used as the index. Default: 0.
+        parse_dates (bool):
+            Whether to parse dates in the index column. Default: True.
+        dayfirst (bool):
+            Whether the day comes first in date parsing. Default: False.
+        timezone (str):
+            Timezone to set for the datetime index. If a DataFrame with naive index is provided,
+            it will be localized to this timezone then converted to UTC. Default: "UTC".
+
+    Returns:
+        pd.DataFrame: The dataset with UTC timezone.
+
+    Raises:
+        ValueError: If columns is an empty list, if both filename and dataframe are provided,
+            if neither filename nor dataframe is provided, or if filename is not an absolute path.
+        FileNotFoundError: If CSV file does not exist.
+
+    Examples:
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
+        # demo02.csv is included in the package datasets
+        path_demo = get_package_data_home() / "demo02.csv"
+        df = fetch_data(filename=path_demo)
+        df.head()
+        ```
+    """
+    if columns is not None and len(columns) == 0:
+        raise ValueError("columns must be specified and cannot be empty.")
+
+    if filename is not None and dataframe is not None:
+        raise ValueError(
+            "Cannot specify both filename and dataframe. Please provide only one."
+        )
+
+    if dataframe is not None:
+        df = dataframe.copy()
+        df = convert_to_utc(df, timezone)
+        if columns is not None:
+            df = df[columns].copy()
+    else:
+        if filename is None:
+            raise ValueError(
+                "filename must be specified when dataframe is None. "
+                "Provide a full absolute path (e.g., get_data_home() / 'my_data.csv') "
+                "or a DataFrame."
+            )
+
+        csv_path = Path(filename)
+        if not csv_path.is_absolute():
+            raise ValueError(
+                f"filename must be an absolute path, got: '{filename}'. "
+                "Use get_data_home() or get_package_data_home() to build the path:\n"
+                "    fetch_data(filename=get_data_home() / 'my_data.csv')"
+            )
+
+        if not csv_path.is_file():
+            raise FileNotFoundError(f"The file {csv_path} does not exist.")
+
+        # Determine which columns to load for efficient reading
+        usecols = None
+        if columns is not None:
+            if isinstance(index_col, int):
+                header_df = pd.read_csv(csv_path, nrows=0)
+                index_col_name = header_df.columns[index_col]
+            else:
+                index_col_name = index_col
+            usecols = [index_col_name] + columns
+
+        df = pd.read_csv(
+            csv_path,
+            index_col=index_col,
+            parse_dates=parse_dates,
+            dayfirst=dayfirst,
+            usecols=usecols,
+        )
+        df = convert_to_utc(df, timezone)
+
+    if df.index.freq is None:
+        try:
+            df.index.freq = pd.infer_freq(df.index)
+        except (ValueError, TypeError):
+            pass  # If the frequency cannot be inferred, leave df.index.freq as None.
+
+    return df
+
+
+def fetch_holiday_data(
+    start: str | Timestamp,
+    end: str | Timestamp,
+    tz: str = "UTC",
+    freq: str = "h",
+    country_code: str = "DE",
+    state: str = "NW",
+) -> pd.DataFrame:
+    """Fetches holiday data for the dataset period.
+
+    Args:
+        start (str or pd.Timestamp):
+            Start date of the dataset period.
+        end (str or pd.Timestamp):
+            End date of the dataset period.
+        tz (str):
+            Timezone for the holiday data.
+        freq (str):
+            Frequency of the holiday data.
+        country_code (str):
+            Country code for the holidays.
+        state (str):
+            State code for the holidays.
+
+    Returns:
+        pd.DataFrame: DataFrame containing holiday information.
+
+    Examples:
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import fetch_holiday_data
+        holiday_df = fetch_holiday_data(
+            start='2023-01-01T00:00',
+            end='2023-01-10T00:00',
+            tz='UTC',
+            freq='h',
+            country_code='DE',
+            state='NW'
+        )
+        holiday_df.head()
+        ```
+    """
+    holiday_df = create_holiday_df(
+        start=start, end=end, tz=tz, freq=freq, country_code=country_code, state=state
+    )
+    return holiday_df
+
+
+def fetch_weather_data(
+    cov_start: str,
+    cov_end: str,
+    latitude: float = 51.5136,
+    longitude: float = 7.4653,
+    timezone: str = "UTC",
+    freq: str = "h",
+    fallback_on_failure: bool = True,
+    cached=True,
+) -> pd.DataFrame:
+    """Fetches weather data for the dataset period plus forecast horizon.
+        Create weather dataframe using API with optional caching.
+
+    Args:
+        cov_start (str):
+            Start date for covariate data.
+        cov_end (str):
+            End date for covariate data.
+        latitude (float):
+            Latitude of the location for weather data. Default is 51.5136 (Dortmund).
+        longitude (float):
+            Longitude of the location for weather data. Default is 7.4653 (Dortmund).
+        timezone (str):
+            Timezone for the weather data.
+        freq (str):
+            Frequency of the weather data.
+        fallback_on_failure (bool):
+            Whether to use fallback data in case of failure.
+        cached (bool):
+            Whether to use cached data.
+
+    Returns:
+        pd.DataFrame: DataFrame containing weather information.
+
+    Examples:
+        ```{python}
+        from spotforecast2_safe.data.fetch_data import fetch_weather_data
+        weather_df = fetch_weather_data(
+            cov_start='2023-01-01T00:00',
+            cov_end='2023-01-11T00:00',
+            latitude=51.5136,
+            longitude=7.4653,
+            timezone='UTC',
+            freq='h',
+            fallback_on_failure=True,
+            cached=True)
+        weather_df.head()
+        ```
+    """
+    if cached:
+        cache_path = get_data_home() / "weather_cache.parquet"
+    else:
+        cache_path = None
+
+    service = WeatherService(
+        latitude=latitude, longitude=longitude, cache_path=cache_path
+    )
+
+    weather_df = service.get_dataframe(
+        start=cov_start,
+        end=cov_end,
+        timezone=timezone,
+        freq=freq,
+        fallback_on_failure=fallback_on_failure,
+    )
+    return weather_df
 
 
 def load_timeseries(
@@ -257,209 +483,3 @@ def load_timeseries_forecast(
     if y.isna().any():
         y = y.ffill().bfill()
     return y
-
-
-def fetch_data(
-    filename: Optional[str] = None,
-    dataframe: Optional[pd.DataFrame] = None,
-    columns: Optional[list] = None,
-    index_col: int = 0,
-    parse_dates: bool = True,
-    dayfirst: bool = False,
-    timezone: str = "UTC",
-) -> pd.DataFrame:
-    """Fetches the integrated raw dataset from a CSV file or processes a DataFrame.
-
-    Args:
-        filename (str, optional):
-            Filename of the CSV file containing the dataset. Must be located in the
-            data home directory. This is required if dataframe is None.
-        dataframe (pd.DataFrame, optional):
-            A pandas DataFrame to process. If provided, it will be processed with
-            proper timezone handling. Mutually exclusive with filename.
-        columns (list, optional):
-            List of columns to be included in the dataset. If None, all columns are included.
-            If an empty list is provided, a ValueError is raised. Default: None.
-        index_col (int):
-            Column index to be used as the index (only used when loading from CSV). Default: 0.
-        parse_dates (bool):
-            Whether to parse dates in the index column (only used when loading from CSV). Default: True.
-        dayfirst (bool):
-            Whether the day comes first in date parsing (only used when loading from CSV). Default: False.
-        timezone (str):
-            Timezone to set for the datetime index. If a DataFrame with naive index is provided,
-            it will be localized to this timezone then converted to UTC. Default: "UTC".
-
-    Returns:
-        pd.DataFrame: The integrated raw dataset with UTC timezone.
-
-    Raises:
-        ValueError: If columns is an empty list, if both filename and dataframe are provided,
-            or if neither filename nor dataframe is provided.
-        FileNotFoundError: If CSV file does not exist.
-
-    Examples:
-        ```{python}
-        from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
-        # demo02.csv is included in the package datasets
-        path_demo = get_package_data_home() / "demo02.csv"
-        df = fetch_data(filename=path_demo)
-        df.head()
-        ```
-    """
-    if columns is not None and len(columns) == 0:
-        raise ValueError("columns must be specified and cannot be empty.")
-
-    if filename is not None and dataframe is not None:
-        raise ValueError(
-            "Cannot specify both filename and dataframe. Please provide only one."
-        )
-
-    # Process DataFrame if provided
-    if dataframe is not None:
-        dataset = Data.from_dataframe(
-            df=dataframe,
-            timezone=timezone,
-            columns=columns,
-        )
-    else:
-        # Load from CSV file
-        if filename is None:
-            raise ValueError(
-                "filename must be specified when dataframe is None. "
-                "Explicitly provide a filename (e.g., 'data_in.csv') or a DataFrame."
-            )
-
-        # Check if the filename is an absolute path
-        csv_path = Path(filename)
-        if not csv_path.is_absolute():
-            csv_path = get_data_home() / filename
-
-        if not csv_path.is_file():
-            raise FileNotFoundError(f"The file {csv_path} does not exist.")
-
-        dataset = Data.from_csv(
-            csv_path=csv_path,
-            index_col=index_col,
-            parse_dates=parse_dates,
-            dayfirst=dayfirst,
-            timezone=timezone,
-            columns=columns,
-        )
-
-    return dataset.data
-
-
-def fetch_holiday_data(
-    start: str | Timestamp,
-    end: str | Timestamp,
-    tz: str = "UTC",
-    freq: str = "h",
-    country_code: str = "DE",
-    state: str = "NW",
-) -> pd.DataFrame:
-    """Fetches holiday data for the dataset period.
-
-    Args:
-        start (str or pd.Timestamp):
-            Start date of the dataset period.
-        end (str or pd.Timestamp):
-            End date of the dataset period.
-        tz (str):
-            Timezone for the holiday data.
-        freq (str):
-            Frequency of the holiday data.
-        country_code (str):
-            Country code for the holidays.
-        state (str):
-            State code for the holidays.
-
-    Returns:
-        pd.DataFrame: DataFrame containing holiday information.
-
-    Examples:
-        ```{python}
-        from spotforecast2_safe.data.fetch_data import fetch_holiday_data
-        holiday_df = fetch_holiday_data(
-            start='2023-01-01T00:00',
-            end='2023-01-10T00:00',
-            tz='UTC',
-            freq='h',
-            country_code='DE',
-            state='NW'
-        )
-        holiday_df.head()
-        ```
-    """
-    holiday_df = create_holiday_df(
-        start=start, end=end, tz=tz, freq=freq, country_code=country_code, state=state
-    )
-    return holiday_df
-
-
-def fetch_weather_data(
-    cov_start: str,
-    cov_end: str,
-    latitude: float = 51.5136,
-    longitude: float = 7.4653,
-    timezone: str = "UTC",
-    freq: str = "h",
-    fallback_on_failure: bool = True,
-    cached=True,
-) -> pd.DataFrame:
-    """Fetches weather data for the dataset period plus forecast horizon.
-        Create weather dataframe using API with optional caching.
-
-    Args:
-        cov_start (str):
-            Start date for covariate data.
-        cov_end (str):
-            End date for covariate data.
-        latitude (float):
-            Latitude of the location for weather data. Default is 51.5136 (Dortmund).
-        longitude (float):
-            Longitude of the location for weather data. Default is 7.4653 (Dortmund).
-        timezone (str):
-            Timezone for the weather data.
-        freq (str):
-            Frequency of the weather data.
-        fallback_on_failure (bool):
-            Whether to use fallback data in case of failure.
-        cached (bool):
-            Whether to use cached data.
-
-    Returns:
-        pd.DataFrame: DataFrame containing weather information.
-
-    Examples:
-        ```{python}
-        from spotforecast2_safe.data.fetch_data import fetch_weather_data
-        weather_df = fetch_weather_data(
-            cov_start='2023-01-01T00:00',
-            cov_end='2023-01-11T00:00',
-            latitude=51.5136,
-            longitude=7.4653,
-            timezone='UTC',
-            freq='h',
-            fallback_on_failure=True,
-            cached=True)
-        weather_df.head()
-        ```
-    """
-    if cached:
-        cache_path = get_data_home() / "weather_cache.parquet"
-    else:
-        cache_path = None
-
-    service = WeatherService(
-        latitude=latitude, longitude=longitude, cache_path=cache_path
-    )
-
-    weather_df = service.get_dataframe(
-        start=cov_start,
-        end=cov_end,
-        timezone=timezone,
-        freq=freq,
-        fallback_on_failure=fallback_on_failure,
-    )
-    return weather_df

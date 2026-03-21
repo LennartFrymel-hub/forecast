@@ -13,6 +13,19 @@ manager.configurator.config_multi.ConfigMulti(
     random_state=314159,
     n_hyperparameters_trials=20,
     data_filename='interim/energy_load.csv',
+    use_outlier_detection=True,
+    contamination=0.01,
+    imputation_method='weighted',
+    window_size=72,
+    use_exogenous_features=True,
+    latitude=51.5136,
+    longitude=7.4653,
+    timezone='UTC',
+    country_code='DE',
+    state='NW',
+    include_weather_windows=False,
+    include_holiday_features=False,
+    include_poly_features=False,
 )
 ```
 
@@ -25,34 +38,60 @@ initialization or used with sensible defaults.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name                     | Type                                                                                                 | Description                                                      | Default                     |
-|--------------------------|------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|-----------------------------|
-| api_country_code         | [str](`str`)                                                                                         | ISO country code.                                                | `'DE'`                      |
-| periods                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\]\] | List of Period objects defining cyclical feature encodings.      | `None`                      |
-| lags_consider            | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[int](`int`)\]\]                               | List of lag values to consider for feature selection.            | `None`                      |
-| train_size               | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                      | Time window for training data.                                   | `None`                      |
-| end_train_default        | [str](`str`)                                                                                         | Default end date for training period (ISO format with timezone). | `'2025-12-31 00:00+00:00'`  |
-| delta_val                | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                      | Validation window size.                                          | `None`                      |
-| predict_size             | [int](`int`)                                                                                         | Number of hours to predict ahead.                                | `24`                        |
-| refit_size               | [int](`int`)                                                                                         | Number of days between model refits.                             | `7`                         |
-| random_state             | [int](`int`)                                                                                         | Random seed for reproducibility.                                 | `314159`                    |
-| n_hyperparameters_trials | [int](`int`)                                                                                         | Number of trials for hyperparameter optimization.                | `20`                        |
-| data_filename            | [str](`str`)                                                                                         | Path to the interim merged data file.                            | `'interim/energy_load.csv'` |
+| Name                     | Type                                                                                                 | Description                                                                                               | Default                     |
+|--------------------------|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|-----------------------------|
+| api_country_code         | [str](`str`)                                                                                         | ISO country code.                                                                                         | `'DE'`                      |
+| periods                  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\]\] | List of Period objects defining cyclical feature encodings.                                               | `None`                      |
+| lags_consider            | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[int](`int`)\]\]                               | List of lag values to consider for feature selection.                                                     | `None`                      |
+| train_size               | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                      | Time window for training data.                                                                            | `None`                      |
+| end_train_default        | [str](`str`)                                                                                         | Default end date for training period (ISO format with timezone).                                          | `'2025-12-31 00:00+00:00'`  |
+| delta_val                | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                      | Validation window size.                                                                                   | `None`                      |
+| predict_size             | [int](`int`)                                                                                         | Number of hours to predict ahead.                                                                         | `24`                        |
+| refit_size               | [int](`int`)                                                                                         | Number of days between model refits.                                                                      | `7`                         |
+| random_state             | [int](`int`)                                                                                         | Random seed for reproducibility.                                                                          | `314159`                    |
+| n_hyperparameters_trials | [int](`int`)                                                                                         | Number of trials for hyperparameter optimization.                                                         | `20`                        |
+| data_filename            | [str](`str`)                                                                                         | Path to the interim merged data file.                                                                     | `'interim/energy_load.csv'` |
+| use_outlier_detection    | [bool](`bool`)                                                                                       | If True, apply IsolationForest-based outlier removal.                                                     | `True`                      |
+| contamination            | [float](`float`)                                                                                     | Proportion of outliers for IsolationForest (0 < contamination < 0.5).                                     | `0.01`                      |
+| imputation_method        | [str](`str`)                                                                                         | Gap-filling strategy — ``"weighted"`` (n2n-style rolling weights) or ``"linear"`` (linear interpolation). | `'weighted'`                |
+| window_size              | [int](`int`)                                                                                         | Rolling window size in hours for gap detection (weighted imputation).                                     | `72`                        |
+| use_exogenous_features   | [bool](`bool`)                                                                                       | If True, build weather/calendar/day-night/holiday features.                                               | `True`                      |
+| latitude                 | [float](`float`)                                                                                     | Latitude of the target location in decimal degrees.                                                       | `51.5136`                   |
+| longitude                | [float](`float`)                                                                                     | Longitude of the target location in decimal degrees.                                                      | `7.4653`                    |
+| timezone                 | [str](`str`)                                                                                         | IANA timezone string for the target location (e.g. ``"Europe/Berlin"``).                                  | `'UTC'`                     |
+| country_code             | [str](`str`)                                                                                         | ISO 3166-1 alpha-2 country code for holiday generation.                                                   | `'DE'`                      |
+| state                    | [str](`str`)                                                                                         | ISO 3166-2 subdivision code for regional holidays (e.g. ``"NW"``).                                        | `'NW'`                      |
+| include_weather_windows  | [bool](`bool`)                                                                                       | If True, include rolling weather-window features.                                                         | `False`                     |
+| include_holiday_features | [bool](`bool`)                                                                                       | If True, include public-holiday indicator features.                                                       | `False`                     |
+| include_poly_features    | [bool](`bool`)                                                                                       | If True, include polynomial interaction features.                                                         | `False`                     |
 
 ## Attributes {.doc-section .doc-section-attributes}
 
-| Name                     | Type                                                                | Description                               |
-|--------------------------|---------------------------------------------------------------------|-------------------------------------------|
-| API_COUNTRY_CODE         | [str](`str`)                                                        | ISO country code for API queries.         |
-| periods                  | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\] | Cyclical feature encoding specifications. |
-| lags_consider            | [List](`typing.List`)\[[int](`int`)\]                               | Lag values for autoregressive features.   |
-| train_size               | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                      | Training data window.                     |
-| end_train_default        | [str](`str`)                                                        | Default training end date.                |
-| delta_val                | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                      | Validation window.                        |
-| predict_size             | [int](`int`)                                                        | Prediction horizon in hours.              |
-| refit_size               | [int](`int`)                                                        | Refit interval in days.                   |
-| random_state             | [int](`int`)                                                        | Random seed.                              |
-| n_hyperparameters_trials | [int](`int`)                                                        | Hyperparameter tuning trials.             |
+| Name                     | Type                                                                | Description                                            |
+|--------------------------|---------------------------------------------------------------------|--------------------------------------------------------|
+| API_COUNTRY_CODE         | [str](`str`)                                                        | ISO country code for API queries.                      |
+| periods                  | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\] | Cyclical feature encoding specifications.              |
+| lags_consider            | [List](`typing.List`)\[[int](`int`)\]                               | Lag values for autoregressive features.                |
+| train_size               | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                      | Training data window.                                  |
+| end_train_default        | [str](`str`)                                                        | Default training end date.                             |
+| delta_val                | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                      | Validation window.                                     |
+| predict_size             | [int](`int`)                                                        | Prediction horizon in hours.                           |
+| refit_size               | [int](`int`)                                                        | Refit interval in days.                                |
+| random_state             | [int](`int`)                                                        | Random seed.                                           |
+| n_hyperparameters_trials | [int](`int`)                                                        | Hyperparameter tuning trials.                          |
+| use_outlier_detection    | [bool](`bool`)                                                      | IsolationForest outlier removal toggle.                |
+| contamination            | [float](`float`)                                                    | IsolationForest contamination fraction.                |
+| imputation_method        | [str](`str`)                                                        | Gap-filling strategy (``"weighted"`` or ``"linear"``). |
+| window_size              | [int](`int`)                                                        | Rolling window size for weighted imputation.           |
+| use_exogenous_features   | [bool](`bool`)                                                      | Exogenous feature construction toggle.                 |
+| latitude                 | [float](`float`)                                                    | Location latitude.                                     |
+| longitude                | [float](`float`)                                                    | Location longitude.                                    |
+| timezone                 | [str](`str`)                                                        | IANA timezone string.                                  |
+| country_code             | [str](`str`)                                                        | Country code for holiday generation.                   |
+| state                    | [str](`str`)                                                        | Subdivision code for regional holidays.                |
+| include_weather_windows  | [bool](`bool`)                                                      | Weather-window feature toggle.                         |
+| include_holiday_features | [bool](`bool`)                                                      | Holiday feature toggle.                                |
+| include_poly_features    | [bool](`bool`)                                                      | Polynomial feature toggle.                             |
 
 ## Notes {.doc-section .doc-section-notes}
 
