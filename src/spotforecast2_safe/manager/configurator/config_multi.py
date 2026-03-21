@@ -64,6 +64,16 @@ class ConfigMulti:
             (format ``"YYYYMMDDHHMM"``). Derived from the loaded dataset; ``None`` until set.
         end_download (Optional[str]): End of the download/data range as a string
             (format ``"YYYYMMDDHHMM"``). Derived from the loaded dataset; ``None`` until set.
+        data_start (Optional[pd.Timestamp]): First timestamp of the pipeline data range.
+            Derived from the loaded dataset via ``get_start_end()``; ``None`` until set.
+        data_end (Optional[pd.Timestamp]): Last timestamp of the pipeline data range.
+            Derived from the loaded dataset via ``get_start_end()``; ``None`` until set.
+        cov_start (Optional[pd.Timestamp]): Start of the covariate range (same as ``data_start``).
+            Derived from the loaded dataset via ``get_start_end()``; ``None`` until set.
+        cov_end (Optional[pd.Timestamp]): End of the covariate range (extends ``data_end`` by
+            ``predict_size`` hours). Derived via ``get_start_end()``; ``None`` until set.
+        bounds (Optional[List[tuple]]): Per-column outlier bounds as a list of
+            ``(lower, upper)`` tuples, one entry per target column. ``None`` until set.
 
     Attributes:
         API_COUNTRY_CODE (str): Read-only property — returns ``country_code``.
@@ -97,6 +107,11 @@ class ConfigMulti:
         data_test (str): Test data file name.
         start_download (Optional[str]): Start of the data download range.
         end_download (Optional[str]): End of the data download range.
+        data_start (Optional[pd.Timestamp]): First timestamp of the pipeline data.
+        data_end (Optional[pd.Timestamp]): Last timestamp of the pipeline data.
+        cov_start (Optional[pd.Timestamp]): Start of the covariate date range.
+        cov_end (Optional[pd.Timestamp]): End of the covariate date range.
+        bounds (Optional[List[tuple]]): Per-column outlier bounds ``(lower, upper)``.
 
     Notes:
         The default period configurations use specific `n_periods` to balance resolution and smoothing:
@@ -121,13 +136,25 @@ class ConfigMulti:
         print(f"data_test: {config.data_test}")
         print(f"start_download: {config.start_download}")
         print(f"end_download: {config.end_download}")
+        print(f"data_start: {config.data_start}")
+        print(f"data_end: {config.data_end}")
+        print(f"cov_start: {config.cov_start}")
+        print(f"cov_end: {config.cov_end}")
+        print(f"bounds: {config.bounds}")
 
-        # Set targets and download range after loading data
+        # Set targets and derived ranges after loading data
         config.targets = ["A", "B", "C"]
         config.start_download = "202401010000"
         config.end_download = "202412312300"
+        config.data_start = pd.Timestamp("2022-01-01", tz="UTC")
+        config.data_end = pd.Timestamp("2024-12-31", tz="UTC")
+        config.cov_start = pd.Timestamp("2022-01-01", tz="UTC")
+        config.cov_end = pd.Timestamp("2025-01-01", tz="UTC")
+        config.bounds = [(-2500, 4500), (-10, 3000)]
         print(f"Targets (after setting): {config.targets}")
         print(f"start_download: {config.start_download}")
+        print(f"data_start: {config.data_start}")
+        print(f"bounds: {config.bounds}")
 
         # Create custom configuration — country_code serves both API and holiday purposes
         custom_config = ConfigMulti(
@@ -190,6 +217,13 @@ class ConfigMulti:
         data_test: str = "data_test.csv",
         start_download: Optional[str] = None,
         end_download: Optional[str] = None,
+        # Derived date ranges (set after data loading via get_start_end())
+        data_start: Optional[pd.Timestamp] = None,
+        data_end: Optional[pd.Timestamp] = None,
+        cov_start: Optional[pd.Timestamp] = None,
+        cov_end: Optional[pd.Timestamp] = None,
+        # Per-column outlier bounds [(lower, upper), ...]
+        bounds: Optional[List[tuple]] = None,
     ):
         """Initialize ConfigMulti with specified or default parameters."""
         # country_code is the single source of truth for the ISO country code.
@@ -262,6 +296,13 @@ class ConfigMulti:
         self.data_test = data_test
         self.start_download = start_download
         self.end_download = end_download
+        # Derived date ranges (set after data loading via get_start_end())
+        self.data_start = data_start
+        self.data_end = data_end
+        self.cov_start = cov_start
+        self.cov_end = cov_end
+        # Per-column outlier bounds [(lower, upper), ...]
+        self.bounds = bounds
 
     @property
     def API_COUNTRY_CODE(self) -> str:
@@ -295,6 +336,11 @@ class ConfigMulti:
             print(f"index_name: {p['index_name']}")
             print(f"data_source: {p['data_source']}")
             print(f"data_test: {p['data_test']}")
+            print(f"data_start: {p['data_start']}")
+            print(f"data_end: {p['data_end']}")
+            print(f"cov_start: {p['cov_start']}")
+            print(f"cov_end: {p['cov_end']}")
+            print(f"bounds: {p['bounds']}")
             ```
         """
         params = {
@@ -332,6 +378,13 @@ class ConfigMulti:
             "data_test": self.data_test,
             "start_download": self.start_download,
             "end_download": self.end_download,
+            # Derived date ranges
+            "data_start": self.data_start,
+            "data_end": self.data_end,
+            "cov_start": self.cov_start,
+            "cov_end": self.cov_end,
+            # Per-column outlier bounds
+            "bounds": self.bounds,
         }
 
         # Expose period sub-objects via the '__' notation if deep=True
