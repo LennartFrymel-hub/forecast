@@ -236,7 +236,7 @@ def fetch_data(
         try:
             df.index.freq = pd.infer_freq(df.index)
         except (ValueError, TypeError):
-            pass
+            # If the frequency cannot be inferred, leave df.index.freq as None.
 
     return df
 
