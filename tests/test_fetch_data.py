@@ -99,10 +99,10 @@ class TestFetchData:
         with tempfile.TemporaryDirectory() as tmpdir:
             csv_path = Path(tmpdir) / "test_data.csv"
 
-            # Create sample data
+            # Create sample data with a DateTime index
             data = pd.DataFrame(
                 {
-                    "date": pd.date_range("2020-01-01", periods=10, freq="D"),
+                    "DateTime": pd.date_range("2020-01-01", periods=10, freq="D"),
                     "FS_Sum_DEA_Herdecke": [
                         1.0,
                         2.0,
@@ -141,252 +141,130 @@ class TestFetchData:
                     ],
                 }
             )
-            data.set_index("date", inplace=True)
+            data.set_index("DateTime", inplace=True)
             data.to_csv(csv_path)
 
             yield csv_path
 
-    def test_fetch_data_columns_none(self, sample_csv):
-        """Test that fetch_data returns all columns when columns is None."""
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
+    @pytest.fixture
+    def sample_dataframe(self):
+        """Create a sample DataFrame with UTC DatetimeIndex for testing."""
+        idx = pd.date_range("2020-01-01", periods=5, freq="D", tz="UTC")
+        return pd.DataFrame(
+            {
+                "col_a": [1.0, 2.0, 3.0, 4.0, 5.0],
+                "col_b": [10.0, 20.0, 30.0, 40.0, 50.0],
+            },
+            index=idx,
+        )
 
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame()
-                mock_from_csv.return_value = mock_data
+    # --- filename validation ---
 
-                fetch_data(filename=sample_csv.name, columns=None)
-
-                # verification that columns=None is passed to Data.from_csv
-                call_kwargs = mock_from_csv.call_args[1]
-                assert call_kwargs["columns"] is None
-
-    def test_fetch_data_columns_empty_list(self):
+    def test_fetch_data_columns_empty_list(self, sample_csv):
         """Test that fetch_data raises ValueError when columns is empty list."""
         with pytest.raises(ValueError, match="columns must be specified"):
-            fetch_data(filename="test.csv", columns=[])
+            fetch_data(filename=sample_csv, columns=[])
 
-    def test_fetch_data_file_not_found(self):
+    def test_fetch_data_both_filename_and_dataframe_raises(
+        self, sample_csv, sample_dataframe
+    ):
+        """Test that providing both filename and dataframe raises ValueError."""
+        with pytest.raises(ValueError, match="Cannot specify both"):
+            fetch_data(filename=sample_csv, dataframe=sample_dataframe)
+
+    def test_fetch_data_neither_raises(self):
+        """Test that providing neither filename nor dataframe raises ValueError."""
+        with pytest.raises(ValueError, match="filename must be specified"):
+            fetch_data()
+
+    def test_fetch_data_relative_path_raises(self):
+        """Test that a relative filename raises ValueError."""
+        with pytest.raises(ValueError, match="absolute path"):
+            fetch_data(filename="relative/path/data.csv")
+
+    def test_fetch_data_file_not_found(self, tmp_path):
         """Test that fetch_data raises FileNotFoundError when file doesn't exist."""
         with pytest.raises(FileNotFoundError):
-            fetch_data(filename="nonexistent_file.csv", columns=["col1"])
+            fetch_data(filename=tmp_path / "nonexistent_file.csv")
 
-    def test_fetch_data_default_parameters(self, sample_csv):
-        """Test fetch_data with default parameters."""
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
-
-            # Mock the Data.from_csv to return sample data
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame(
-                    {
-                        "FS_Sum_DEA_Herdecke": [1.0, 2.0, 3.0],
-                        "FS_Sum_DEA_Höchsten": [2.0, 3.0, 4.0],
-                    }
-                )
-                mock_from_csv.return_value = mock_data
-
-                result = fetch_data(
-                    filename=sample_csv.name,
-                    columns=["FS_Sum_DEA_Herdecke", "FS_Sum_DEA_Höchsten"],
-                )
-
-                assert isinstance(result, pd.DataFrame)
-                mock_from_csv.assert_called_once()
-
-    def test_fetch_data_custom_filename(self, sample_csv):
-        """Test fetch_data with custom filename."""
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
-
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame()
-                mock_from_csv.return_value = mock_data
-
-                fetch_data(filename=sample_csv.name, columns=["col1"])
-
-                call_args = mock_from_csv.call_args
-                assert sample_csv.name in str(call_args)
-
-    def test_fetch_data_custom_columns(self, sample_csv):
-        """Test fetch_data with custom columns parameter."""
-        custom_cols = ["FS_Sum_DEA_Herdecke", "FM_Sum_Höchsten"]
-
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
-
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame()
-                mock_from_csv.return_value = mock_data
-
-                fetch_data(filename=sample_csv.name, columns=custom_cols)
-
-                call_kwargs = mock_from_csv.call_args[1]
-                assert call_kwargs["columns"] == custom_cols
-
-    def test_fetch_data_custom_index_col(self, sample_csv):
-        """Test fetch_data with custom index_col parameter."""
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
-
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame()
-                mock_from_csv.return_value = mock_data
-
-                fetch_data(filename=sample_csv.name, columns=["col1"], index_col=1)
-
-                call_kwargs = mock_from_csv.call_args[1]
-                assert call_kwargs["index_col"] == 1
-
-    def test_fetch_data_parse_dates(self, sample_csv):
-        """Test fetch_data with parse_dates parameter."""
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
-
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame()
-                mock_from_csv.return_value = mock_data
-
-                fetch_data(filename=sample_csv.name, columns=["col1"], parse_dates=True)
-
-                call_kwargs = mock_from_csv.call_args[1]
-                assert call_kwargs["parse_dates"] is True
-
-    def test_fetch_data_dayfirst(self, sample_csv):
-        """Test fetch_data with dayfirst parameter."""
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
-
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame()
-                mock_from_csv.return_value = mock_data
-
-                fetch_data(filename=sample_csv.name, columns=["col1"], dayfirst=True)
-
-                call_kwargs = mock_from_csv.call_args[1]
-                assert call_kwargs["dayfirst"] is True
-
-    def test_fetch_data_timezone(self, sample_csv):
-        """Test fetch_data with custom timezone parameter."""
-        custom_tz = "Europe/Berlin"
-
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
-
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame()
-                mock_from_csv.return_value = mock_data
-
-                fetch_data(
-                    filename=sample_csv.name, columns=["col1"], timezone=custom_tz
-                )
-
-                call_kwargs = mock_from_csv.call_args[1]
-                assert call_kwargs["timezone"] == custom_tz
-
-    def test_fetch_data_all_parameters(self, sample_csv):
-        """Test fetch_data with all parameters customized."""
-        custom_cols = ["FS_Sum_DEA_Herdecke", "FM_Sum_Höchsten"]
-        custom_tz = "Europe/Amsterdam"
-
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
-
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame()
-                mock_from_csv.return_value = mock_data
-
-                fetch_data(
-                    filename=sample_csv.name,
-                    columns=custom_cols,
-                    index_col=2,
-                    parse_dates=True,
-                    dayfirst=True,
-                    timezone=custom_tz,
-                )
-
-                call_kwargs = mock_from_csv.call_args[1]
-                assert call_kwargs["columns"] == custom_cols
-                assert call_kwargs["index_col"] == 2
-                assert call_kwargs["parse_dates"] is True
-                assert call_kwargs["dayfirst"] is True
-                assert call_kwargs["timezone"] == custom_tz
+    # --- CSV loading ---
 
     def test_fetch_data_returns_dataframe(self, sample_csv):
-        """Test that fetch_data returns a pandas DataFrame."""
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
+        """Test that fetch_data returns a pandas DataFrame with UTC index."""
+        result = fetch_data(filename=sample_csv)
+        assert isinstance(result, pd.DataFrame)
+        assert not result.empty
+        assert isinstance(result.index, pd.DatetimeIndex)
+        assert result.index.tz is not None
 
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                expected_df = pd.DataFrame({"col1": [1, 2, 3]})
-                mock_data.data = expected_df
-                mock_from_csv.return_value = mock_data
+    def test_fetch_data_columns_none_loads_all(self, sample_csv):
+        """Test that fetch_data returns all columns when columns is None."""
+        result = fetch_data(filename=sample_csv, columns=None)
+        assert "FS_Sum_DEA_Herdecke" in result.columns
+        assert "FS_Sum_DEA_Höchsten" in result.columns
+        assert "FM_Sum_Höchsten" in result.columns
 
-                result = fetch_data(filename=sample_csv.name, columns=["col1"])
+    def test_fetch_data_column_subset(self, sample_csv):
+        """Test fetch_data with a subset of columns."""
+        cols = ["FS_Sum_DEA_Herdecke", "FM_Sum_Höchsten"]
+        result = fetch_data(filename=sample_csv, columns=cols)
+        assert list(result.columns) == cols
 
-                assert isinstance(result, pd.DataFrame)
-                pd.testing.assert_frame_equal(result, expected_df)
+    def test_fetch_data_utc_timezone(self, sample_csv):
+        """Test that the returned DataFrame has UTC timezone."""
+        result = fetch_data(filename=sample_csv, timezone="UTC")
+        assert str(result.index.tz) == "UTC"
 
-    def test_fetch_data_calls_data_from_csv(self, sample_csv):
-        """Test that fetch_data calls Data.from_csv with correct path."""
-        with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
-            mock_home.return_value = sample_csv.parent
+    def test_fetch_data_custom_timezone_converted_to_utc(self, sample_csv):
+        """Test that a custom timezone is localized then converted to UTC."""
+        result = fetch_data(filename=sample_csv, timezone="Europe/Berlin")
+        assert str(result.index.tz) == "UTC"
 
-            with patch(
-                "spotforecast2_safe.data.fetch_data.Data.from_csv"
-            ) as mock_from_csv:
-                mock_data = MagicMock()
-                mock_data.data = pd.DataFrame()
-                mock_from_csv.return_value = mock_data
+    def test_fetch_data_parse_dates_false_raises(self, sample_csv):
+        """Test that parse_dates=False raises ValueError because index is not a DatetimeIndex."""
+        with pytest.raises(ValueError, match="No DatetimeIndex"):
+            fetch_data(filename=sample_csv, parse_dates=False)
 
-                fetch_data(filename=sample_csv.name, columns=["col1"])
+    def test_fetch_data_accepts_path_object(self, sample_csv):
+        """Test that fetch_data accepts a pathlib.Path as filename."""
+        result = fetch_data(filename=sample_csv)
+        assert isinstance(result, pd.DataFrame)
 
-                assert mock_from_csv.called
-                call_kwargs = mock_from_csv.call_args[1]
-                assert "csv_path" in call_kwargs
+    def test_fetch_data_accepts_string_path(self, sample_csv):
+        """Test that fetch_data accepts a string absolute path."""
+        result = fetch_data(filename=str(sample_csv))
+        assert isinstance(result, pd.DataFrame)
+
+    # --- dataframe input ---
+
+    def test_fetch_data_from_dataframe(self, sample_dataframe):
+        """Test that fetch_data processes a DataFrame correctly."""
+        result = fetch_data(dataframe=sample_dataframe)
+        assert isinstance(result, pd.DataFrame)
+        assert str(result.index.tz) == "UTC"
+
+    def test_fetch_data_from_dataframe_column_subset(self, sample_dataframe):
+        """Test column selection when using dataframe input."""
+        result = fetch_data(dataframe=sample_dataframe, columns=["col_a"])
+        assert list(result.columns) == ["col_a"]
+
+    def test_fetch_data_from_dataframe_naive_timezone(self):
+        """Test that a naive DataFrame index is localized then converted to UTC."""
+        idx = pd.date_range("2020-01-01", periods=3, freq="h")
+        df = pd.DataFrame({"v": [1, 2, 3]}, index=idx)
+        result = fetch_data(dataframe=df, timezone="Europe/Berlin")
+        assert str(result.index.tz) == "UTC"
 
 
 class TestIntegration:
     """Integration tests for get_data_home and fetch_data."""
 
     def test_get_data_home_fetch_data_integration(self):
-        """Test that get_data_home directory can be used by fetch_data."""
+        """Test that a CSV written to get_data_home can be loaded by fetch_data."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Create a data directory
             data_dir = get_data_home(tmpdir)
             assert data_dir.exists()
 
-            # Create a test CSV file in the directory
             csv_path = data_dir / "test_data.csv"
             test_data = pd.DataFrame(
                 {
@@ -396,9 +274,10 @@ class TestIntegration:
             )
             test_data.set_index("date").to_csv(csv_path)
 
-            # Verify the file exists and can be found
-            assert csv_path.exists()
-            assert csv_path.is_file()
+            # Use the full absolute path returned by get_data_home
+            result = fetch_data(filename=csv_path)
+            assert isinstance(result, pd.DataFrame)
+            assert not result.empty
 
     def test_get_data_home_environment_integration(self):
         """Test get_data_home with environment variable integration."""
