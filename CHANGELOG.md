@@ -1,3 +1,11 @@
+## [0.25.4-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.25.3...v0.25.4-rc.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* reset_index accepts timezone ([cb2ac50](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/cb2ac50f00c02b2b9ffbabe44dd95bc83e8c73ec))
+* tz error ([55aa7cd](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/55aa7cda0e8156a8cb3f1ade3d272b4649e1be06))
+
 ## [0.25.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.25.2...v0.25.3) (2026-03-21)
 
 
