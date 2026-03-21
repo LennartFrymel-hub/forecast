@@ -628,3 +628,185 @@ class TestConfigMultiNewAttributes:
         assert cfg.index_name == "DateTime"
         assert cfg.data_source == "data_in.csv"
         assert cfg.start_download == "202401010000"
+
+
+# ---------------------------------------------------------------------------
+# Derived date ranges and bounds attributes
+# ---------------------------------------------------------------------------
+
+
+class TestConfigMultiDerivedAttributes:
+    """Tests for data_start, data_end, cov_start, cov_end, bounds."""
+
+    # --- Defaults ---
+
+    def test_data_start_default_is_none(self):
+        assert ConfigMulti().data_start is None
+
+    def test_data_end_default_is_none(self):
+        assert ConfigMulti().data_end is None
+
+    def test_cov_start_default_is_none(self):
+        assert ConfigMulti().cov_start is None
+
+    def test_cov_end_default_is_none(self):
+        assert ConfigMulti().cov_end is None
+
+    def test_bounds_default_is_none(self):
+        assert ConfigMulti().bounds is None
+
+    # --- Custom init values ---
+
+    def test_custom_data_start(self):
+        ts = pd.Timestamp("2022-01-01", tz="UTC")
+        cfg = ConfigMulti(data_start=ts)
+        assert cfg.data_start == ts
+
+    def test_custom_data_end(self):
+        ts = pd.Timestamp("2024-12-31", tz="UTC")
+        cfg = ConfigMulti(data_end=ts)
+        assert cfg.data_end == ts
+
+    def test_custom_cov_start(self):
+        ts = pd.Timestamp("2022-01-01", tz="UTC")
+        cfg = ConfigMulti(cov_start=ts)
+        assert cfg.cov_start == ts
+
+    def test_custom_cov_end(self):
+        ts = pd.Timestamp("2025-01-01", tz="UTC")
+        cfg = ConfigMulti(cov_end=ts)
+        assert cfg.cov_end == ts
+
+    def test_custom_bounds(self):
+        b = [(-100, 100), (0, 500)]
+        cfg = ConfigMulti(bounds=b)
+        assert cfg.bounds == b
+
+    # --- In get_params ---
+
+    def test_derived_attrs_in_get_params(self):
+        p = ConfigMulti().get_params()
+        for key in ("data_start", "data_end", "cov_start", "cov_end", "bounds"):
+            assert key in p
+
+    def test_derived_attrs_default_values_in_get_params(self):
+        p = ConfigMulti().get_params()
+        assert p["data_start"] is None
+        assert p["data_end"] is None
+        assert p["cov_start"] is None
+        assert p["cov_end"] is None
+        assert p["bounds"] is None
+
+    def test_derived_attrs_custom_values_in_get_params(self):
+        ts = pd.Timestamp("2023-06-15", tz="UTC")
+        b = [(0, 1000)]
+        cfg = ConfigMulti(data_start=ts, data_end=ts, cov_start=ts, cov_end=ts, bounds=b)
+        p = cfg.get_params()
+        assert p["data_start"] == ts
+        assert p["data_end"] == ts
+        assert p["cov_start"] == ts
+        assert p["cov_end"] == ts
+        assert p["bounds"] == b
+
+    # --- set_params ---
+
+    def test_set_params_data_start(self):
+        ts = pd.Timestamp("2022-03-01", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.set_params(data_start=ts)
+        assert cfg.data_start == ts
+
+    def test_set_params_data_end(self):
+        ts = pd.Timestamp("2024-06-30", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.set_params(data_end=ts)
+        assert cfg.data_end == ts
+
+    def test_set_params_cov_start(self):
+        ts = pd.Timestamp("2022-03-01", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.set_params(cov_start=ts)
+        assert cfg.cov_start == ts
+
+    def test_set_params_cov_end(self):
+        ts = pd.Timestamp("2025-01-01", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.set_params(cov_end=ts)
+        assert cfg.cov_end == ts
+
+    def test_set_params_bounds(self):
+        b = [(-500, 500), (0, 200)]
+        cfg = ConfigMulti()
+        cfg.set_params(bounds=b)
+        assert cfg.bounds == b
+
+    def test_set_params_all_derived_at_once(self):
+        ts_s = pd.Timestamp("2022-01-01", tz="UTC")
+        ts_e = pd.Timestamp("2024-12-31", tz="UTC")
+        ts_ce = pd.Timestamp("2025-01-01", tz="UTC")
+        b = [(0, 100)]
+        cfg = ConfigMulti()
+        cfg.set_params(data_start=ts_s, data_end=ts_e, cov_start=ts_s, cov_end=ts_ce, bounds=b)
+        assert cfg.data_start == ts_s
+        assert cfg.data_end == ts_e
+        assert cfg.cov_start == ts_s
+        assert cfg.cov_end == ts_ce
+        assert cfg.bounds == b
+
+    def test_set_params_method_chaining(self):
+        ts = pd.Timestamp("2023-01-01", tz="UTC")
+        cfg = ConfigMulti()
+        result = cfg.set_params(data_start=ts)
+        assert result is cfg
+
+    # --- Direct assignment ---
+
+    def test_direct_assignment_data_start(self):
+        ts = pd.Timestamp("2021-07-01", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.data_start = ts
+        assert cfg.data_start == ts
+
+    def test_direct_assignment_data_end(self):
+        ts = pd.Timestamp("2023-12-31", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.data_end = ts
+        assert cfg.data_end == ts
+
+    def test_direct_assignment_cov_start(self):
+        ts = pd.Timestamp("2021-07-01", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.cov_start = ts
+        assert cfg.cov_start == ts
+
+    def test_direct_assignment_cov_end(self):
+        ts = pd.Timestamp("2024-01-25", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.cov_end = ts
+        assert cfg.cov_end == ts
+
+    def test_direct_assignment_bounds(self):
+        b = [(-2500, 4500), (-10, 3000)]
+        cfg = ConfigMulti()
+        cfg.bounds = b
+        assert cfg.bounds == b
+
+    # --- Isolation between instances ---
+
+    def test_bounds_not_shared_between_instances(self):
+        b = [(0, 100)]
+        cfg1 = ConfigMulti(bounds=b)
+        cfg2 = ConfigMulti()
+        assert cfg2.bounds is None
+        cfg1.bounds.append((200, 300))
+        assert cfg2.bounds is None
+
+    # --- Coexistence with other params ---
+
+    def test_derived_attrs_preserved_alongside_targets(self):
+        ts = pd.Timestamp("2023-01-01", tz="UTC")
+        b = [(0, 500)]
+        cfg = ConfigMulti(targets=["X"], data_start=ts, bounds=b)
+        assert cfg.targets == ["X"]
+        assert cfg.data_start == ts
+        assert cfg.bounds == b
