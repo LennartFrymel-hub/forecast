@@ -1,3 +1,10 @@
+## [0.25.5-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.25.4...v0.25.5-rc.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* multi_conf updated ([9a0647a](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/9a0647afe0501f826667e118ae86e44e6026bdea))
+
 ## [0.25.4](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.25.3...v0.25.4) (2026-03-21)
 
 
