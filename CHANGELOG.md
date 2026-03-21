@@ -1,3 +1,10 @@
+## [0.25.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.25.0...v0.25.1-rc.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* fetch_data ([010c15b](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/010c15bdb664ef4e1a51e8ba1556464d8d9267fd))
+
 ## [0.25.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.24.0...v0.25.0) (2026-03-20)
 
 
