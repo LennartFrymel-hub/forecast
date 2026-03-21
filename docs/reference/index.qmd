@@ -117,6 +117,10 @@ High-level training, prediction, and model persistence orchestration.
 | [manager.exo.calendar.get_calendar_features](manager.exo.calendar.get_calendar_features.qmd#spotforecast2_safe.manager.exo.calendar.get_calendar_features) | Create calendar-based features for a contiguous time range. |
 | [manager.exo.calendar.get_day_night_features](manager.exo.calendar.get_day_night_features.qmd#spotforecast2_safe.manager.exo.calendar.get_day_night_features) | Create day/night features using astronomical sunrise and sunset times. |
 | [manager.exo.calendar.get_holiday_features](manager.exo.calendar.get_holiday_features.qmd#spotforecast2_safe.manager.exo.calendar.get_holiday_features) | Fetch public-holiday indicators and align them to a regular time grid. |
+| [manager.features.apply_cyclical_encoding](manager.features.apply_cyclical_encoding.qmd#spotforecast2_safe.manager.features.apply_cyclical_encoding) | Apply cyclical (sine/cosine) encoding to periodic integer features. |
+| [manager.features.create_interaction_features](manager.features.create_interaction_features.qmd#spotforecast2_safe.manager.features.create_interaction_features) | Append bilinear interaction terms to an exogenous feature matrix. |
+| [manager.features.select_exogenous_features](manager.features.select_exogenous_features.qmd#spotforecast2_safe.manager.features.select_exogenous_features) | Select and deduplicate exogenous feature columns for model training. |
+| [manager.features.merge_data_and_covariates](manager.features.merge_data_and_covariates.qmd#spotforecast2_safe.manager.features.merge_data_and_covariates) | Merge target data with exogenous features and split into train/predict slices. |
 
 ## Utils
 

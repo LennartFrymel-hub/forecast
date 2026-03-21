@@ -1,0 +1,75 @@
+# manager.features.select_exogenous_features { #spotforecast2_safe.manager.features.select_exogenous_features }
+
+```python
+manager.features.select_exogenous_features(
+    exogenous_features,
+    weather_aligned,
+    cyclical_regex='_sin$|_cos$',
+    include_weather_windows=False,
+    include_holiday_features=False,
+    include_poly_features=False,
+)
+```
+
+Select and deduplicate exogenous feature columns for model training.
+
+Builds a prioritised, deduplicated list of column names from
+*exogenous_features* suitable for passing as ``exog`` to a recursive
+forecaster.  The selection order is:
+
+1. Cyclical sine/cosine columns (always included).
+2. Weather rolling-window columns (optional, ``include_weather_windows``).
+3. Raw weather columns shared with *weather_aligned*.
+4. Holiday-related columns starting with ``"holiday"`` (optional).
+5. Polynomial interaction columns starting with ``"poly_"`` (optional).
+
+Duplicates are removed while preserving insertion order.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                     | Type                                           | Description                                                                                                                                                | Default         |
+|--------------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| exogenous_features       | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | DataFrame containing the full set of candidate feature columns.                                                                                            | _required_      |
+| weather_aligned          | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | DataFrame whose column names identify the raw ( non-window, non-polynomial) weather variables.                                                             | _required_      |
+| cyclical_regex           | [str](`str`)                                   | Regular expression matched against column names to detect cyclical sine/cosine features.  Defaults to ``"_sin$\|_cos$"``.                                  | `'_sin$|_cos$'` |
+| include_weather_windows  | [bool](`bool`)                                 | If ``True``, include rolling-window weather columns (those containing ``"_window_"`` plus ``"_mean"``, ``"_min"``, or ``"_max"``).  Defaults to ``False``. | `False`         |
+| include_holiday_features | [bool](`bool`)                                 | If ``True``, include columns whose names start with ``"holiday"``.  Defaults to ``False``.                                                                 | `False`         |
+| include_poly_features    | [bool](`bool`)                                 | If ``True``, include polynomial interaction columns whose names start with ``"poly_"``.  Defaults to ``False``.                                            | `False`         |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                  | Description                                                       |
+|--------|---------------------------------------|-------------------------------------------------------------------|
+|        | [List](`typing.List`)\[[str](`str`)\] | List[str]: Deduplicated list of selected column names in priority |
+|        | [List](`typing.List`)\[[str](`str`)\] | order.                                                            |
+
+## Examples {.doc-section .doc-section-examples}
+
+Select cyclical and raw weather columns from a feature matrix:
+
+```{python}
+import numpy as np
+import pandas as pd
+from spotforecast2_safe.manager.features import select_exogenous_features
+
+rng = np.random.default_rng(1)
+idx = pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC")
+
+weather = pd.DataFrame({"wind_speed": rng.uniform(0, 10, 24)}, index=idx)
+exog = pd.DataFrame(
+    {
+        "hour_sin": np.sin(2 * np.pi * idx.hour / 24),
+        "hour_cos": np.cos(2 * np.pi * idx.hour / 24),
+        "wind_speed": weather["wind_speed"],
+        "holiday_flag": 0,
+    },
+    index=idx,
+)
+
+selected = select_exogenous_features(
+    exogenous_features=exog,
+    weather_aligned=weather,
+    include_holiday_features=False,
+)
+print("selected:", selected)
+```

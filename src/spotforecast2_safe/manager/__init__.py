@@ -33,6 +33,12 @@ from spotforecast2_safe.manager.exo import (
     get_holiday_features,
     get_weather_features,
 )
+from spotforecast2_safe.manager.features import (
+    apply_cyclical_encoding,
+    create_interaction_features,
+    merge_data_and_covariates,
+    select_exogenous_features,
+)
 
 __all__ = [
     # Logger
@@ -56,4 +62,9 @@ __all__ = [
     "get_day_night_features",
     "get_holiday_features",
     "get_weather_features",
+    # Feature engineering helpers
+    "apply_cyclical_encoding",
+    "create_interaction_features",
+    "merge_data_and_covariates",
+    "select_exogenous_features",
 ]

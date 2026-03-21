@@ -55,12 +55,11 @@ Examples:
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import pandas as pd
 from astral import LocationInfo
 from lightgbm import LGBMRegressor
-from sklearn.preprocessing import PolynomialFeatures
 
 try:
     from tqdm.auto import tqdm
@@ -92,18 +91,17 @@ from spotforecast2_safe.manager.exo.calendar import (
     get_day_night_features,
     get_holiday_features,
 )
-
-try:
-    from feature_engine.creation import CyclicalFeatures
-except ImportError:
-    raise ImportError(
-        "feature_engine is required. Install with: pip install feature-engine"
-    )
+from spotforecast2_safe.manager.features import (
+    apply_cyclical_encoding,
+    create_interaction_features,
+    select_exogenous_features,
+    merge_data_and_covariates,
+)
 
 
 # ============================================================================
 # Helper Functions for Feature Engineering
-# (public implementations live in spotforecast2_safe.manager.exo)
+# (public implementations live in spotforecast2_safe.manager.features)
 # ============================================================================
 
 # Private aliases kept for backward compatibility with existing callers
@@ -112,229 +110,10 @@ _get_weather_features = get_weather_features
 _get_calendar_features = get_calendar_features
 _get_day_night_features = get_day_night_features
 _get_holiday_features = get_holiday_features
-
-
-def _apply_cyclical_encoding(
-    data: pd.DataFrame,
-    features_to_encode: Optional[List[str]] = None,
-    max_values: Optional[Dict[str, int]] = None,
-    drop_original: bool = False,
-) -> pd.DataFrame:
-    """Apply cyclical encoding to selected features.
-
-    Args:
-        data: DataFrame with features.
-        features_to_encode: Features to encode. Default: calendar and sun features.
-        max_values: Max values for features. Default: standard calendar/hour ranges.
-        drop_original: Drop original columns. Default: False.
-
-    Returns:
-        DataFrame with cyclical encoded features.
-    """
-    if features_to_encode is None:
-        features_to_encode = [
-            "month",
-            "week",
-            "day_of_week",
-            "hour",
-            "sunrise_hour",
-            "sunset_hour",
-        ]
-
-    if max_values is None:
-        max_values = {
-            "month": 12,
-            "week": 52,
-            "day_of_week": 6,
-            "hour": 24,
-            "sunrise_hour": 24,
-            "sunset_hour": 24,
-        }
-
-    # Filter features_to_encode to only those that exist in data
-    available_features = [f for f in features_to_encode if f in data.columns]
-    available_max_values = {
-        k: v for k, v in max_values.items() if k in available_features
-    }
-
-    cyclical_encoder = CyclicalFeatures(
-        variables=available_features,
-        max_values=available_max_values,
-        drop_original=drop_original,
-    )
-
-    return cyclical_encoder.fit_transform(data)
-
-
-def _create_interaction_features(
-    exogenous_features: pd.DataFrame,
-    weather_aligned: pd.DataFrame,
-    base_cols: Optional[List[str]] = None,
-    weather_window_pattern: str = "_window_",
-    include_weather_funcs: Optional[List[str]] = None,
-    holiday_col: str = "is_holiday",
-    degree: int = 1,
-) -> pd.DataFrame:
-    """Create interaction features from exogenous features.
-
-    Args:
-        exogenous_features: DataFrame with base features.
-        weather_aligned: DataFrame with raw weather columns.
-        base_cols: Base columns for interactions. Default: day_of_week and hour cyclical features.
-        weather_window_pattern: Pattern for weather window features. Default: "_window_".
-        include_weather_funcs: Functions to include. Default: ["_mean", "_min", "_max"].
-        holiday_col: Holiday column name. Default: "holiday".
-        degree: Polynomial degree. Default: 1.
-
-    Returns:
-        DataFrame with interaction features appended.
-    """
-    if base_cols is None:
-        base_cols = [
-            "day_of_week_sin",
-            "day_of_week_cos",
-            "hour_sin",
-            "hour_cos",
-        ]
-
-    if include_weather_funcs is None:
-        include_weather_funcs = ["_mean", "_min", "_max"]
-
-    transformer_poly = PolynomialFeatures(
-        degree=degree, interaction_only=True, include_bias=False
-    )
-    transformer_poly = transformer_poly.set_output(transform="pandas")
-
-    weather_window_cols = [
-        col
-        for col in exogenous_features.columns
-        if weather_window_pattern in col
-        and any(func in col for func in include_weather_funcs)
-    ]
-
-    raw_weather_cols = [
-        col
-        for col in exogenous_features.columns
-        if col in weather_aligned.columns and col not in weather_window_cols
-    ]
-
-    poly_cols = list(base_cols)
-    poly_cols.extend(weather_window_cols)
-    poly_cols.extend(raw_weather_cols)
-    if holiday_col in exogenous_features.columns:
-        poly_cols.append(holiday_col)
-
-    poly_features = transformer_poly.fit_transform(exogenous_features[poly_cols])
-    poly_features = poly_features.drop(columns=poly_cols)
-    poly_features.columns = [f"poly_{col}" for col in poly_features.columns]
-    poly_features.columns = poly_features.columns.str.replace(" ", "__")
-
-    return pd.concat([exogenous_features, poly_features], axis=1)
-
-
-def _select_exogenous_features(
-    exogenous_features: pd.DataFrame,
-    weather_aligned: pd.DataFrame,
-    cyclical_regex: str = "_sin$|_cos$",
-    include_weather_windows: bool = False,
-    include_holiday_features: bool = False,
-    include_poly_features: bool = False,
-) -> List[str]:
-    """Select exogenous feature columns for model training.
-
-    Args:
-        exogenous_features: DataFrame with all features.
-        weather_aligned: DataFrame with raw weather columns.
-        cyclical_regex: Regex for cyclical features. Default: "_sin$|_cos$".
-        include_weather_windows: Include weather window features. Default: False.
-        include_holiday_features: Include holiday features. Default: False.
-        include_poly_features: Include polynomial features. Default: False.
-
-    Returns:
-        List of selected feature column names.
-    """
-    exog_features: List[str] = []
-
-    exog_features.extend(
-        exogenous_features.filter(regex=cyclical_regex).columns.tolist()
-    )
-
-    if include_weather_windows:
-        weather_window_features = [
-            col
-            for col in exogenous_features.columns
-            if "_window_" in col and ("_mean" in col or "_min" in col or "_max" in col)
-        ]
-        exog_features.extend(weather_window_features)
-
-    raw_weather_features = [
-        col for col in exogenous_features.columns if col in weather_aligned.columns
-    ]
-    exog_features.extend(raw_weather_features)
-
-    if include_holiday_features:
-        holiday_related = [
-            col for col in exogenous_features.columns if col.startswith("holiday")
-        ]
-        exog_features.extend(holiday_related)
-
-    if include_poly_features:
-        poly_features_list = [
-            col for col in exogenous_features.columns if col.startswith("poly_")
-        ]
-        exog_features.extend(poly_features_list)
-
-    return list(dict.fromkeys(exog_features))
-
-
-def _merge_data_and_covariates(
-    data: pd.DataFrame,
-    exogenous_features: pd.DataFrame,
-    target_columns: List[str],
-    exog_features: List[str],
-    start: Union[str, pd.Timestamp],
-    end: Union[str, pd.Timestamp],
-    cov_end: Union[str, pd.Timestamp],
-    forecast_horizon: int,
-    cast_dtype: Optional[str] = "float32",
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Merge target data with exogenous features and build prediction covariates.
-
-    Args:
-        data: DataFrame with target variables.
-        exogenous_features: DataFrame with exogenous features.
-        target_columns: Target column names.
-        exog_features: Exogenous feature column names.
-        start: Start date.
-        end: End date.
-        cov_end: Covariate end date.
-        forecast_horizon: Number of forecast steps.
-        cast_dtype: Data type for merged data. Default: "float32".
-
-    Returns:
-        Tuple of (data_with_exog, exo_tmp, exo_pred).
-    """
-    if isinstance(start, str):
-        start = pd.to_datetime(start, utc=True)
-    if isinstance(end, str):
-        end = pd.to_datetime(end, utc=True)
-    if isinstance(cov_end, str):
-        cov_end = pd.to_datetime(cov_end, utc=True)
-
-    exo_tmp = exogenous_features.loc[start:end].copy()
-    exo_pred = exogenous_features.loc[end + pd.Timedelta(hours=1) : cov_end].copy()
-
-    data_with_exog = data[target_columns].merge(
-        exo_tmp[exog_features],
-        left_index=True,
-        right_index=True,
-        how="inner",
-    )
-
-    if cast_dtype is not None:
-        data_with_exog = data_with_exog.astype(cast_dtype)
-
-    return data_with_exog, exo_tmp, exo_pred
+_apply_cyclical_encoding = apply_cyclical_encoding
+_create_interaction_features = create_interaction_features
+_select_exogenous_features = select_exogenous_features
+_merge_data_and_covariates = merge_data_and_covariates
 
 
 # ============================================================================

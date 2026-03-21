@@ -1,0 +1,78 @@
+# manager.features.create_interaction_features { #spotforecast2_safe.manager.features.create_interaction_features }
+
+```python
+manager.features.create_interaction_features(
+    exogenous_features,
+    weather_aligned,
+    base_cols=None,
+    weather_window_pattern='_window_',
+    include_weather_funcs=None,
+    holiday_col='is_holiday',
+    degree=1,
+)
+```
+
+Append bilinear interaction terms to an exogenous feature matrix.
+
+Constructs interaction features between calendar cyclical columns, weather
+rolling-window statistics, raw weather variables, and (optionally) a
+holiday indicator.  Only pairwise products are generated
+(``interaction_only=True``) without a bias term.  The new columns are
+named ``poly_<col_a>__<col_b>`` and are appended to the right of
+*exogenous_features*.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                   | Type                                                                   | Description                                                                                                                                                                  | Default        |
+|------------------------|------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+| exogenous_features     | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                         | DataFrame containing all current exogenous features. Must already include the columns listed in *base_cols*.                                                                 | _required_     |
+| weather_aligned        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                         | DataFrame containing only the raw (un-transformed) weather variables.  Used to identify which columns in *exogenous_features* are raw weather columns.                       | _required_     |
+| base_cols              | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\] | Calendar cyclical columns that form the left side of each interaction.  Defaults to ``["day_of_week_sin", "day_of_week_cos", "hour_sin", "hour_cos"]``.                      | `None`         |
+| weather_window_pattern | [str](`str`)                                                           | Substring used to detect rolling-window weather columns in *exogenous_features*.  Defaults to ``"_window_"``.                                                                | `'_window_'`   |
+| include_weather_funcs  | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\] | Rolling-aggregation suffixes to include. Defaults to ``["_mean", "_min", "_max"]``.                                                                                          | `None`         |
+| holiday_col            | [str](`str`)                                                           | Name of the binary holiday indicator column.  If present in *exogenous_features* it is added to the interaction pool. Defaults to ``"is_holiday"``.                          | `'is_holiday'` |
+| degree                 | [int](`int`)                                                           | Polynomial degree passed to :class:`~sklearn.preprocessing.PolynomialFeatures`.  At degree 1 only pairwise products are produced (no higher-order terms). Defaults to ``1``. | `1`            |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                           | Description                                                            |
+|--------|------------------------------------------------|------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pd.DataFrame: *exogenous_features* with ``poly_*`` interaction columns |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | appended.  The original columns are unchanged.                         |
+
+## Examples {.doc-section .doc-section-examples}
+
+Add interaction terms between cyclical hour features and a weather
+variable:
+
+```{python}
+import numpy as np
+import pandas as pd
+from spotforecast2_safe.manager.features import create_interaction_features
+
+rng = np.random.default_rng(0)
+idx = pd.date_range("2024-01-01", periods=72, freq="h", tz="UTC")
+
+weather = pd.DataFrame(
+    {"temperature": rng.normal(10, 3, 72)},
+    index=idx,
+)
+exog = pd.DataFrame(
+    {
+        "day_of_week_sin": np.sin(2 * np.pi * idx.dayofweek / 7),
+        "day_of_week_cos": np.cos(2 * np.pi * idx.dayofweek / 7),
+        "hour_sin": np.sin(2 * np.pi * idx.hour / 24),
+        "hour_cos": np.cos(2 * np.pi * idx.hour / 24),
+        "temperature": weather["temperature"],
+    },
+    index=idx,
+)
+
+result = create_interaction_features(
+    exogenous_features=exog,
+    weather_aligned=weather,
+)
+poly_cols = [c for c in result.columns if c.startswith("poly_")]
+print("poly columns:", poly_cols[:4])
+print("total columns:", result.shape[1])
+```

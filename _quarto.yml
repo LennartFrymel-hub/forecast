@@ -260,6 +260,17 @@ website:
                   - text: "get_holiday_features"
                     file: docs/reference/manager.exo.calendar.get_holiday_features.qmd
 
+              - section: "Feature Engineering"
+                contents:
+                  - text: "apply_cyclical_encoding"
+                    file: docs/reference/manager.features.apply_cyclical_encoding.qmd
+                  - text: "create_interaction_features"
+                    file: docs/reference/manager.features.create_interaction_features.qmd
+                  - text: "select_exogenous_features"
+                    file: docs/reference/manager.features.select_exogenous_features.qmd
+                  - text: "merge_data_and_covariates"
+                    file: docs/reference/manager.features.merge_data_and_covariates.qmd
+
           - section: "Utils"
             contents:
               - text: "Overview"
@@ -527,6 +538,10 @@ quartodoc:
         - manager.exo.calendar.get_calendar_features
         - manager.exo.calendar.get_day_night_features
         - manager.exo.calendar.get_holiday_features
+        - manager.features.apply_cyclical_encoding
+        - manager.features.create_interaction_features
+        - manager.features.select_exogenous_features
+        - manager.features.merge_data_and_covariates
 
     # ── Utils ─────────────────────────────────────────────────────────────────
     - title: "Utils"

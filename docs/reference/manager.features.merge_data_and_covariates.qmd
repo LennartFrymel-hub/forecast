@@ -1,0 +1,85 @@
+# manager.features.merge_data_and_covariates { #spotforecast2_safe.manager.features.merge_data_and_covariates }
+
+```python
+manager.features.merge_data_and_covariates(
+    data,
+    exogenous_features,
+    target_columns,
+    exog_features,
+    start,
+    end,
+    cov_end,
+    forecast_horizon,
+    cast_dtype='float32',
+)
+```
+
+Merge target data with exogenous features and split into train/predict slices.
+
+Performs an inner join of the selected *target_columns* from *data* with
+the selected *exog_features* from *exogenous_features* over the training
+window ``[start, end]``.  A separate prediction covariate slice
+``(end+1h, cov_end]`` is also returned for use during inference.
+
+String timestamps are converted to UTC-aware
+:class:`~pandas.Timestamp` objects automatically.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name               | Type                                                                                    | Description                                                                                                                                                   | Default     |
+|--------------------|-----------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| data               | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                          | DataFrame containing one or more target time series with a tz-aware :class:`~pandas.DatetimeIndex`.                                                           | _required_  |
+| exogenous_features | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                          | DataFrame with all exogenous feature columns, covering at least the window ``[start, cov_end]``.                                                              | _required_  |
+| target_columns     | [List](`typing.List`)\[[str](`str`)\]                                                   | Column names of the target variables to keep from *data*.                                                                                                     | _required_  |
+| exog_features      | [List](`typing.List`)\[[str](`str`)\]                                                   | Column names of the exogenous features to include in the merged output and the prediction slice.                                                              | _required_  |
+| start              | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Inclusive start of the training window.  String values are parsed with ``utc=True``.                                                                          | _required_  |
+| end                | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Inclusive end of the training window.  String values are parsed with ``utc=True``.                                                                            | _required_  |
+| cov_end            | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Inclusive end of the covariate (forecast) window.  String values are parsed with ``utc=True``.                                                                | _required_  |
+| forecast_horizon   | [int](`int`)                                                                            | Number of forecast steps ahead (informational; used by calling code to validate slice length).                                                                | _required_  |
+| cast_dtype         | [Optional](`typing.Optional`)\[[str](`str`)\]                                           | NumPy dtype string applied to the merged training DataFrame via :meth:`~pandas.DataFrame.astype`.  Pass ``None`` to skip casting.  Defaults to ``"float32"``. | `'float32'` |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                                                      | Description                                                                                                      |
+|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                                                                                            | Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: A three-tuple                                                   |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                                                                                            | ``(data_with_exog, exo_tmp, exo_pred)`` where:                                                                   |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                                                                                            | - **data_with_exog** — training-window DataFrame with target and exogenous columns merged (inner join on index). |
+|        | [Tuple](`typing.Tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | - **exo_tmp** — full exogenous slice over ``[start, end]`` (all columns, not just *exog_features*).              |
+|        | [Tuple](`typing.Tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | - **exo_pred** — forecast-window exogenous slice over ``(end+1h, cov_end]`` (all columns).                       |
+
+## Examples {.doc-section .doc-section-examples}
+
+Merge a toy target series with calendar features over a 3-day window:
+
+```{python}
+import numpy as np
+import pandas as pd
+from spotforecast2_safe.manager.features import merge_data_and_covariates
+
+idx = pd.date_range("2024-01-01", periods=120, freq="h", tz="UTC")
+data = pd.DataFrame({"load": np.random.default_rng(42).normal(100, 10, 120)}, index=idx)
+exog = pd.DataFrame(
+    {"hour_sin": np.sin(2 * np.pi * idx.hour / 24),
+     "hour_cos": np.cos(2 * np.pi * idx.hour / 24)},
+    index=idx,
+)
+
+start = pd.Timestamp("2024-01-01 00:00", tz="UTC")
+end   = pd.Timestamp("2024-01-04 23:00", tz="UTC")  # 96 h training
+cov_end = pd.Timestamp("2024-01-05 23:00", tz="UTC")  # 24 h forecast
+
+merged, exo_train, exo_pred = merge_data_and_covariates(
+    data=data,
+    exogenous_features=exog,
+    target_columns=["load"],
+    exog_features=["hour_sin", "hour_cos"],
+    start=start,
+    end=end,
+    cov_end=cov_end,
+    forecast_horizon=24,
+)
+print("merged shape:   ", merged.shape)
+print("exo_train shape:", exo_train.shape)
+print("exo_pred shape: ", exo_pred.shape)
+```
