@@ -1,7 +1,7 @@
 # preprocessing.curate_data.reset_index { #spotforecast2_safe.preprocessing.curate_data.reset_index }
 
 ```python
-preprocessing.curate_data.reset_index(df, index_name='DateTime')
+preprocessing.curate_data.reset_index(df, index_name='DateTime', timezone='UTC')
 ```
 
 Resets the index of the dataframe and assigns a name to the index column.
@@ -12,6 +12,7 @@ Resets the index of the dataframe and assigns a name to the index column.
 |------------|------------------------------------------------|--------------------------------------------------------------------------------|--------------|
 | df         | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The input dataframe with a datetime index.                                     | _required_   |
 | index_name | [str](`str`)                                   | The name to assign to the index column after resetting. Default is "DateTime". | `'DateTime'` |
+| timezone   | [str](`str`)                                   | The timezone to localize the index to if it is naive. Default is "UTC".        | `'UTC'`      |
 
 ## Returns {.doc-section .doc-section-returns}
 

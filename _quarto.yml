@@ -249,6 +249,17 @@ website:
                   - text: "load_iteration"
                     file: docs/reference/manager.trainer.load_iteration.qmd
 
+              - section: "Exogenous Features"
+                contents:
+                  - text: "get_weather_features"
+                    file: docs/reference/manager.exo.weather.get_weather_features.qmd
+                  - text: "get_calendar_features"
+                    file: docs/reference/manager.exo.calendar.get_calendar_features.qmd
+                  - text: "get_day_night_features"
+                    file: docs/reference/manager.exo.calendar.get_day_night_features.qmd
+                  - text: "get_holiday_features"
+                    file: docs/reference/manager.exo.calendar.get_holiday_features.qmd
+
           - section: "Utils"
             contents:
               - text: "Overview"
@@ -512,6 +523,10 @@ quartodoc:
         - manager.models.forecaster_recursive_xgb
         - manager.persistence
         - manager.tools
+        - manager.exo.weather.get_weather_features
+        - manager.exo.calendar.get_calendar_features
+        - manager.exo.calendar.get_day_night_features
+        - manager.exo.calendar.get_holiday_features
 
     # ── Utils ─────────────────────────────────────────────────────────────────
     - title: "Utils"

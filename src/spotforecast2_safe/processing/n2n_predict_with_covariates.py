@@ -57,7 +57,6 @@ Examples:
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
-import numpy as np
 import pandas as pd
 from astral import LocationInfo
 from lightgbm import LGBMRegressor
@@ -70,8 +69,6 @@ except ImportError:  # pragma: no cover - fallback when tqdm is not installed
 
 from spotforecast2_safe.data.fetch_data import (
     fetch_data,
-    fetch_holiday_data,
-    fetch_weather_data,
 )
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 from spotforecast2_safe.forecaster.utils import predict_multivariate
@@ -79,8 +76,6 @@ from spotforecast2_safe.preprocessing import RollingFeatures
 from spotforecast2_safe.preprocessing.curate_data import (
     agg_and_resample_data,
     basic_ts_checks,
-    curate_holidays,
-    curate_weather,
     get_start_end,
 )
 from spotforecast2_safe.preprocessing.imputation import get_missing_weights
@@ -91,281 +86,32 @@ from spotforecast2_safe.manager.persistence import (
     _load_forecasters,
     _model_directory_exists,
 )
+from spotforecast2_safe.manager.exo.weather import get_weather_features
+from spotforecast2_safe.manager.exo.calendar import (
+    get_calendar_features,
+    get_day_night_features,
+    get_holiday_features,
+)
 
 try:
     from feature_engine.creation import CyclicalFeatures
-    from feature_engine.datetime import DatetimeFeatures
-    from feature_engine.timeseries.forecasting import WindowFeatures
 except ImportError:
     raise ImportError(
         "feature_engine is required. Install with: pip install feature-engine"
     )
 
-try:
-    from astral.sun import sun
-except ImportError:
-    raise ImportError("astral is required. Install with: pip install astral")
-
 
 # ============================================================================
 # Helper Functions for Feature Engineering
+# (public implementations live in spotforecast2_safe.manager.exo)
 # ============================================================================
 
-
-def _get_weather_features(
-    data: pd.DataFrame,
-    start: Union[str, pd.Timestamp],
-    cov_end: Union[str, pd.Timestamp],
-    forecast_horizon: int,
-    latitude: float = 51.5136,
-    longitude: float = 7.4653,
-    timezone: str = "UTC",
-    freq: str = "h",
-    window_periods: Optional[List[str]] = None,
-    window_functions: Optional[List[str]] = None,
-    fallback_on_failure: bool = True,
-    cached: bool = True,
-    verbose: bool = False,
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Fetch and process weather data with rolling window features.
-
-    Args:
-        data: Time series DataFrame for validation.
-        start: Start date for weather data.
-        cov_end: End date for weather data.
-        forecast_horizon: Number of forecast steps.
-        latitude: Latitude of location. Default: 51.5136 (Dortmund).
-        longitude: Longitude of location. Default: 7.4653 (Dortmund).
-        timezone: Timezone for data. Default: "UTC".
-        freq: Frequency of time series. Default: "h".
-        window_periods: Window periods for rolling features. Default: ["1D", "7D"].
-        window_functions: Functions for rolling windows. Default: ["mean", "max", "min"].
-        fallback_on_failure: Use fallback if API fails. Default: True.
-        cached: Use cached data if available. Default: True.
-        verbose: Print progress. Default: False.
-
-    Returns:
-        Tuple of (weather_features, weather_aligned).
-    """
-    if window_periods is None:
-        window_periods = ["1D", "7D"]
-    if window_functions is None:
-        window_functions = ["mean", "max", "min"]
-
-    if isinstance(start, str):
-        start = pd.to_datetime(start, utc=True)
-    if isinstance(cov_end, str):
-        cov_end = pd.to_datetime(cov_end, utc=True)
-
-    if verbose:
-        print("Fetching weather data...")
-
-    weather_df = fetch_weather_data(
-        cov_start=start,
-        cov_end=cov_end,
-        latitude=latitude,
-        longitude=longitude,
-        timezone=timezone,
-        freq=freq,
-        fallback_on_failure=fallback_on_failure,
-        cached=cached,
-    )
-
-    curate_weather(weather_df, data, forecast_horizon=forecast_horizon)
-
-    if verbose:
-        print("Processing weather features...")
-
-    extended_index = pd.date_range(start=start, end=cov_end, freq=freq, tz=timezone)
-    weather_aligned = weather_df.reindex(extended_index, method="ffill")
-
-    weather_columns = weather_aligned.select_dtypes(
-        include=[np.number]
-    ).columns.tolist()
-
-    if len(weather_columns) == 0:
-        raise ValueError("No numeric weather columns found")
-
-    weather_aligned_filled = weather_aligned[weather_columns].copy()
-    if weather_aligned_filled.isnull().any().any():
-        weather_aligned_filled = weather_aligned_filled.bfill()
-        if weather_aligned_filled.isnull().any().any():
-            raise ValueError("Missing values in weather data could not be filled")
-
-    wf_transformer = WindowFeatures(
-        variables=weather_columns,
-        window=window_periods,
-        functions=window_functions,
-        freq=freq,
-    )
-
-    weather_features = wf_transformer.fit_transform(weather_aligned_filled)
-
-    if weather_features.isnull().any().any():
-        weather_features = weather_features.bfill()
-        if weather_features.isnull().any().any():
-            raise ValueError("Missing values in weather features could not be filled")
-
-    if verbose:
-        print(f"Weather features shape: {weather_features.shape}")
-
-    return weather_features, weather_aligned
-
-
-def _get_calendar_features(
-    start: Union[str, pd.Timestamp],
-    cov_end: Union[str, pd.Timestamp],
-    freq: str = "h",
-    timezone: str = "UTC",
-    features_to_extract: Optional[List[str]] = None,
-) -> pd.DataFrame:
-    """Create calendar-based features for a time range.
-
-    Args:
-        start: Start date.
-        cov_end: End date.
-        freq: Frequency. Default: "h".
-        timezone: Timezone. Default: "UTC".
-        features_to_extract: Features to extract. Default: ["month", "week", "day_of_week", "hour"].
-
-    Returns:
-        DataFrame with calendar features.
-    """
-    if features_to_extract is None:
-        features_to_extract = ["month", "week", "day_of_week", "hour"]
-
-    if isinstance(start, str):
-        start = pd.to_datetime(start, utc=True)
-    if isinstance(cov_end, str):
-        cov_end = pd.to_datetime(cov_end, utc=True)
-
-    calendar_transformer = DatetimeFeatures(
-        variables="index",
-        features_to_extract=features_to_extract,
-        drop_original=True,
-    )
-
-    extended_index = pd.date_range(start=start, end=cov_end, freq=freq, tz=timezone)
-    extended_data = pd.DataFrame(index=extended_index)
-    extended_data["dummy"] = 0
-
-    return calendar_transformer.fit_transform(extended_data)[features_to_extract]
-
-
-def _get_day_night_features(
-    start: Union[str, pd.Timestamp],
-    cov_end: Union[str, pd.Timestamp],
-    location: LocationInfo,
-    freq: str = "h",
-    timezone: str = "UTC",
-) -> pd.DataFrame:
-    """Create day/night features using sunrise and sunset times.
-
-    Args:
-        start: Start date.
-        cov_end: End date.
-        location: Astral LocationInfo object.
-        freq: Frequency. Default: "h".
-        timezone: Timezone. Default: "UTC".
-
-    Returns:
-        DataFrame with sunrise/sunset and daylight features.
-    """
-    if isinstance(start, str):
-        start = pd.to_datetime(start, utc=True)
-    if isinstance(cov_end, str):
-        cov_end = pd.to_datetime(cov_end, utc=True)
-
-    extended_index = pd.date_range(start=start, end=cov_end, freq=freq, tz=timezone)
-
-    # Cache sunrise and sunset times per unique calendar date to avoid
-    # recomputing them for every timestamp in the extended_index.
-    normalized_dates = extended_index.normalize()
-    unique_dates = normalized_dates.unique()
-
-    sunrise_map = {}
-    sunset_map = {}
-    for d in unique_dates:
-        s = sun(location.observer, date=d, tzinfo=location.timezone)
-        sunrise_map[d] = s["sunrise"]
-        sunset_map[d] = s["sunset"]
-
-    sunrise_series = pd.Series(
-        [sunrise_map[d] for d in normalized_dates],
-        index=extended_index,
-    )
-    sunset_series = pd.Series(
-        [sunset_map[d] for d in normalized_dates],
-        index=extended_index,
-    )
-
-    sunrise_hour = sunrise_series.dt.round("h").dt.hour
-    sunset_hour = sunset_series.dt.round("h").dt.hour
-
-    sun_light_features = pd.DataFrame(
-        {
-            "sunrise_hour": sunrise_hour,
-            "sunset_hour": sunset_hour,
-        }
-    )
-    sun_light_features["daylight_hours"] = (
-        sun_light_features["sunset_hour"] - sun_light_features["sunrise_hour"]
-    )
-    sun_light_features["is_daylight"] = np.where(
-        (extended_index.hour >= sun_light_features["sunrise_hour"])
-        & (extended_index.hour < sun_light_features["sunset_hour"]),
-        1,
-        0,
-    )
-
-    return sun_light_features
-
-
-def _get_holiday_features(
-    data: pd.DataFrame,
-    start: Union[str, pd.Timestamp],
-    cov_end: Union[str, pd.Timestamp],
-    forecast_horizon: int,
-    tz: str = "UTC",
-    freq: str = "h",
-    country_code: str = "DE",
-    state: str = "NW",
-) -> pd.DataFrame:
-    """Fetch and align holiday features to the extended time index.
-
-    Args:
-        data: Target time series for validation.
-        start: Start timestamp.
-        cov_end: End timestamp.
-        forecast_horizon: Number of forecast steps.
-        tz: Timezone. Default: "UTC".
-        freq: Frequency. Default: "h".
-        country_code: Country code. Default: "DE".
-        state: State code. Default: "NW".
-
-    Returns:
-        DataFrame with holiday features.
-    """
-    if isinstance(start, str):
-        start = pd.to_datetime(start, utc=True)
-    if isinstance(cov_end, str):
-        cov_end = pd.to_datetime(cov_end, utc=True)
-
-    holiday_df = fetch_holiday_data(
-        start=start,
-        end=cov_end,
-        tz=tz,
-        freq=freq,
-        country_code=country_code,
-        state=state,
-    )
-
-    curate_holidays(holiday_df, data, forecast_horizon=forecast_horizon)
-
-    extended_index = pd.date_range(start=start, end=cov_end, freq=freq, tz=tz)
-    holiday_features = holiday_df.reindex(extended_index, fill_value=0).astype(int)
-
-    return holiday_features
+# Private aliases kept for backward compatibility with existing callers
+# that import the private names from this module.
+_get_weather_features = get_weather_features
+_get_calendar_features = get_calendar_features
+_get_day_night_features = get_day_night_features
+_get_holiday_features = get_holiday_features
 
 
 def _apply_cyclical_encoding(

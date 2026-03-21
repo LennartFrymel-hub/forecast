@@ -1,0 +1,89 @@
+# manager.exo.weather.get_weather_features { #spotforecast2_safe.manager.exo.weather.get_weather_features }
+
+```python
+manager.exo.weather.get_weather_features(
+    data,
+    start,
+    cov_end,
+    forecast_horizon,
+    latitude=51.5136,
+    longitude=7.4653,
+    timezone='UTC',
+    freq='h',
+    window_periods=None,
+    window_functions=None,
+    fallback_on_failure=True,
+    cached=True,
+    verbose=False,
+)
+```
+
+Fetch weather data and compute rolling-window features.
+
+Downloads weather observations/forecasts for the requested period,
+aligns them to a regular ``freq`` grid, and applies
+:class:`~feature_engine.timeseries.forecasting.WindowFeatures` to
+produce rolling-mean, -max, and -min features over configurable
+windows.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name                | Type                                                                                    | Description                                                                                                                                                           | Default    |
+|---------------------|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| data                | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                          | Reference time series DataFrame used only for validation (shape / temporal coverage checks via :func:`~spotforecast2_safe.preprocessing.curate_data.curate_weather`). | _required_ |
+| start               | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Start of the feature window.  String values are parsed with ``utc=True``.                                                                                             | _required_ |
+| cov_end             | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Inclusive end of the feature window (must cover the full forecast horizon beyond ``end``).  String values are parsed with ``utc=True``.                               | _required_ |
+| forecast_horizon    | [int](`int`)                                                                            | Number of forecast steps; passed to :func:`~spotforecast2_safe.preprocessing.curate_data.curate_weather` for validation.                                              | _required_ |
+| latitude            | [float](`float`)                                                                        | Latitude of the target location in decimal degrees. Defaults to ``51.5136`` (Dortmund, Germany).                                                                      | `51.5136`  |
+| longitude           | [float](`float`)                                                                        | Longitude of the target location in decimal degrees. Defaults to ``7.4653`` (Dortmund, Germany).                                                                      | `7.4653`   |
+| timezone            | [str](`str`)                                                                            | Timezone label applied to the generated index. Defaults to ``"UTC"``.                                                                                                 | `'UTC'`    |
+| freq                | [str](`str`)                                                                            | Pandas-compatible frequency string for the output index. Defaults to ``"h"`` (hourly).                                                                                | `'h'`      |
+| window_periods      | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\]                  | Rolling window sizes passed to :class:`~feature_engine.timeseries.forecasting.WindowFeatures`. Defaults to ``["1D", "7D"]``.                                          | `None`     |
+| window_functions    | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\]                  | Aggregation functions applied over each window. Defaults to ``["mean", "max", "min"]``.                                                                               | `None`     |
+| fallback_on_failure | [bool](`bool`)                                                                          | If ``True``, use locally cached fallback data when the weather API is unavailable.  Defaults to ``True``.                                                             | `True`     |
+| cached              | [bool](`bool`)                                                                          | If ``True``, read from the local weather cache before issuing a network request.  Defaults to ``True``.                                                               | `True`     |
+| verbose             | [bool](`bool`)                                                                          | If ``True``, print progress messages to stdout. Defaults to ``False``.                                                                                                | `False`    |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                      | Description                                                                                                            |
+|--------|---------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                                            | tuple[pd.DataFrame, pd.DataFrame]: A two-element tuple:                                                                |
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                                            | - **weather_features** – DataFrame with rolling-window weather features aligned to the ``[start, cov_end]`` index.     |
+|        | [Tuple](`typing.Tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | - **weather_aligned** – Raw weather DataFrame reindexed to the same ``[start, cov_end]`` hourly grid (forward-filled). |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                                                    |
+|--------|----------------------------|------------------------------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If no numeric weather columns are found, or if missing values cannot be filled after fetching. |
+
+Examples:
+
+    ```{python}
+    import pandas as pd
+    from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
+    from spotforecast2_safe.preprocessing.curate_data import (
+        agg_and_resample_data,
+        get_start_end,
+    )
+    from spotforecast2_safe.manager.exo.weather import get_weather_features
+
+    # Load and resample demo data
+    data = fetch_data(filename=str(get_package_data_home() / "demo10.csv"))
+    data = agg_and_resample_data(data, verbose=False)
+    start, end, _, cov_end = get_start_end(data=data, forecast_horizon=24, verbose=False)
+
+    # Fetch weather features for one week of data
+    week_start = pd.Timestamp("2020-06-01", tz="UTC")
+    week_end = pd.Timestamp("2020-06-08", tz="UTC")
+    weather_features, weather_aligned = get_weather_features(
+        data=data,
+        start=week_start,
+        cov_end=week_end,
+        forecast_horizon=24,
+        verbose=False,
+    )
+    print("weather_features shape:", weather_features.shape)
+    print("weather_aligned shape:", weather_aligned.shape)
+    ```

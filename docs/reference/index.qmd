@@ -113,6 +113,10 @@ High-level training, prediction, and model persistence orchestration.
 | [manager.models.forecaster_recursive_xgb](manager.models.forecaster_recursive_xgb.qmd#spotforecast2_safe.manager.models.forecaster_recursive_xgb) | Recursive forecaster model wrappers for different estimators. |
 | [manager.persistence](manager.persistence.qmd#spotforecast2_safe.manager.persistence) |  |
 | [manager.tools](manager.tools.qmd#spotforecast2_safe.manager.tools) | Utility tools for command-line interface parsing. |
+| [manager.exo.weather.get_weather_features](manager.exo.weather.get_weather_features.qmd#spotforecast2_safe.manager.exo.weather.get_weather_features) | Fetch weather data and compute rolling-window features. |
+| [manager.exo.calendar.get_calendar_features](manager.exo.calendar.get_calendar_features.qmd#spotforecast2_safe.manager.exo.calendar.get_calendar_features) | Create calendar-based features for a contiguous time range. |
+| [manager.exo.calendar.get_day_night_features](manager.exo.calendar.get_day_night_features.qmd#spotforecast2_safe.manager.exo.calendar.get_day_night_features) | Create day/night features using astronomical sunrise and sunset times. |
+| [manager.exo.calendar.get_holiday_features](manager.exo.calendar.get_holiday_features.qmd#spotforecast2_safe.manager.exo.calendar.get_holiday_features) | Fetch public-holiday indicators and align them to a regular time grid. |
 
 ## Utils
 
