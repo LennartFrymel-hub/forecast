@@ -90,7 +90,6 @@ class ConfigMulti:
         ```{python}
         import pandas as pd
         from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
-        from spotforecast2_safe import Config # for comparison with default values
         config = ConfigMulti()
         print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
         print(f"Predict size: {config.predict_size}")
@@ -101,14 +100,8 @@ class ConfigMulti:
         config.targets = ["A", "B", "C"]
         print(f"Targets (after setting): {config.targets}")
 
-        # Use default configuration
-        config = Config()
-        print(f"API_COUNTRY_CODE: {config.API_COUNTRY_CODE}")
-        print(f"Predict size: {config.predict_size}")
-        print(f"Random state: {config.random_state}")
-
         # Create custom configuration with targets
-        custom_config = Config(
+        custom_config = ConfigMulti(
             api_country_code='FR',
             predict_size=48,
             random_state=42,
