@@ -1,3 +1,10 @@
+## [0.25.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.25.2...v0.25.3) (2026-03-21)
+
+
+### Bug Fixes
+
+* reset_index ([82dcbad](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/82dcbadb970c2785f009dac7c902e0b95ac52b60))
+
 ## [0.25.3-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.25.2...v0.25.3-rc.1) (2026-03-21)
 
 
