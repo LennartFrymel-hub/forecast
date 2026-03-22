@@ -814,3 +814,239 @@ class TestConfigMultiDerivedAttributes:
         assert cfg.targets == ["X"]
         assert cfg.data_start == ts
         assert cfg.bounds == b
+
+
+# ---------------------------------------------------------------------------
+# Pipeline control attributes: verbose, cache_data, cache_home, data_home,
+# end_train_ts, start_train_ts, n_trials_optuna, n_trials_spotoptim,
+# n_initial_spotoptim, task
+# ---------------------------------------------------------------------------
+
+
+class TestConfigMultiPipelineAttributes:
+    """Tests for the 10 new pipeline-control and tuning attributes."""
+
+    # --- Defaults ---
+
+    def test_verbose_default_is_false(self):
+        assert ConfigMulti().verbose is False
+
+    def test_cache_data_default_is_false(self):
+        assert ConfigMulti().cache_data is False
+
+    def test_cache_home_default_is_none(self):
+        assert ConfigMulti().cache_home is None
+
+    def test_data_home_default_is_none(self):
+        assert ConfigMulti().data_home is None
+
+    def test_end_train_ts_default_is_none(self):
+        assert ConfigMulti().end_train_ts is None
+
+    def test_start_train_ts_default_is_none(self):
+        assert ConfigMulti().start_train_ts is None
+
+    def test_n_trials_optuna_default(self):
+        assert ConfigMulti().n_trials_optuna == 15
+
+    def test_n_trials_spotoptim_default(self):
+        assert ConfigMulti().n_trials_spotoptim == 10
+
+    def test_n_initial_spotoptim_default(self):
+        assert ConfigMulti().n_initial_spotoptim == 5
+
+    def test_task_default_is_lazy(self):
+        assert ConfigMulti().task == "lazy"
+
+    # --- Custom init values ---
+
+    def test_custom_verbose(self):
+        assert ConfigMulti(verbose=True).verbose is True
+
+    def test_custom_cache_data(self):
+        assert ConfigMulti(cache_data=True).cache_data is True
+
+    def test_custom_cache_home(self):
+        cfg = ConfigMulti(cache_home="/tmp/cache")
+        assert cfg.cache_home == "/tmp/cache"
+
+    def test_custom_data_home(self):
+        cfg = ConfigMulti(data_home="/tmp/data")
+        assert cfg.data_home == "/tmp/data"
+
+    def test_custom_end_train_ts(self):
+        ts = pd.Timestamp("2024-12-31", tz="UTC")
+        assert ConfigMulti(end_train_ts=ts).end_train_ts == ts
+
+    def test_custom_start_train_ts(self):
+        ts = pd.Timestamp("2024-01-01", tz="UTC")
+        assert ConfigMulti(start_train_ts=ts).start_train_ts == ts
+
+    def test_custom_n_trials_optuna(self):
+        assert ConfigMulti(n_trials_optuna=50).n_trials_optuna == 50
+
+    def test_custom_n_trials_spotoptim(self):
+        assert ConfigMulti(n_trials_spotoptim=20).n_trials_spotoptim == 20
+
+    def test_custom_n_initial_spotoptim(self):
+        assert ConfigMulti(n_initial_spotoptim=8).n_initial_spotoptim == 8
+
+    def test_custom_task(self):
+        for task in ("lazy", "training", "optuna", "spotoptim"):
+            assert ConfigMulti(task=task).task == task
+
+    # --- In get_params ---
+
+    def test_all_new_attrs_in_get_params(self):
+        p = ConfigMulti().get_params()
+        for key in (
+            "verbose",
+            "cache_data",
+            "cache_home",
+            "data_home",
+            "end_train_ts",
+            "start_train_ts",
+            "n_trials_optuna",
+            "n_trials_spotoptim",
+            "n_initial_spotoptim",
+            "task",
+        ):
+            assert key in p, f"'{key}' missing from get_params()"
+
+    def test_new_attrs_default_values_in_get_params(self):
+        p = ConfigMulti().get_params()
+        assert p["verbose"] is False
+        assert p["cache_data"] is False
+        assert p["cache_home"] is None
+        assert p["data_home"] is None
+        assert p["end_train_ts"] is None
+        assert p["start_train_ts"] is None
+        assert p["n_trials_optuna"] == 15
+        assert p["n_trials_spotoptim"] == 10
+        assert p["n_initial_spotoptim"] == 5
+        assert p["task"] == "lazy"
+
+    def test_custom_values_reflected_in_get_params(self):
+        ts = pd.Timestamp("2023-06-01", tz="UTC")
+        cfg = ConfigMulti(
+            verbose=True,
+            cache_data=True,
+            cache_home="/c",
+            data_home="/d",
+            end_train_ts=ts,
+            start_train_ts=ts,
+            n_trials_optuna=30,
+            n_trials_spotoptim=25,
+            n_initial_spotoptim=10,
+            task="optuna",
+        )
+        p = cfg.get_params()
+        assert p["verbose"] is True
+        assert p["cache_data"] is True
+        assert p["cache_home"] == "/c"
+        assert p["data_home"] == "/d"
+        assert p["end_train_ts"] == ts
+        assert p["start_train_ts"] == ts
+        assert p["n_trials_optuna"] == 30
+        assert p["n_trials_spotoptim"] == 25
+        assert p["n_initial_spotoptim"] == 10
+        assert p["task"] == "optuna"
+
+    # --- set_params ---
+
+    def test_set_params_verbose(self):
+        cfg = ConfigMulti()
+        cfg.set_params(verbose=True)
+        assert cfg.verbose is True
+
+    def test_set_params_cache_data(self):
+        cfg = ConfigMulti()
+        cfg.set_params(cache_data=True)
+        assert cfg.cache_data is True
+
+    def test_set_params_cache_home(self):
+        cfg = ConfigMulti()
+        cfg.set_params(cache_home="/cache")
+        assert cfg.cache_home == "/cache"
+
+    def test_set_params_data_home(self):
+        cfg = ConfigMulti()
+        cfg.set_params(data_home="/data")
+        assert cfg.data_home == "/data"
+
+    def test_set_params_end_train_ts(self):
+        ts = pd.Timestamp("2024-06-30", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.set_params(end_train_ts=ts)
+        assert cfg.end_train_ts == ts
+
+    def test_set_params_start_train_ts(self):
+        ts = pd.Timestamp("2023-07-01", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.set_params(start_train_ts=ts)
+        assert cfg.start_train_ts == ts
+
+    def test_set_params_n_trials_optuna(self):
+        cfg = ConfigMulti()
+        cfg.set_params(n_trials_optuna=100)
+        assert cfg.n_trials_optuna == 100
+
+    def test_set_params_n_trials_spotoptim(self):
+        cfg = ConfigMulti()
+        cfg.set_params(n_trials_spotoptim=50)
+        assert cfg.n_trials_spotoptim == 50
+
+    def test_set_params_n_initial_spotoptim(self):
+        cfg = ConfigMulti()
+        cfg.set_params(n_initial_spotoptim=20)
+        assert cfg.n_initial_spotoptim == 20
+
+    def test_set_params_task(self):
+        cfg = ConfigMulti()
+        cfg.set_params(task="spotoptim")
+        assert cfg.task == "spotoptim"
+
+    def test_set_params_method_chaining(self):
+        cfg = ConfigMulti()
+        result = cfg.set_params(verbose=True, task="training")
+        assert result is cfg
+
+    # --- Direct assignment ---
+
+    def test_direct_assignment_verbose(self):
+        cfg = ConfigMulti()
+        cfg.verbose = True
+        assert cfg.verbose is True
+
+    def test_direct_assignment_end_train_ts(self):
+        ts = pd.Timestamp("2025-01-01", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.end_train_ts = ts
+        assert cfg.end_train_ts == ts
+
+    def test_direct_assignment_start_train_ts(self):
+        ts = pd.Timestamp("2024-01-01", tz="UTC")
+        cfg = ConfigMulti()
+        cfg.start_train_ts = ts
+        assert cfg.start_train_ts == ts
+
+    def test_direct_assignment_task(self):
+        cfg = ConfigMulti()
+        cfg.task = "training"
+        assert cfg.task == "training"
+
+    def test_direct_assignment_n_trials_optuna(self):
+        cfg = ConfigMulti()
+        cfg.n_trials_optuna = 200
+        assert cfg.n_trials_optuna == 200
+
+    # --- Coexistence with existing params ---
+
+    def test_pipeline_attrs_alongside_country_code(self):
+        cfg = ConfigMulti(
+            country_code="FR", verbose=True, task="optuna", n_trials_optuna=20
+        )
+        assert cfg.country_code == "FR"
+        assert cfg.verbose is True
+        assert cfg.task == "optuna"
+        assert cfg.n_trials_optuna == 20
