@@ -1,3 +1,10 @@
+## [0.27.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.26.0...v0.27.0-rc.1) (2026-03-22)
+
+
+### Features
+
+* config_multi extended ([cafce6f](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/cafce6fb525b25d8f1749094c4a94ff36c28396a))
+
 ## [0.26.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.25.5...v0.26.0) (2026-03-21)
 
 
