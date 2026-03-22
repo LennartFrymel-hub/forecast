@@ -16,7 +16,12 @@ from .outlier import (
     get_outliers,
 )
 
-from .imputation import custom_weights, get_missing_weights, WeightFunction
+from .imputation import (
+    apply_imputation,
+    custom_weights,
+    get_missing_weights,
+    WeightFunction,
+)
 from .split import split_abs_train_val_test, split_rel_train_val_test
 from ._differentiator import TimeSeriesDifferentiator
 from ._binner import QuantileBinner
@@ -38,6 +43,7 @@ __all__ = [
     "mark_outliers",
     "manual_outlier_removal",
     "get_outliers",
+    "apply_imputation",
     "custom_weights",
     "get_missing_weights",
     "WeightFunction",

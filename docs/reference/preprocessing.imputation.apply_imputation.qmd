@@ -1,0 +1,69 @@
+# preprocessing.imputation.apply_imputation { #spotforecast2_safe.preprocessing.imputation.apply_imputation }
+
+```python
+preprocessing.imputation.apply_imputation(df_pipeline, config, logger)
+```
+
+Apply imputation to a DataFrame based on the method specified in config.
+
+Supports two strategies:
+
+- ``"weighted"``: forward-fill then backward-fill gaps, then build a
+  :class:`WeightFunction` that down-weights training rows near any gap.
+  Rows inside a gap receive weight 0; the rolling window
+  ``config.window_size`` controls how far the penalty extends.
+- ``"linear"``: apply :class:`LinearlyInterpolateTS` column-by-column.
+
+A diagnostic summary (NaN count before **and** after imputation) is
+always written to the logger.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                                            | Description                                                                                                                                                                                                                                                                                                               | Default    |
+|-------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| df_pipeline | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)  | DataFrame to impute.  Modified in-place for the ``"linear"`` method; a new DataFrame is returned for ``"weighted"`` (via :func:`get_missing_weights`).                                                                                                                                                                    | _required_ |
+| config      | [Any](`typing.Any`)                             | Configuration object that must expose: - ``imputation_method`` (``str``): ``"weighted"`` or ``"linear"``. - ``targets`` (``list[str]``): column names to interpolate   (``"linear"`` method only). - ``window_size`` (``int``): rolling-window size passed to   :func:`get_missing_weights` (``"weighted"`` method only). | _required_ |
+| logger      | [logging](`logging`).[Logger](`logging.Logger`) | Standard-library logger used to emit ``INFO`` and ``WARNING`` messages.                                                                                                                                                                                                                                                   | _required_ |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                                       | Description                                                                                                                                                              |
+|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                                                                                             | tuple[pd.DataFrame, WeightFunction \| None]: A two-element tuple:                                                                                                        |
+|        | [WeightFunction](`spotforecast2_safe.preprocessing.imputation.WeightFunction`) \| None                                                                     | - **df_pipeline** – imputed DataFrame with no NaN values (when the chosen method can fill all gaps).                                                                     |
+|        | [tuple](`tuple`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`), [WeightFunction](`spotforecast2_safe.preprocessing.imputation.WeightFunction`) \| None\] | - **weight_func** – a :class:`WeightFunction` instance ready to be passed to a forecaster's ``weight_func`` parameter, or ``None`` when ``"linear"`` imputation is used. |
+
+## Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                                 |
+|--------|----------------------------|-----------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If ``config.imputation_method`` is neither ``"weighted"`` nor ``"linear"``. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+import logging
+import pandas as pd
+import numpy as np
+from types import SimpleNamespace
+from spotforecast2_safe.preprocessing.imputation import apply_imputation
+
+# Build a small DataFrame with deliberate gaps
+idx = pd.date_range("2024-01-01", periods=10, freq="h")
+df = pd.DataFrame(
+    {"A": [1.0, 2.0, None, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]},
+    index=idx,
+)
+
+# Minimal config and stdlib logger
+config = SimpleNamespace(
+    imputation_method="linear",
+    targets=["A"],
+    window_size=3,
+)
+logger = logging.getLogger("demo")
+
+imputed, weight_func = apply_imputation(df, config, logger)
+print(imputed["A"].tolist())
+print(weight_func)  # None for linear method
+```

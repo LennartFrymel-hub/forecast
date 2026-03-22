@@ -2,3 +2,70 @@
 
 `manager.persistence`
 
+
+
+## Functions
+
+| Name | Description |
+| --- | --- |
+| [save_forecaster](#spotforecast2_safe.manager.persistence.save_forecaster) | Save a single trained forecaster to disk using joblib. |
+
+### save_forecaster { #spotforecast2_safe.manager.persistence.save_forecaster }
+
+```python
+manager.persistence.save_forecaster(
+    forecaster,
+    model_dir,
+    target,
+    task_name='',
+    verbose=False,
+)
+```
+
+Save a single trained forecaster to disk using joblib.
+
+Public single-model counterpart to :func:`_save_forecasters`.  When
+``task_name`` is provided the file is named
+``{task_name}_{target}.joblib``; otherwise the standard convention
+``forecaster_{target}.joblib`` (identical to :func:`_get_model_filepath`)
+is used.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type                                                            | Description                                                                                                         | Default    |
+|------------|-----------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|------------|
+| forecaster | [object](`object`)                                              | Trained forecaster object (any joblib-serialisable model).                                                          | _required_ |
+| model_dir  | [Union](`typing.Union`)\[[str](`str`), [Path](`pathlib.Path`)\] | Directory to save the model.  Created if it doesn't exist.                                                          | _required_ |
+| target     | [str](`str`)                                                    | Target variable name used in the filename.                                                                          | _required_ |
+| task_name  | [str](`str`)                                                    | Optional task identifier prepended to the filename (e.g. ``"task_1_lazy"``).  Defaults to ``""`` (standard naming). | `''`       |
+| verbose    | [bool](`bool`)                                                  | Print a confirmation message.  Default: ``False``.                                                                  | `False`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                   | Description                       |
+|--------|------------------------|-----------------------------------|
+| Path   | [Path](`pathlib.Path`) | Full filepath of the saved model. |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                 | Description                             |
+|--------|----------------------|-----------------------------------------|
+|        | [OSError](`OSError`) | If the model cannot be written to disk. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+>>> import tempfile
+>>> from pathlib import Path
+>>> from sklearn.linear_model import LinearRegression
+>>> from spotforecast2_safe.manager.persistence import save_forecaster
+>>> model = LinearRegression()
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     path = save_forecaster(model, tmpdir, "power")
+...     print(path.name)
+forecaster_power.joblib
+>>> with tempfile.TemporaryDirectory() as tmpdir:
+...     path = save_forecaster(model, tmpdir, "power", task_name="task_1")
+...     print(path.name)
+task_1_power.joblib
+```

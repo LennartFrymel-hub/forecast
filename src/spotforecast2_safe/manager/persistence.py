@@ -266,4 +266,3 @@ def save_forecaster(
     except Exception as e:
         raise OSError(f"Failed to save model for {target}: {e}")
     return filepath
-
