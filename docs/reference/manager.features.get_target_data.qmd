@@ -1,0 +1,123 @@
+# manager.features.get_target_data { #spotforecast2_safe.manager.features.get_target_data }
+
+```python
+manager.features.get_target_data(
+    target,
+    df_pipeline,
+    config,
+    data_with_exog=None,
+    exog_feature_names=None,
+    exo_pred=None,
+)
+```
+
+Extract the training series and exogenous slices for one target column.
+
+Clips the target column of *df_pipeline* to the training window defined by
+``config.start_train_ts`` and ``config.end_train_ts``.  When exogenous
+features are enabled (``config.use_exogenous_features is True``) and
+*data_with_exog* is provided, the matching exogenous training slice and
+forecast-horizon slice are also returned; otherwise both are ``None``.
+
+This function is the canonical way to extract per-target data from the
+shared pipeline state so that outlier removal, imputation, and feature
+engineering are applied consistently across all forecasting tasks.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name               | Type                                                                            | Description                                                                                                                                                                                                                                                                                                                                                                                                       | Default    |
+|--------------------|---------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| target             | [str](`str`)                                                                    | Name of the target column to extract from *df_pipeline*.                                                                                                                                                                                                                                                                                                                                                          | _required_ |
+| df_pipeline        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)                                  | DataFrame with a tz-aware :class:`~pandas.DatetimeIndex` containing all target columns produced by the preprocessing pipeline.                                                                                                                                                                                                                                                                                    | _required_ |
+| config             | \'ConfigMulti\'                                                                 | Pipeline configuration object.  Must have the following attributes set before calling this function:  - ``start_train_ts`` — inclusive start of the training window   (:class:`~pandas.Timestamp`, tz-aware). - ``end_train_ts`` — inclusive end of the training window   (:class:`~pandas.Timestamp`, tz-aware). - ``use_exogenous_features`` — ``bool`` flag controlling whether   exogenous features are used. | _required_ |
+| data_with_exog     | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Merged DataFrame of target and exogenous columns covering at least ``[config.start_train_ts, config.end_train_ts]``. Required when ``config.use_exogenous_features`` is ``True``. Pass ``None`` (default) to skip exogenous slicing.                                                                                                                                                                              | `None`     |
+| exog_feature_names | [Optional](`typing.Optional`)\[[List](`typing.List`)\[[str](`str`)\]\]          | Column names to select from *data_with_exog* and *exo_pred*.  Required when *data_with_exog* is not ``None``. Pass ``None`` (default) when exogenous features are disabled.                                                                                                                                                                                                                                       | `None`     |
+| exo_pred           | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Exogenous feature DataFrame covering the forecast horizon ``(config.end_train_ts, config.cov_end]``.  Required when *data_with_exog* is not ``None``.  Pass ``None`` (default) when exogenous features are disabled.                                                                                                                                                                                              | `None`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                                                                                                                                                                                                  | Description                                                                                                                                                                                |
+|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [pd](`pandas`).[Series](`pandas.Series`)                                                                                                                                                                                              | Tuple[pd.Series, Optional[pd.DataFrame], Optional[pd.DataFrame]]:                                                                                                                          |
+|        | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\]                                                                                                                                                       | A three-tuple ``(y_train, exog_train, exog_future)`` where:                                                                                                                                |
+|        | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\]                                                                                                                                                       | - **y_train** — 1-D Series with the target values over the training window ``[config.start_train_ts, config.end_train_ts]``, squeezed to a plain :class:`~pandas.Series`.                  |
+|        | [Tuple](`typing.Tuple`)\[[pd](`pandas`).[Series](`pandas.Series`), [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\], [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\]\] | - **exog_train** — DataFrame of selected exogenous features over the training window, cast to ``float32``.  ``None`` when exogenous features are disabled or *data_with_exog* is ``None``. |
+|        | [Tuple](`typing.Tuple`)\[[pd](`pandas`).[Series](`pandas.Series`), [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\], [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\]\] | - **exog_future** — DataFrame of selected exogenous features covering the forecast horizon, cast to ``float32``.  ``None`` when exogenous features are disabled or *exo_pred* is ``None``. |
+
+## Examples {.doc-section .doc-section-examples}
+
+Extract training data for a single target without exogenous features:
+
+```{python}
+import pandas as pd
+import numpy as np
+from spotforecast2_safe.manager.features import get_target_data
+from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
+
+idx = pd.date_range("2024-01-01", periods=168, freq="h", tz="UTC")
+df_pipeline = pd.DataFrame({"load": np.random.default_rng(0).normal(100, 10, 168)}, index=idx)
+
+config = ConfigMulti(
+    targets=["load"],
+    use_exogenous_features=False,
+)
+config.start_train_ts = pd.Timestamp("2024-01-01 00:00", tz="UTC")
+config.end_train_ts   = pd.Timestamp("2024-01-07 23:00", tz="UTC")
+
+y_train, exog_train, exog_future = get_target_data(
+    target="load",
+    df_pipeline=df_pipeline,
+    config=config,
+)
+print(f"y_train length: {len(y_train)}")
+print(f"exog_train:     {exog_train}")
+print(f"exog_future:    {exog_future}")
+```
+
+Extract training data with exogenous features enabled:
+
+```{python}
+import pandas as pd
+import numpy as np
+from spotforecast2_safe.manager.features import get_target_data
+from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
+
+rng = np.random.default_rng(1)
+idx_train = pd.date_range("2024-01-01", periods=168, freq="h", tz="UTC")
+idx_future = pd.date_range("2024-01-08", periods=24, freq="h", tz="UTC")
+
+df_pipeline = pd.DataFrame({"load": rng.normal(100, 10, 168)}, index=idx_train)
+
+data_with_exog = pd.DataFrame(
+    {
+        "load": df_pipeline["load"],
+        "hour_sin": np.sin(2 * np.pi * idx_train.hour / 24),
+        "hour_cos": np.cos(2 * np.pi * idx_train.hour / 24),
+    },
+    index=idx_train,
+)
+exo_pred = pd.DataFrame(
+    {
+        "hour_sin": np.sin(2 * np.pi * idx_future.hour / 24),
+        "hour_cos": np.cos(2 * np.pi * idx_future.hour / 24),
+    },
+    index=idx_future,
+)
+
+config = ConfigMulti(targets=["load"], use_exogenous_features=True)
+config.start_train_ts = pd.Timestamp("2024-01-01 00:00", tz="UTC")
+config.end_train_ts   = pd.Timestamp("2024-01-07 23:00", tz="UTC")
+
+y_train, exog_train, exog_future = get_target_data(
+    target="load",
+    df_pipeline=df_pipeline,
+    config=config,
+    data_with_exog=data_with_exog,
+    exog_feature_names=["hour_sin", "hour_cos"],
+    exo_pred=exo_pred,
+)
+print(f"y_train length:     {len(y_train)}")
+print(f"exog_train shape:   {exog_train.shape}")
+print(f"exog_future shape:  {exog_future.shape}")
+print(f"exog_train dtype:   {exog_train.dtypes.iloc[0]}")
+```

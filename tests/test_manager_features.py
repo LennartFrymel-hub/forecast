@@ -8,6 +8,7 @@ Covers:
 - create_interaction_features: poly column naming, no-weather case, holiday column
 - select_exogenous_features: default selection, optional switches, deduplication
 - merge_data_and_covariates: train/pred split, inner join, cast_dtype, string timestamps
+- get_target_data: y_train slice, exog disabled/enabled, dtype, missing target
 - Package-level imports from spotforecast2_safe.manager
 - Backward-compatible private aliases in n2n_predict_with_covariates
 """
@@ -16,9 +17,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from spotforecast2_safe.manager.configurator.config_multi import ConfigMulti
 from spotforecast2_safe.manager.features import (
     apply_cyclical_encoding,
     create_interaction_features,
+    get_target_data,
     merge_data_and_covariates,
     select_exogenous_features,
 )
@@ -534,3 +537,363 @@ class TestBackwardCompatibleAliases:
         assert self.mod._create_interaction_features is create_interaction_features
         assert self.mod._select_exogenous_features is select_exogenous_features
         assert self.mod._merge_data_and_covariates is merge_data_and_covariates
+
+
+# =============================================================================
+# Shared fixtures for get_target_data
+# =============================================================================
+
+
+@pytest.fixture
+def pipeline_idx():
+    """168-hour (7-day) UTC DatetimeIndex starting 2024-01-01."""
+    return pd.date_range("2024-01-01", periods=168, freq="h", tz="UTC")
+
+
+@pytest.fixture
+def df_pipeline(pipeline_idx):
+    """Two-column target DataFrame over 168 hours."""
+    rng = np.random.default_rng(42)
+    return pd.DataFrame(
+        {"load": rng.normal(100, 10, 168), "temp_load": rng.normal(50, 5, 168)},
+        index=pipeline_idx,
+    )
+
+
+@pytest.fixture
+def base_config(pipeline_idx):
+    """ConfigMulti with training window covering the full 168-hour index."""
+    cfg = ConfigMulti(targets=["load"], use_exogenous_features=False)
+    cfg.start_train_ts = pipeline_idx[0]
+    cfg.end_train_ts = pipeline_idx[-1]
+    return cfg
+
+
+@pytest.fixture
+def exog_idx(pipeline_idx):
+    """Future 24-hour index starting right after pipeline_idx."""
+    return pd.date_range("2024-01-08", periods=24, freq="h", tz="UTC")
+
+
+@pytest.fixture
+def data_with_exog_df(pipeline_idx, df_pipeline):
+    """Merged DataFrame that includes target and two exogenous columns."""
+    return pd.DataFrame(
+        {
+            "load": df_pipeline["load"],
+            "hour_sin": np.sin(2 * np.pi * pipeline_idx.hour / 24),
+            "hour_cos": np.cos(2 * np.pi * pipeline_idx.hour / 24),
+        },
+        index=pipeline_idx,
+    )
+
+
+@pytest.fixture
+def exo_pred_df(exog_idx):
+    """Future exogenous DataFrame for the 24-hour forecast horizon."""
+    return pd.DataFrame(
+        {
+            "hour_sin": np.sin(2 * np.pi * exog_idx.hour / 24),
+            "hour_cos": np.cos(2 * np.pi * exog_idx.hour / 24),
+        },
+        index=exog_idx,
+    )
+
+
+# =============================================================================
+# TestGetTargetDataNoExog
+# =============================================================================
+
+
+class TestGetTargetDataNoExog:
+    """get_target_data with use_exogenous_features=False."""
+
+    def test_returns_tuple_of_three(self, df_pipeline, base_config):
+        result = get_target_data("load", df_pipeline, base_config)
+        assert isinstance(result, tuple) and len(result) == 3
+
+    def test_y_train_is_series(self, df_pipeline, base_config):
+        y_train, _, _ = get_target_data("load", df_pipeline, base_config)
+        assert isinstance(y_train, pd.Series)
+
+    def test_y_train_length(self, df_pipeline, base_config):
+        y_train, _, _ = get_target_data("load", df_pipeline, base_config)
+        assert len(y_train) == 168
+
+    def test_y_train_values_match_pipeline(self, df_pipeline, base_config):
+        y_train, _, _ = get_target_data("load", df_pipeline, base_config)
+        expected = df_pipeline["load"].loc[
+            base_config.start_train_ts : base_config.end_train_ts
+        ]
+        pd.testing.assert_series_equal(y_train, expected)
+
+    def test_exog_train_is_none(self, df_pipeline, base_config):
+        _, exog_train, _ = get_target_data("load", df_pipeline, base_config)
+        assert exog_train is None
+
+    def test_exog_future_is_none(self, df_pipeline, base_config):
+        _, _, exog_future = get_target_data("load", df_pipeline, base_config)
+        assert exog_future is None
+
+    def test_partial_training_window(self, df_pipeline, pipeline_idx):
+        """Training window shorter than the full index."""
+        cfg = ConfigMulti(targets=["load"], use_exogenous_features=False)
+        cfg.start_train_ts = pipeline_idx[10]
+        cfg.end_train_ts = pipeline_idx[72]
+        y_train, _, _ = get_target_data("load", df_pipeline, cfg)
+        assert len(y_train) == 63  # 72 - 10 + 1
+
+    def test_second_target_column(self, df_pipeline, pipeline_idx):
+        """Works for a target column other than the first."""
+        cfg = ConfigMulti(targets=["temp_load"], use_exogenous_features=False)
+        cfg.start_train_ts = pipeline_idx[0]
+        cfg.end_train_ts = pipeline_idx[-1]
+        y_train, _, _ = get_target_data("temp_load", df_pipeline, cfg)
+        pd.testing.assert_series_equal(
+            y_train,
+            df_pipeline["temp_load"].loc[cfg.start_train_ts : cfg.end_train_ts],
+        )
+
+    def test_y_train_squeezed(self, df_pipeline, base_config):
+        """Result of squeeze() must be a Series, not a DataFrame."""
+        y_train, _, _ = get_target_data("load", df_pipeline, base_config)
+        assert y_train.ndim == 1
+
+    def test_missing_target_raises(self, df_pipeline, base_config):
+        """Requesting a column not in df_pipeline should raise KeyError."""
+        with pytest.raises(KeyError):
+            get_target_data("nonexistent", df_pipeline, base_config)
+
+
+# =============================================================================
+# TestGetTargetDataWithExog
+# =============================================================================
+
+
+class TestGetTargetDataWithExog:
+    """get_target_data with use_exogenous_features=True and full exog inputs."""
+
+    @pytest.fixture(autouse=True)
+    def _setup(self, df_pipeline, pipeline_idx, data_with_exog_df, exo_pred_df):
+        self.df_pipeline = df_pipeline
+        self.pipeline_idx = pipeline_idx
+        self.data_with_exog = data_with_exog_df
+        self.exo_pred = exo_pred_df
+        self.exog_names = ["hour_sin", "hour_cos"]
+
+        self.cfg = ConfigMulti(targets=["load"], use_exogenous_features=True)
+        self.cfg.start_train_ts = pipeline_idx[0]
+        self.cfg.end_train_ts = pipeline_idx[-1]
+
+    def _call(self):
+        return get_target_data(
+            target="load",
+            df_pipeline=self.df_pipeline,
+            config=self.cfg,
+            data_with_exog=self.data_with_exog,
+            exog_feature_names=self.exog_names,
+            exo_pred=self.exo_pred,
+        )
+
+    def test_exog_train_is_dataframe(self):
+        _, exog_train, _ = self._call()
+        assert isinstance(exog_train, pd.DataFrame)
+
+    def test_exog_future_is_dataframe(self):
+        _, _, exog_future = self._call()
+        assert isinstance(exog_future, pd.DataFrame)
+
+    def test_exog_train_columns(self):
+        _, exog_train, _ = self._call()
+        assert list(exog_train.columns) == self.exog_names
+
+    def test_exog_future_columns(self):
+        _, _, exog_future = self._call()
+        assert list(exog_future.columns) == self.exog_names
+
+    def test_exog_train_length(self):
+        _, exog_train, _ = self._call()
+        assert len(exog_train) == 168
+
+    def test_exog_future_length(self):
+        _, _, exog_future = self._call()
+        assert len(exog_future) == 24
+
+    def test_exog_train_dtype_float32(self):
+        _, exog_train, _ = self._call()
+        assert (exog_train.dtypes == "float32").all()
+
+    def test_exog_future_dtype_float32(self):
+        _, _, exog_future = self._call()
+        assert (exog_future.dtypes == "float32").all()
+
+    def test_exog_train_window_matches_config(self):
+        _, exog_train, _ = self._call()
+        assert exog_train.index[0] == self.cfg.start_train_ts
+        assert exog_train.index[-1] == self.cfg.end_train_ts
+
+    def test_exog_future_index_after_train_end(self):
+        _, _, exog_future = self._call()
+        assert (exog_future.index > self.cfg.end_train_ts).all()
+
+    def test_y_train_still_correct_with_exog(self):
+        y_train, _, _ = self._call()
+        expected = self.df_pipeline["load"].loc[
+            self.cfg.start_train_ts : self.cfg.end_train_ts
+        ]
+        pd.testing.assert_series_equal(y_train, expected)
+
+
+# =============================================================================
+# TestGetTargetDataExogDisabledButProvided
+# =============================================================================
+
+
+class TestGetTargetDataExogDisabledButProvided:
+    """When use_exogenous_features=False, exog outputs must be None even if
+    data_with_exog and exo_pred are supplied."""
+
+    def test_exog_train_none_when_flag_false(
+        self, df_pipeline, pipeline_idx, data_with_exog_df, exo_pred_df
+    ):
+        cfg = ConfigMulti(targets=["load"], use_exogenous_features=False)
+        cfg.start_train_ts = pipeline_idx[0]
+        cfg.end_train_ts = pipeline_idx[-1]
+        _, exog_train, _ = get_target_data(
+            "load",
+            df_pipeline,
+            cfg,
+            data_with_exog=data_with_exog_df,
+            exog_feature_names=["hour_sin", "hour_cos"],
+            exo_pred=exo_pred_df,
+        )
+        assert exog_train is None
+
+    def test_exog_future_none_when_flag_false(
+        self, df_pipeline, pipeline_idx, data_with_exog_df, exo_pred_df
+    ):
+        cfg = ConfigMulti(targets=["load"], use_exogenous_features=False)
+        cfg.start_train_ts = pipeline_idx[0]
+        cfg.end_train_ts = pipeline_idx[-1]
+        _, _, exog_future = get_target_data(
+            "load",
+            df_pipeline,
+            cfg,
+            data_with_exog=data_with_exog_df,
+            exog_feature_names=["hour_sin", "hour_cos"],
+            exo_pred=exo_pred_df,
+        )
+        assert exog_future is None
+
+
+# =============================================================================
+# TestGetTargetDataExogEnabledButNone
+# =============================================================================
+
+
+class TestGetTargetDataExogEnabledButNone:
+    """When use_exogenous_features=True but data_with_exog is None, outputs
+    should gracefully return None (pipeline ran without covariates)."""
+
+    def test_exog_train_none_when_data_with_exog_is_none(
+        self, df_pipeline, pipeline_idx
+    ):
+        cfg = ConfigMulti(targets=["load"], use_exogenous_features=True)
+        cfg.start_train_ts = pipeline_idx[0]
+        cfg.end_train_ts = pipeline_idx[-1]
+        _, exog_train, _ = get_target_data("load", df_pipeline, cfg)
+        assert exog_train is None
+
+    def test_exog_future_none_when_data_with_exog_is_none(
+        self, df_pipeline, pipeline_idx
+    ):
+        cfg = ConfigMulti(targets=["load"], use_exogenous_features=True)
+        cfg.start_train_ts = pipeline_idx[0]
+        cfg.end_train_ts = pipeline_idx[-1]
+        _, _, exog_future = get_target_data("load", df_pipeline, cfg)
+        assert exog_future is None
+
+
+# =============================================================================
+# TestGetTargetDataPackageImport
+# =============================================================================
+
+
+class TestGetTargetDataPackageImport:
+    """get_target_data must be importable from the package-level __init__."""
+
+    def test_importable_from_manager(self):
+        from spotforecast2_safe.manager import get_target_data as gtd
+
+        assert callable(gtd)
+
+    def test_same_object_as_features_module(self):
+        from spotforecast2_safe.manager import get_target_data as gtd_manager
+
+        assert gtd_manager is get_target_data
+
+
+# =============================================================================
+# TestGetTargetDataDocstringExamples
+# =============================================================================
+
+
+class TestGetTargetDataDocstringExamples:
+    """Verify that the docstring living examples produce the expected output."""
+
+    def test_example_no_exog(self):
+        rng = np.random.default_rng(0)
+        idx = pd.date_range("2024-01-01", periods=168, freq="h", tz="UTC")
+        df_pipeline = pd.DataFrame({"load": rng.normal(100, 10, 168)}, index=idx)
+
+        config = ConfigMulti(targets=["load"], use_exogenous_features=False)
+        config.start_train_ts = pd.Timestamp("2024-01-01 00:00", tz="UTC")
+        config.end_train_ts = pd.Timestamp("2024-01-07 23:00", tz="UTC")
+
+        y_train, exog_train, exog_future = get_target_data(
+            target="load",
+            df_pipeline=df_pipeline,
+            config=config,
+        )
+        assert len(y_train) == 168
+        assert exog_train is None
+        assert exog_future is None
+
+    def test_example_with_exog(self):
+        rng = np.random.default_rng(1)
+        idx_train = pd.date_range("2024-01-01", periods=168, freq="h", tz="UTC")
+        idx_future = pd.date_range("2024-01-08", periods=24, freq="h", tz="UTC")
+
+        df_pipeline = pd.DataFrame({"load": rng.normal(100, 10, 168)}, index=idx_train)
+        data_with_exog = pd.DataFrame(
+            {
+                "load": df_pipeline["load"],
+                "hour_sin": np.sin(2 * np.pi * idx_train.hour / 24),
+                "hour_cos": np.cos(2 * np.pi * idx_train.hour / 24),
+            },
+            index=idx_train,
+        )
+        exo_pred = pd.DataFrame(
+            {
+                "hour_sin": np.sin(2 * np.pi * idx_future.hour / 24),
+                "hour_cos": np.cos(2 * np.pi * idx_future.hour / 24),
+            },
+            index=idx_future,
+        )
+
+        config = ConfigMulti(targets=["load"], use_exogenous_features=True)
+        config.start_train_ts = pd.Timestamp("2024-01-01 00:00", tz="UTC")
+        config.end_train_ts = pd.Timestamp("2024-01-07 23:00", tz="UTC")
+
+        y_train, exog_train, exog_future = get_target_data(
+            target="load",
+            df_pipeline=df_pipeline,
+            config=config,
+            data_with_exog=data_with_exog,
+            exog_feature_names=["hour_sin", "hour_cos"],
+            exo_pred=exo_pred,
+        )
+        assert len(y_train) == 168
+        assert exog_train.shape == (168, 2)
+        assert exog_future.shape == (24, 2)
+        assert (exog_train.dtypes == "float32").all()

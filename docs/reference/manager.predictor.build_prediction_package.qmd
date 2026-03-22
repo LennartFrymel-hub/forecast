@@ -1,0 +1,106 @@
+# manager.predictor.build_prediction_package { #spotforecast2_safe.manager.predictor.build_prediction_package }
+
+```python
+manager.predictor.build_prediction_package(
+    forecaster,
+    target,
+    y_train,
+    predict_size,
+    exog_train=None,
+    exog_future=None,
+    df_test=None,
+)
+```
+
+Build a prediction package compatible with PredictionFigure.
+
+Computes true in-sample predictions via the fitted regressor and generates
+a genuine future forecast of ``predict_size`` steps. If ``df_test`` is
+supplied, ground-truth test values are injected and future metrics
+(MAE, MAPE) are computed.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type                                                                            | Description                                                                                                                                                                                                            | Default    |
+|--------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| forecaster   |                                                                                 | A fitted skforecast ``ForecasterRecursive`` (or compatible) instance with ``create_train_X_y``, ``regressor``, and ``predict`` methods.                                                                                | _required_ |
+| target       | [str](`str`)                                                                    | Column name of the target series. Used to look up ground-truth values inside ``df_test`` when provided.                                                                                                                | _required_ |
+| y_train      | [pd](`pandas`).[Series](`pandas.Series`)                                        | Training time series indexed by a timezone-aware ``DatetimeIndex``.                                                                                                                                                    | _required_ |
+| predict_size | [int](`int`)                                                                    | Number of future steps to forecast.                                                                                                                                                                                    | _required_ |
+| exog_train   | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Exogenous feature DataFrame aligned with ``y_train``. Pass ``None`` when no exogenous features are used.                                                                                                               | `None`     |
+| exog_future  | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Exogenous feature DataFrame covering the forecast horizon. Pass ``None`` when no exogenous features are used.                                                                                                          | `None`     |
+| df_test      | [Optional](`typing.Optional`)\[[pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Optional test DataFrame that must contain a ``"DateTime"`` column and a column named ``target``. When supplied, the matching ground-truth slice is injected into the returned package and future metrics are computed. | `None`     |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                                       | Description                                                                                                                                       |
+|--------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | A dictionary with the following keys:                                                                                                             |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | - **train_actual** (``pd.Series``) — observed training values aligned to the in-sample prediction index (lags consumed from the start).           |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | - **train_pred** (``pd.Series``) — in-sample fitted values from the underlying regressor.                                                         |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | - **future_actual** (``pd.Series``) — always an empty ``float64`` Series; the field exists for interface compatibility with ``PredictionFigure``. |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | - **future_pred** (``pd.Series``) — ``predict_size``-step-ahead forecast.                                                                         |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | - **metrics_train** (``dict``) — ``{"mae": float, "mape": float}`` computed on the aligned in-sample window.                                      |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | - **metrics_future** (``dict``) — ``{"mae": float, "mape": float}`` computed against test ground truth, or ``{}`` when unavailable.               |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | - **metrics_future_one_day** (``dict``) — reserved for downstream one-day metrics; always ``{}``.                                                 |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | - **validation_passed** (``bool``) — always ``True``; field reserved for downstream safety checks.                                                |
+|        | [Dict](`typing.Dict`)\[[str](`str`), [Any](`typing.Any`)\] | - **test_actual** (``pd.Series``, optional) — present only when ``df_test`` contains matching rows for the forecast horizon.                      |
+
+Examples:
+
+    ```{python}
+    import numpy as np
+    import pandas as pd
+    from sklearn.linear_model import Ridge
+    from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+    from spotforecast2_safe.manager.predictor import build_prediction_package
+
+    rng = np.random.default_rng(42)
+    idx = pd.date_range("2024-01-01", periods=200, freq="h", tz="UTC")
+    y_train = pd.Series(rng.normal(100, 10, 200), index=idx, name="load")
+
+    forecaster = ForecasterRecursive(estimator=Ridge(), lags=24)
+    forecaster.fit(y=y_train)
+
+    pkg = build_prediction_package(
+        forecaster=forecaster,
+        target="load",
+        y_train=y_train,
+        predict_size=24,
+    )
+    print(f"Keys: {sorted(pkg.keys())}")
+    print(f"Future predictions: {len(pkg['future_pred'])} steps")
+    print(f"Validation passed: {pkg['validation_passed']}")
+    ```
+
+    ```{python}
+    import numpy as np
+    import pandas as pd
+    from sklearn.linear_model import Ridge
+    from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+    from spotforecast2_safe.manager.predictor import build_prediction_package
+
+    rng = np.random.default_rng(0)
+    idx = pd.date_range("2024-01-01", periods=200, freq="h", tz="UTC")
+    y_train = pd.Series(rng.normal(50, 5, 200), index=idx, name="power")
+
+    forecaster = ForecasterRecursive(estimator=Ridge(), lags=24)
+    forecaster.fit(y=y_train)
+
+    # Test DataFrame covering the 24-hour forecast horizon
+    df_test = pd.DataFrame({
+        "DateTime": pd.date_range("2024-01-09 08:00", periods=24, freq="h"),
+        "power": rng.normal(50, 5, 24),
+    })
+
+    pkg = build_prediction_package(
+        forecaster=forecaster,
+        target="power",
+        y_train=y_train,
+        predict_size=24,
+        df_test=df_test,
+    )
+    print(f"test_actual present: {'test_actual' in pkg}")
+    print(f"metrics_future keys: {list(pkg['metrics_future'].keys())}")
+    print(f"MAE on future: {pkg['metrics_future']['mae']:.4f}")
+    ```
