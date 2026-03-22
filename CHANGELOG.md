@@ -1,3 +1,10 @@
+## [0.27.0-rc.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.27.0-rc.2...v0.27.0-rc.3) (2026-03-22)
+
+
+### Features
+
+* config_multi with agg_weights ([bb79d48](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/bb79d4841e3e5bdfb74f9b6d22a56644a2248214))
+
 ## [0.27.0-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.27.0-rc.1...v0.27.0-rc.2) (2026-03-22)
 
 
