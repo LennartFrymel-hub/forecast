@@ -214,6 +214,8 @@ website:
             contents:
               - text: "calculate_metrics"
                 file: docs/reference/manager.metrics.calculate_metrics.qmd
+              - text: "build_prediction_package"
+                file: docs/reference/manager.predictor.build_prediction_package.qmd
               - text: "get_model_prediction"
                 file: docs/reference/manager.predictor.get_model_prediction.qmd
               - text: "ConfigEntsoe"
@@ -270,6 +272,8 @@ website:
                     file: docs/reference/manager.features.select_exogenous_features.qmd
                   - text: "merge_data_and_covariates"
                     file: docs/reference/manager.features.merge_data_and_covariates.qmd
+                  - text: "get_target_data"
+                    file: docs/reference/manager.features.get_target_data.qmd
 
           - section: "Utils"
             contents:
@@ -523,6 +527,7 @@ quartodoc:
         - manager.trainer.get_last_model
         - manager.trainer.get_path_model
         - manager.trainer.load_iteration
+        - manager.predictor.build_prediction_package
         - manager.predictor.get_model_prediction
         - manager.configurator.config_entsoe.ConfigEntsoe
         - manager.configurator.config_multi.ConfigMulti
@@ -542,6 +547,7 @@ quartodoc:
         - manager.features.create_interaction_features
         - manager.features.select_exogenous_features
         - manager.features.merge_data_and_covariates
+        - manager.features.get_target_data
 
     # ── Utils ─────────────────────────────────────────────────────────────────
     - title: "Utils"

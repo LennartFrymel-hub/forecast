@@ -102,6 +102,7 @@ High-level training, prediction, and model persistence orchestration.
 | [manager.trainer.get_last_model](manager.trainer.get_last_model.qmd#spotforecast2_safe.manager.trainer.get_last_model) | Get the latest trained model from the cache. |
 | [manager.trainer.get_path_model](manager.trainer.get_path_model.qmd#spotforecast2_safe.manager.trainer.get_path_model) | Yield the path to a model file for a given iteration and model name. |
 | [manager.trainer.load_iteration](manager.trainer.load_iteration.qmd#spotforecast2_safe.manager.trainer.load_iteration) | Load a saved model at a given iteration. |
+| [manager.predictor.build_prediction_package](manager.predictor.build_prediction_package.qmd#spotforecast2_safe.manager.predictor.build_prediction_package) | Build a prediction package compatible with PredictionFigure. |
 | [manager.predictor.get_model_prediction](manager.predictor.get_model_prediction.qmd#spotforecast2_safe.manager.predictor.get_model_prediction) | Get the prediction package from the latest trained model. |
 | [manager.configurator.config_entsoe.ConfigEntsoe](manager.configurator.config_entsoe.ConfigEntsoe.qmd#spotforecast2_safe.manager.configurator.config_entsoe.ConfigEntsoe) | Configuration for the ENTSO-E forecasting pipeline. |
 | [manager.configurator.config_multi.ConfigMulti](manager.configurator.config_multi.ConfigMulti.qmd#spotforecast2_safe.manager.configurator.config_multi.ConfigMulti) | Configuration for the multi-input forecasting pipeline. |
@@ -121,6 +122,7 @@ High-level training, prediction, and model persistence orchestration.
 | [manager.features.create_interaction_features](manager.features.create_interaction_features.qmd#spotforecast2_safe.manager.features.create_interaction_features) | Append bilinear interaction terms to an exogenous feature matrix. |
 | [manager.features.select_exogenous_features](manager.features.select_exogenous_features.qmd#spotforecast2_safe.manager.features.select_exogenous_features) | Select and deduplicate exogenous feature columns for model training. |
 | [manager.features.merge_data_and_covariates](manager.features.merge_data_and_covariates.qmd#spotforecast2_safe.manager.features.merge_data_and_covariates) | Merge target data with exogenous features and split into train/predict slices. |
+| [manager.features.get_target_data](manager.features.get_target_data.qmd#spotforecast2_safe.manager.features.get_target_data) | Extract the training series and exogenous slices for one target column. |
 
 ## Utils
 

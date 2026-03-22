@@ -4,7 +4,7 @@
 """Configuration for multi-input task pipeline."""
 
 from dataclasses import replace
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 from spotforecast2_safe.data import Period
@@ -74,6 +74,33 @@ class ConfigMulti:
             ``predict_size`` hours). Derived via ``get_start_end()``; ``None`` until set.
         bounds (Optional[List[tuple]]): Per-column outlier bounds as a list of
             ``(lower, upper)`` tuples, one entry per target column. ``None`` until set.
+        verbose (bool): If ``True``, enable verbose output for pipeline steps.
+            Defaults to ``False``.
+        cache_data (bool): If ``True``, cache intermediate data to disk.
+            Defaults to ``False``.
+        cache_home (Optional[Any]): Path to the cache directory. ``None`` means
+            the library default (``~/spotforecast2_cache/``) is used.
+        data_home (Optional[Any]): Path to the data directory. ``None`` means
+            the library default (``~/spotforecast2_data/``) is used.
+        end_train_ts (Optional[pd.Timestamp]): End of the training window.
+            Derived from ``end_train_default`` after data loading; ``None`` until set.
+        start_train_ts (Optional[pd.Timestamp]): Start of the training window.
+            Derived as ``end_train_ts - train_size`` after data loading; ``None`` until set.
+        n_trials_optuna (int): Number of Optuna Bayesian-search trials for hyperparameter
+            optimization (task 3). Defaults to ``15``.
+        n_trials_spotoptim (int): Number of SpotOptim surrogate-search trials (task 4).
+            Defaults to ``10``.
+        n_initial_spotoptim (int): Number of initial random evaluations for SpotOptim
+            (task 4). Defaults to ``5``.
+        task (str): Active prediction task — one of ``"lazy"``, ``"training"``,
+            ``"optuna"``, or ``"spotoptim"``. Defaults to ``"lazy"``.
+        agg_weights (Optional[List[float]]): Per-target aggregation weights used
+            when combining individual target forecasts into a single weighted sum.
+            The list must contain one weight per entry in ``targets`` (in the same
+            order). Positive values add the target's contribution; negative values
+            invert it. Slice the list to ``agg_weights[:len(targets)]`` when only
+            a subset of targets is active. Defaults to ``None`` (no weights
+            pre-defined; set after loading the dataset).
 
     Attributes:
         API_COUNTRY_CODE (str): Read-only property — returns ``country_code``.
@@ -112,6 +139,20 @@ class ConfigMulti:
         cov_start (Optional[pd.Timestamp]): Start of the covariate date range.
         cov_end (Optional[pd.Timestamp]): End of the covariate date range.
         bounds (Optional[List[tuple]]): Per-column outlier bounds ``(lower, upper)``.
+        verbose (bool): Verbose output toggle.
+        cache_data (bool): Cache intermediate data toggle.
+        cache_home (Optional[Any]): Path to the cache directory.
+        data_home (Optional[Any]): Path to the data directory.
+        end_train_ts (Optional[pd.Timestamp]): End of the training window.
+        start_train_ts (Optional[pd.Timestamp]): Start of the training window.
+        n_trials_optuna (int): Number of Optuna hyperparameter-search trials.
+        n_trials_spotoptim (int): Number of SpotOptim search trials.
+        n_initial_spotoptim (int): Number of initial SpotOptim evaluations.
+        task (str): Active prediction task (``"lazy"``, ``"training"``,
+            ``"optuna"``, or ``"spotoptim"``).
+        agg_weights (Optional[List[float]]): Per-target aggregation weights.
+            One weight per entry in ``targets``; positive values add, negative
+            values invert the target's contribution. ``None`` until set.
 
     Notes:
         The default period configurations use specific `n_periods` to balance resolution and smoothing:
@@ -131,6 +172,7 @@ class ConfigMulti:
         print(f"Predict size: {config.predict_size}")
         print(f"Random state: {config.random_state}")
         print(f"Targets (default): {config.targets}")
+        print(f"agg_weights (default): {config.agg_weights}")
         print(f"index_name: {config.index_name}")
         print(f"data_source: {config.data_source}")
         print(f"data_test: {config.data_test}")
@@ -224,6 +266,22 @@ class ConfigMulti:
         cov_end: Optional[pd.Timestamp] = None,
         # Per-column outlier bounds [(lower, upper), ...]
         bounds: Optional[List[tuple]] = None,
+        # Verbosity and caching
+        verbose: bool = False,
+        cache_data: bool = False,
+        cache_home: Optional[Any] = None,
+        data_home: Optional[Any] = None,
+        # Derived training window (set after data loading)
+        end_train_ts: Optional[pd.Timestamp] = None,
+        start_train_ts: Optional[pd.Timestamp] = None,
+        # Hyperparameter tuning trial budgets
+        n_trials_optuna: int = 15,
+        n_trials_spotoptim: int = 10,
+        n_initial_spotoptim: int = 5,
+        # Active task
+        task: str = "lazy",
+        # Aggregation weights (one per target, in target order)
+        agg_weights: Optional[List[float]] = None,
     ):
         """Initialize ConfigMulti with specified or default parameters."""
         # country_code is the single source of truth for the ISO country code.
@@ -303,6 +361,22 @@ class ConfigMulti:
         self.cov_end = cov_end
         # Per-column outlier bounds [(lower, upper), ...]
         self.bounds = bounds
+        # Verbosity and caching
+        self.verbose = verbose
+        self.cache_data = cache_data
+        self.cache_home = cache_home
+        self.data_home = data_home
+        # Derived training window (set after data loading)
+        self.end_train_ts = end_train_ts
+        self.start_train_ts = start_train_ts
+        # Hyperparameter tuning trial budgets
+        self.n_trials_optuna = n_trials_optuna
+        self.n_trials_spotoptim = n_trials_spotoptim
+        self.n_initial_spotoptim = n_initial_spotoptim
+        # Active task
+        self.task = task
+        # Aggregation weights (one per target, in target order)
+        self.agg_weights = agg_weights
 
     @property
     def API_COUNTRY_CODE(self) -> str:
@@ -341,6 +415,7 @@ class ConfigMulti:
             print(f"cov_start: {p['cov_start']}")
             print(f"cov_end: {p['cov_end']}")
             print(f"bounds: {p['bounds']}")
+            print(f"agg_weights: {p['agg_weights']}")
             ```
         """
         params = {
@@ -385,6 +460,22 @@ class ConfigMulti:
             "cov_end": self.cov_end,
             # Per-column outlier bounds
             "bounds": self.bounds,
+            # Verbosity and caching
+            "verbose": self.verbose,
+            "cache_data": self.cache_data,
+            "cache_home": self.cache_home,
+            "data_home": self.data_home,
+            # Derived training window
+            "end_train_ts": self.end_train_ts,
+            "start_train_ts": self.start_train_ts,
+            # Hyperparameter tuning trial budgets
+            "n_trials_optuna": self.n_trials_optuna,
+            "n_trials_spotoptim": self.n_trials_spotoptim,
+            "n_initial_spotoptim": self.n_initial_spotoptim,
+            # Active task
+            "task": self.task,
+            # Aggregation weights
+            "agg_weights": self.agg_weights,
         }
 
         # Expose period sub-objects via the '__' notation if deep=True
