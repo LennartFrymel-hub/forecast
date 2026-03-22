@@ -94,6 +94,13 @@ class ConfigMulti:
             (task 4). Defaults to ``5``.
         task (str): Active prediction task — one of ``"lazy"``, ``"training"``,
             ``"optuna"``, or ``"spotoptim"``. Defaults to ``"lazy"``.
+        agg_weights (Optional[List[float]]): Per-target aggregation weights used
+            when combining individual target forecasts into a single weighted sum.
+            The list must contain one weight per entry in ``targets`` (in the same
+            order). Positive values add the target's contribution; negative values
+            invert it. Slice the list to ``agg_weights[:len(targets)]`` when only
+            a subset of targets is active. Defaults to ``None`` (no weights
+            pre-defined; set after loading the dataset).
 
     Attributes:
         API_COUNTRY_CODE (str): Read-only property — returns ``country_code``.
@@ -143,6 +150,9 @@ class ConfigMulti:
         n_initial_spotoptim (int): Number of initial SpotOptim evaluations.
         task (str): Active prediction task (``"lazy"``, ``"training"``,
             ``"optuna"``, or ``"spotoptim"``).
+        agg_weights (Optional[List[float]]): Per-target aggregation weights.
+            One weight per entry in ``targets``; positive values add, negative
+            values invert the target's contribution. ``None`` until set.
 
     Notes:
         The default period configurations use specific `n_periods` to balance resolution and smoothing:
@@ -162,6 +172,7 @@ class ConfigMulti:
         print(f"Predict size: {config.predict_size}")
         print(f"Random state: {config.random_state}")
         print(f"Targets (default): {config.targets}")
+        print(f"agg_weights (default): {config.agg_weights}")
         print(f"index_name: {config.index_name}")
         print(f"data_source: {config.data_source}")
         print(f"data_test: {config.data_test}")
@@ -269,6 +280,8 @@ class ConfigMulti:
         n_initial_spotoptim: int = 5,
         # Active task
         task: str = "lazy",
+        # Aggregation weights (one per target, in target order)
+        agg_weights: Optional[List[float]] = None,
     ):
         """Initialize ConfigMulti with specified or default parameters."""
         # country_code is the single source of truth for the ISO country code.
@@ -362,6 +375,8 @@ class ConfigMulti:
         self.n_initial_spotoptim = n_initial_spotoptim
         # Active task
         self.task = task
+        # Aggregation weights (one per target, in target order)
+        self.agg_weights = agg_weights
 
     @property
     def API_COUNTRY_CODE(self) -> str:
@@ -400,6 +415,7 @@ class ConfigMulti:
             print(f"cov_start: {p['cov_start']}")
             print(f"cov_end: {p['cov_end']}")
             print(f"bounds: {p['bounds']}")
+            print(f"agg_weights: {p['agg_weights']}")
             ```
         """
         params = {
@@ -458,6 +474,8 @@ class ConfigMulti:
             "n_initial_spotoptim": self.n_initial_spotoptim,
             # Active task
             "task": self.task,
+            # Aggregation weights
+            "agg_weights": self.agg_weights,
         }
 
         # Expose period sub-objects via the '__' notation if deep=True

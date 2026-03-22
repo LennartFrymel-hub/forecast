@@ -1050,3 +1050,135 @@ class TestConfigMultiPipelineAttributes:
         assert cfg.verbose is True
         assert cfg.task == "optuna"
         assert cfg.n_trials_optuna == 20
+
+
+# ---------------------------------------------------------------------------
+# agg_weights attribute
+# ---------------------------------------------------------------------------
+
+
+_WEIGHTS = [1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0]
+
+
+class TestConfigMultiAggWeights:
+    """Tests for the agg_weights attribute."""
+
+    # --- Defaults ---
+
+    def test_agg_weights_default_is_none(self):
+        assert ConfigMulti().agg_weights is None
+
+    # --- Constructor ---
+
+    def test_agg_weights_set_in_constructor(self):
+        cfg = ConfigMulti(agg_weights=_WEIGHTS)
+        assert cfg.agg_weights == _WEIGHTS
+
+    def test_agg_weights_empty_list(self):
+        cfg = ConfigMulti(agg_weights=[])
+        assert cfg.agg_weights == []
+
+    def test_agg_weights_single_element(self):
+        cfg = ConfigMulti(agg_weights=[1.0])
+        assert cfg.agg_weights == [1.0]
+
+    def test_agg_weights_all_positive(self):
+        weights = [1.0, 2.0, 0.5]
+        cfg = ConfigMulti(agg_weights=weights)
+        assert cfg.agg_weights == weights
+
+    def test_agg_weights_mixed_signs(self):
+        weights = [1.0, -1.0, 0.5, -0.5]
+        cfg = ConfigMulti(agg_weights=weights)
+        assert cfg.agg_weights == weights
+
+    # --- Direct assignment ---
+
+    def test_agg_weights_direct_assignment(self):
+        cfg = ConfigMulti()
+        cfg.agg_weights = _WEIGHTS
+        assert cfg.agg_weights == _WEIGHTS
+
+    def test_agg_weights_direct_assignment_to_none(self):
+        cfg = ConfigMulti(agg_weights=_WEIGHTS)
+        cfg.agg_weights = None
+        assert cfg.agg_weights is None
+
+    # --- Slicing (pipeline usage) ---
+
+    def test_agg_weights_slicing_for_active_targets(self):
+        """Slicing to match len(config.targets) is the intended usage pattern."""
+        cfg = ConfigMulti(agg_weights=_WEIGHTS, targets=["A", "B", "C"])
+        active = cfg.agg_weights[: len(cfg.targets)]
+        assert active == _WEIGHTS[:3]
+        assert len(active) == 3
+
+    def test_agg_weights_slice_single_target(self):
+        cfg = ConfigMulti(agg_weights=_WEIGHTS, targets=["A"])
+        active = cfg.agg_weights[: len(cfg.targets)]
+        assert active == [1.0]
+
+    # --- get_params() ---
+
+    def test_agg_weights_in_get_params(self):
+        cfg = ConfigMulti(agg_weights=_WEIGHTS)
+        p = cfg.get_params()
+        assert "agg_weights" in p
+        assert p["agg_weights"] == _WEIGHTS
+
+    def test_agg_weights_none_in_get_params(self):
+        p = ConfigMulti().get_params()
+        assert "agg_weights" in p
+        assert p["agg_weights"] is None
+
+    def test_agg_weights_in_get_params_shallow(self):
+        cfg = ConfigMulti(agg_weights=[1.0, -1.0])
+        p = cfg.get_params(deep=False)
+        assert "agg_weights" in p
+        assert p["agg_weights"] == [1.0, -1.0]
+
+    def test_agg_weights_in_get_params_deep(self):
+        cfg = ConfigMulti(agg_weights=[1.0, -1.0])
+        p = cfg.get_params(deep=True)
+        assert "agg_weights" in p
+        assert p["agg_weights"] == [1.0, -1.0]
+
+    # --- set_params() ---
+
+    def test_set_params_agg_weights_via_kwargs(self):
+        cfg = ConfigMulti()
+        cfg.set_params(agg_weights=_WEIGHTS)
+        assert cfg.agg_weights == _WEIGHTS
+
+    def test_set_params_agg_weights_via_dict(self):
+        cfg = ConfigMulti()
+        cfg.set_params(params={"agg_weights": [1.0, -1.0]})
+        assert cfg.agg_weights == [1.0, -1.0]
+
+    def test_set_params_agg_weights_to_none(self):
+        cfg = ConfigMulti(agg_weights=_WEIGHTS)
+        cfg.set_params(agg_weights=None)
+        assert cfg.agg_weights is None
+
+    def test_set_params_agg_weights_method_chaining(self):
+        cfg = ConfigMulti()
+        result = cfg.set_params(agg_weights=[1.0]).set_params(predict_size=48)
+        assert result.agg_weights == [1.0]
+        assert result.predict_size == 48
+
+    # --- Coexistence ---
+
+    def test_agg_weights_preserved_alongside_targets(self):
+        cfg = ConfigMulti(targets=["A", "B"], agg_weights=[1.0, -1.0])
+        assert cfg.targets == ["A", "B"]
+        assert cfg.agg_weights == [1.0, -1.0]
+
+    def test_agg_weights_alongside_other_params(self):
+        cfg = ConfigMulti(
+            country_code="FR",
+            predict_size=48,
+            agg_weights=_WEIGHTS,
+        )
+        assert cfg.country_code == "FR"
+        assert cfg.predict_size == 48
+        assert cfg.agg_weights == _WEIGHTS
