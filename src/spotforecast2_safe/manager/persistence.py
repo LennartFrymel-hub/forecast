@@ -208,3 +208,62 @@ def _model_directory_exists(model_dir: Union[str, Path]) -> bool:
         False
     """
     return Path(model_dir).exists()
+
+
+def save_forecaster(
+    forecaster: object,
+    model_dir: Union[str, Path],
+    target: str,
+    task_name: str = "",
+    verbose: bool = False,
+) -> Path:
+    """Save a single trained forecaster to disk using joblib.
+
+    Public single-model counterpart to :func:`_save_forecasters`.  When
+    ``task_name`` is provided the file is named
+    ``{task_name}_{target}.joblib``; otherwise the standard convention
+    ``forecaster_{target}.joblib`` (identical to :func:`_get_model_filepath`)
+    is used.
+
+    Args:
+        forecaster: Trained forecaster object (any joblib-serialisable model).
+        model_dir: Directory to save the model.  Created if it doesn't exist.
+        target: Target variable name used in the filename.
+        task_name: Optional task identifier prepended to the filename (e.g.
+            ``"task_1_lazy"``).  Defaults to ``""`` (standard naming).
+        verbose: Print a confirmation message.  Default: ``False``.
+
+    Returns:
+        Path: Full filepath of the saved model.
+
+    Raises:
+        OSError: If the model cannot be written to disk.
+
+    Examples:
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> from sklearn.linear_model import LinearRegression
+        >>> from spotforecast2_safe.manager.persistence import save_forecaster
+        >>> model = LinearRegression()
+        >>> with tempfile.TemporaryDirectory() as tmpdir:
+        ...     path = save_forecaster(model, tmpdir, "power")
+        ...     print(path.name)
+        forecaster_power.joblib
+        >>> with tempfile.TemporaryDirectory() as tmpdir:
+        ...     path = save_forecaster(model, tmpdir, "power", task_name="task_1")
+        ...     print(path.name)
+        task_1_power.joblib
+    """
+    model_path = _ensure_model_dir(model_dir)
+    if task_name:
+        filepath = model_path / f"{task_name}_{target}.joblib"
+    else:
+        filepath = _get_model_filepath(model_path, target)
+    try:
+        dump(forecaster, filepath, compress=3)
+        if verbose:
+            print(f"  ✓ Saved forecaster for {target} to {filepath}")
+    except Exception as e:
+        raise OSError(f"Failed to save model for {target}: {e}")
+    return filepath
+

@@ -23,6 +23,7 @@ from spotforecast2_safe.manager.persistence import (
     _load_forecasters,
     _model_directory_exists,
     _save_forecasters,
+    save_forecaster,
 )
 from spotforecast2_safe.manager.predictor import (
     build_prediction_package,
@@ -55,6 +56,7 @@ __all__ = [
     "_save_forecasters",
     "_load_forecasters",
     "_model_directory_exists",
+    "save_forecaster",
     # Predictor
     "build_prediction_package",
     "get_model_prediction",
