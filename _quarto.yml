@@ -130,6 +130,8 @@ website:
                     file: docs/reference/preprocessing.curate_data.reset_index.qmd
               - section: "Imputation"
                 contents:
+                  - text: "apply_imputation"
+                    file: docs/reference/preprocessing.imputation.apply_imputation.qmd
                   - text: "WeightFunction"
                     file: docs/reference/preprocessing.imputation.WeightFunction.qmd
                   - text: "get_missing_weights"
@@ -471,6 +473,7 @@ quartodoc:
         - preprocessing.split.split_abs_train_val_test
         - preprocessing.split.split_rel_train_val_test
         - preprocessing.exog_builder.ExogBuilder
+        - preprocessing.imputation.apply_imputation
         - preprocessing.imputation.WeightFunction
         - preprocessing.imputation.custom_weights
         - preprocessing.imputation.get_missing_weights
