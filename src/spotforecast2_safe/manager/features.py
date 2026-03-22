@@ -638,12 +638,23 @@ def get_target_data(
     exog_train: Optional[pd.DataFrame] = None
     exog_future: Optional[pd.DataFrame] = None
 
-    if config.use_exogenous_features and data_with_exog is not None:
+    if (
+        config.use_exogenous_features
+        and data_with_exog is not None
+        and exog_feature_names is not None
+    ):
         exog_train = (
             data_with_exog[exog_feature_names]
             .loc[config.start_train_ts : config.end_train_ts]
             .astype("float32")
         )
-        exog_future = exo_pred[exog_feature_names].astype("float32")
+
+        if exo_pred is not None:
+            if isinstance(exo_pred, pd.DataFrame):
+                exog_future = exo_pred[exog_feature_names].astype("float32")
+            else:
+                raise TypeError(
+                    "exo_pred must be a pandas DataFrame when using exogenous features."
+                )
 
     return y_train, exog_train, exog_future
