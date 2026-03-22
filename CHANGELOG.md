@@ -1,3 +1,10 @@
+## [0.28.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.27.0...v0.28.0) (2026-03-22)
+
+
+### Features
+
+* imputation updatd ([b28c1ed](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/b28c1ed31b2315aeb73b0003bd428ab41b17e0a2))
+
 ## [0.28.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.27.0...v0.28.0-rc.1) (2026-03-22)
 
 
