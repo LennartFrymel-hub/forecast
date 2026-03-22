@@ -1,3 +1,10 @@
+## [0.27.0-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.27.0-rc.1...v0.27.0-rc.2) (2026-03-22)
+
+
+### Features
+
+* build_prediction_package ([9f13699](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/9f13699c900fd49c56b6b6f947a2ef376632f07b))
+
 ## [0.27.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.26.0...v0.27.0-rc.1) (2026-03-22)
 
 
