@@ -271,5 +271,83 @@ class TestGetCacheHomeIntegration:
             model_file.unlink()
 
 
+class TestGetCacheHomeCreateDir:
+    """Tests for the create_dir parameter of get_cache_home."""
+
+    def test_create_dir_true_creates_directory(self, tmp_path):
+        target = tmp_path / "new_cache"
+        assert not target.exists()
+        result = get_cache_home(target, create_dir=True)
+        assert result.exists()
+        assert result.is_dir()
+
+    def test_create_dir_false_does_not_create_directory(self, tmp_path):
+        target = tmp_path / "no_cache"
+        assert not target.exists()
+        result = get_cache_home(target, create_dir=False)
+        assert not result.exists()
+
+    def test_create_dir_false_returns_correct_path(self, tmp_path):
+        target = tmp_path / "resolved_cache"
+        result = get_cache_home(target, create_dir=False)
+        assert result == target.expanduser().absolute()
+
+    def test_create_dir_false_returns_path_object(self, tmp_path):
+        target = tmp_path / "some_cache"
+        result = get_cache_home(target, create_dir=False)
+        assert isinstance(result, Path)
+
+    def test_create_dir_false_is_absolute(self, tmp_path):
+        target = tmp_path / "abs_cache"
+        result = get_cache_home(target, create_dir=False)
+        assert result.is_absolute()
+
+    def test_create_dir_false_with_existing_directory(self, tmp_path):
+        target = tmp_path / "existing_cache"
+        target.mkdir()
+        result = get_cache_home(target, create_dir=False)
+        assert result.exists()
+        assert result == target.expanduser().absolute()
+
+    def test_create_dir_false_nested_path_not_created(self, tmp_path):
+        target = tmp_path / "a" / "b" / "c"
+        assert not target.exists()
+        result = get_cache_home(target, create_dir=False)
+        assert not result.exists()
+        assert not (tmp_path / "a").exists()
+
+    def test_create_dir_default_is_true(self, tmp_path):
+        target = tmp_path / "default_cache"
+        assert not target.exists()
+        result = get_cache_home(target)
+        assert result.exists()
+
+    def test_create_dir_false_with_none_cache_home(self, monkeypatch, tmp_path):
+        env_path = tmp_path / "env_cache"
+        monkeypatch.setenv("SPOTFORECAST2_CACHE", str(env_path))
+        result = get_cache_home(None, create_dir=False)
+        assert not result.exists()
+        assert result == env_path.expanduser().absolute()
+
+    def test_create_dir_false_with_tilde_path(self):
+        result = get_cache_home("~/spotforecast2_cache", create_dir=False)
+        assert result.is_absolute()
+        assert "~" not in str(result)
+
+    def test_create_dir_false_with_string_path(self, tmp_path):
+        target = str(tmp_path / "str_cache")
+        result = get_cache_home(target, create_dir=False)
+        assert isinstance(result, Path)
+        assert not result.exists()
+
+    def test_create_dir_true_idempotent_on_existing_dir(self, tmp_path):
+        target = tmp_path / "idempotent_cache"
+        target.mkdir()
+        result1 = get_cache_home(target, create_dir=True)
+        result2 = get_cache_home(target, create_dir=True)
+        assert result1 == result2
+        assert result1.exists()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
