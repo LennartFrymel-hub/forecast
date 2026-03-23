@@ -1,3 +1,10 @@
+## [0.30.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.29.0...v0.30.0) (2026-03-23)
+
+
+### Features
+
+* demo10 reduced, full is demo100 ([d3e9390](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/d3e939054517312ab759b30053a35fae86e6f0ec))
+
 ## [0.29.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.28.0...v0.29.0) (2026-03-23)
 
 
