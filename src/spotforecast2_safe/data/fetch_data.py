@@ -65,28 +65,42 @@ def get_package_data_home() -> Path:
     return Path(__file__).parent.parent / "datasets" / "csv"
 
 
-def get_cache_home(cache_home: Optional[Union[str, Path]] = None) -> Path:
+def get_cache_home(
+    cache_home: Optional[Union[str, Path]] = None,
+    create_dir: bool = True,
+) -> Path:
     """Return the location where persistent models are to be cached.
-    By default the cache directory is set to a folder named 'spotforecast2_cache' in the
-    user home folder. Alternatively, it can be set by the 'SPOTFORECAST2_CACHE' environment
-    variable or programmatically by giving an explicit folder path. The '~' symbol is
-    expanded to the user home folder. If the folder does not already exist, it is
-    automatically created.
 
-    This directory is used to store pickled trained models for quick reuse across
-    forecasting runs, following scikit-learn model persistence conventions.
+    By default the cache directory is set to a folder named
+    ``spotforecast2_cache`` in the user home folder.  Alternatively, it
+    can be set by the ``SPOTFORECAST2_CACHE`` environment variable or
+    programmatically by giving an explicit folder path.  The ``~`` symbol
+    is expanded to the user home folder.  When ``create_dir`` is ``True``
+    (the default) the directory is created automatically if it does not
+    already exist.
+
+    This directory is used to store pickled trained models for quick
+    reuse across forecasting runs, following scikit-learn model
+    persistence conventions.
 
     Args:
-        cache_home (str or pathlib.Path, optional):
-            The path to spotforecast cache directory. If `None`, the default path
-            is `~/spotforecast2_cache`.
+        cache_home: Path to the spotforecast cache directory.  If
+            ``None``, the value of the ``SPOTFORECAST2_CACHE`` environment
+            variable is used when set, otherwise the default path
+            ``~/spotforecast2_cache`` is used.
+        create_dir: Whether to create the cache directory if it does not
+            exist.  When ``True`` (the default), the directory and any
+            missing parent directories are created automatically.  When
+            ``False``, the resolved path is returned without touching the
+            filesystem.
 
     Returns:
-        pathlib.Path:
-            The path to the spotforecast cache directory.
+        Absolute path to the spotforecast cache directory.
 
     Raises:
-        OSError: If the directory cannot be created due to permission issues.
+        OSError: If ``create_dir`` is ``True`` and the directory cannot
+            be created due to a permissions error or other OS-level
+            failure.
 
     Examples:
         ```{python}
@@ -99,10 +113,21 @@ def get_cache_home(cache_home: Optional[Union[str, Path]] = None) -> Path:
         ```{python}
         # Using custom path
         from spotforecast2_safe.data.fetch_data import get_cache_home
-        import tempfile
         from pathlib import Path
-        custom_cache = get_cache_home(Path('/tmp/my_cache'))
-        custom_cache.exists()
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            custom_cache = get_cache_home(Path(tmp) / 'my_cache')
+            print(custom_cache.exists())
+        ```
+
+        ```{python}
+        # Resolve path without creating the directory
+        from spotforecast2_safe.data.fetch_data import get_cache_home
+        from pathlib import Path
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            resolved = get_cache_home(Path(tmp) / 'not_yet', create_dir=False)
+            print(resolved.exists())
         ```
 
         ```{python}
@@ -121,8 +146,9 @@ def get_cache_home(cache_home: Optional[Union[str, Path]] = None) -> Path:
         )
     # Ensure cache_home is a Path() object pointing to an absolute path
     cache_home = Path(cache_home).expanduser().absolute()
-    # Create cache directory if it does not exist
-    cache_home.mkdir(parents=True, exist_ok=True)
+    if create_dir:
+        # Create cache directory if it does not exist
+        cache_home.mkdir(parents=True, exist_ok=True)
     return cache_home
 
 
