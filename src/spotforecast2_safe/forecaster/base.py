@@ -441,7 +441,7 @@ class ForecasterBase(ABC):
             >>> from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
             >>> from sklearn.linear_model import Ridge
             >>> forecaster = ForecasterRecursive(estimator=Ridge(), lags=3)
-            >>> forecaster.regressor # Raises FutureWarning
+            >>> forecaster.regressor  # Raises FutureWarning
             Ridge()
         """
         warnings.warn(
