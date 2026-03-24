@@ -322,7 +322,8 @@ def fetch_weather_data(
     timezone: str = "UTC",
     freq: str = "h",
     fallback_on_failure: bool = True,
-    cached=True,
+    cached=False,
+    cache_home: Optional[Union[str, Path]] = None,
 ) -> pd.DataFrame:
     """Fetches weather data for the dataset period plus forecast horizon.
         Create weather dataframe using API with optional caching.
@@ -344,6 +345,8 @@ def fetch_weather_data(
             Whether to use fallback data in case of failure.
         cached (bool):
             Whether to use cached data.
+        cache_home (str or Path, optional):
+            Path to cache directory. Required if cached is True. If None, defaults to package cache.
 
     Returns:
         pd.DataFrame: DataFrame containing weather information.
@@ -364,7 +367,7 @@ def fetch_weather_data(
         ```
     """
     if cached:
-        cache_path = get_cache_home() / "weather_cache.parquet"
+        cache_path = get_cache_home(cache_home=cache_home) / "weather_cache.parquet"
     else:
         cache_path = None
 
