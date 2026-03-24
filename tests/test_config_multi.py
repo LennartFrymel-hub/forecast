@@ -185,8 +185,6 @@ class TestConfigMultiGetParams:
             "data_filename",
             "targets",
             "index_name",
-            "data_source",
-            "data_test",
             "start_download",
             "end_download",
         }
@@ -517,7 +515,7 @@ class TestConfigMultiCountryCode:
 
 
 # ---------------------------------------------------------------------------
-# New attributes: index_name, data_source, data_test, start_download, end_download
+# New attributes: index_name, start_download, end_download
 # ---------------------------------------------------------------------------
 
 
@@ -526,12 +524,6 @@ class TestConfigMultiNewAttributes:
 
     def test_index_name_default(self):
         assert _default().index_name == "DateTime"
-
-    def test_data_source_default(self):
-        assert _default().data_source == "data_in.csv"
-
-    def test_data_test_default(self):
-        assert _default().data_test == "data_test.csv"
 
     def test_start_download_default_is_none(self):
         assert _default().start_download is None
@@ -542,14 +534,6 @@ class TestConfigMultiNewAttributes:
     def test_custom_index_name(self):
         cfg = ConfigMulti(index_name="Timestamp")
         assert cfg.index_name == "Timestamp"
-
-    def test_custom_data_source(self):
-        cfg = ConfigMulti(data_source="demo10.csv")
-        assert cfg.data_source == "demo10.csv"
-
-    def test_custom_data_test(self):
-        cfg = ConfigMulti(data_test="demo11.csv")
-        assert cfg.data_test == "demo11.csv"
 
     def test_custom_start_download(self):
         cfg = ConfigMulti(start_download="202401010000")
@@ -562,23 +546,17 @@ class TestConfigMultiNewAttributes:
     def test_new_attrs_in_get_params(self):
         p = _default().get_params()
         assert "index_name" in p
-        assert "data_source" in p
-        assert "data_test" in p
         assert "start_download" in p
         assert "end_download" in p
 
     def test_new_attrs_values_in_get_params(self):
         cfg = ConfigMulti(
             index_name="ts",
-            data_source="data_in.csv",
-            data_test="data_test.csv",
             start_download="202401010000",
             end_download="202412312300",
         )
         p = cfg.get_params()
         assert p["index_name"] == "ts"
-        assert p["data_source"] == "data_in.csv"
-        assert p["data_test"] == "data_test.csv"
         assert p["start_download"] == "202401010000"
         assert p["end_download"] == "202412312300"
 
@@ -586,16 +564,6 @@ class TestConfigMultiNewAttributes:
         cfg = _default()
         cfg.set_params(index_name="ts")
         assert cfg.index_name == "ts"
-
-    def test_set_params_data_source(self):
-        cfg = _default()
-        cfg.set_params(data_source="demo10.csv")
-        assert cfg.data_source == "demo10.csv"
-
-    def test_set_params_data_test(self):
-        cfg = _default()
-        cfg.set_params(data_test="demo11.csv")
-        assert cfg.data_test == "demo11.csv"
 
     def test_set_params_start_download(self):
         cfg = _default()
@@ -621,12 +589,10 @@ class TestConfigMultiNewAttributes:
         cfg = ConfigMulti(
             targets=["A"],
             index_name="DateTime",
-            data_source="data_in.csv",
             start_download="202401010000",
         )
         assert cfg.targets == ["A"]
         assert cfg.index_name == "DateTime"
-        assert cfg.data_source == "data_in.csv"
         assert cfg.start_download == "202401010000"
 
 
@@ -817,7 +783,7 @@ class TestConfigMultiDerivedAttributes:
 
 
 # ---------------------------------------------------------------------------
-# Pipeline control attributes: verbose, cache_data, cache_home, data_home,
+# Pipeline control attributes: verbose, cache_data, cache_home,
 # end_train_ts, start_train_ts, n_trials_optuna, n_trials_spotoptim,
 # n_initial_spotoptim, task
 # ---------------------------------------------------------------------------
@@ -836,9 +802,6 @@ class TestConfigMultiPipelineAttributes:
 
     def test_cache_home_default_is_none(self):
         assert ConfigMulti().cache_home is None
-
-    def test_data_home_default_is_none(self):
-        assert ConfigMulti().data_home is None
 
     def test_end_train_ts_default_is_none(self):
         assert ConfigMulti().end_train_ts is None
@@ -870,10 +833,6 @@ class TestConfigMultiPipelineAttributes:
         cfg = ConfigMulti(cache_home="/tmp/cache")
         assert cfg.cache_home == "/tmp/cache"
 
-    def test_custom_data_home(self):
-        cfg = ConfigMulti(data_home="/tmp/data")
-        assert cfg.data_home == "/tmp/data"
-
     def test_custom_end_train_ts(self):
         ts = pd.Timestamp("2024-12-31", tz="UTC")
         assert ConfigMulti(end_train_ts=ts).end_train_ts == ts
@@ -903,7 +862,6 @@ class TestConfigMultiPipelineAttributes:
             "verbose",
             "cache_data",
             "cache_home",
-            "data_home",
             "end_train_ts",
             "start_train_ts",
             "n_trials_optuna",
@@ -918,7 +876,6 @@ class TestConfigMultiPipelineAttributes:
         assert p["verbose"] is False
         assert p["cache_data"] is False
         assert p["cache_home"] is None
-        assert p["data_home"] is None
         assert p["end_train_ts"] is None
         assert p["start_train_ts"] is None
         assert p["n_trials_optuna"] == 15
@@ -932,7 +889,6 @@ class TestConfigMultiPipelineAttributes:
             verbose=True,
             cache_data=True,
             cache_home="/c",
-            data_home="/d",
             end_train_ts=ts,
             start_train_ts=ts,
             n_trials_optuna=30,
@@ -944,7 +900,6 @@ class TestConfigMultiPipelineAttributes:
         assert p["verbose"] is True
         assert p["cache_data"] is True
         assert p["cache_home"] == "/c"
-        assert p["data_home"] == "/d"
         assert p["end_train_ts"] == ts
         assert p["start_train_ts"] == ts
         assert p["n_trials_optuna"] == 30
@@ -968,11 +923,6 @@ class TestConfigMultiPipelineAttributes:
         cfg = ConfigMulti()
         cfg.set_params(cache_home="/cache")
         assert cfg.cache_home == "/cache"
-
-    def test_set_params_data_home(self):
-        cfg = ConfigMulti()
-        cfg.set_params(data_home="/data")
-        assert cfg.data_home == "/data"
 
     def test_set_params_end_train_ts(self):
         ts = pd.Timestamp("2024-06-30", tz="UTC")

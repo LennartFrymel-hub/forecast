@@ -39,18 +39,7 @@ overridden during initialization.
 
 #### Attributes {.doc-section .doc-section-attributes}
 
-| Name             | Type                                      | Description                                           |
-|------------------|-------------------------------------------|-------------------------------------------------------|
-| data_path        | [Path](`pathlib.Path`)                    | Path to the ground truth CSV file for testing.        |
-| model_root       | [Path](`pathlib.Path`)                    | Root directory for storing trained models.            |
-| log_root         | [Path](`pathlib.Path`)                    | Directory for storing log files.                      |
-| forecast_horizon | [int](`int`)                              | Number of time steps to forecast ahead.               |
-| contamination    | [float](`float`)                          | Contamination factor for outlier detection (0.0-1.0). |
-| window_size      | [int](`int`)                              | Size of the sliding window for feature extraction.    |
-| lags             | [int](`int`)                              | Number of lagged features to include.                 |
-| train_ratio      | [float](`float`)                          | Ratio of data used for training (0.0-1.0).            |
-| random_seed      | [int](`int`)                              | Random seed for reproducibility.                      |
-| weights          | [List](`typing.List`)\[[float](`float`)\] | Weights for aggregating multi-variable predictions.   |
+
 
 #### Examples {.doc-section .doc-section-examples}
 

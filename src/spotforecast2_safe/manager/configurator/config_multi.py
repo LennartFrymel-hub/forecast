@@ -56,10 +56,6 @@ class ConfigMulti:
         include_poly_features (bool): If True, include polynomial interaction features.
         index_name (str): Name assigned to the datetime column when the index is reset.
             Defaults to ``"DateTime"``.
-        data_source (str): Primary data file name (e.g. ``"data_in.csv"``).
-            Defaults to ``"data_in.csv"``.
-        data_test (str): Test data file name (e.g. ``"data_test.csv"``).
-            Defaults to ``"data_test.csv"``.
         start_download (Optional[str]): Start of the download/data range as a string
             (format ``"YYYYMMDDHHMM"``). Derived from the loaded dataset; ``None`` until set.
         end_download (Optional[str]): End of the download/data range as a string
@@ -80,8 +76,6 @@ class ConfigMulti:
             Defaults to ``False``.
         cache_home (Optional[Any]): Path to the cache directory. ``None`` means
             the library default (``~/spotforecast2_cache/``) is used.
-        data_home (Optional[Any]): Path to the data directory. ``None`` means
-            the library default (``~/spotforecast2_data/``) is used.
         end_train_ts (Optional[pd.Timestamp]): End of the training window.
             Derived from ``end_train_default`` after data loading; ``None`` until set.
         start_train_ts (Optional[pd.Timestamp]): Start of the training window.
@@ -130,8 +124,6 @@ class ConfigMulti:
         include_holiday_features (bool): Holiday feature toggle.
         include_poly_features (bool): Polynomial feature toggle.
         index_name (str): Datetime column name used when resetting the index.
-        data_source (str): Primary data file name.
-        data_test (str): Test data file name.
         start_download (Optional[str]): Start of the data download range.
         end_download (Optional[str]): End of the data download range.
         data_start (Optional[pd.Timestamp]): First timestamp of the pipeline data.
@@ -142,7 +134,6 @@ class ConfigMulti:
         verbose (bool): Verbose output toggle.
         cache_data (bool): Cache intermediate data toggle.
         cache_home (Optional[Any]): Path to the cache directory.
-        data_home (Optional[Any]): Path to the data directory.
         end_train_ts (Optional[pd.Timestamp]): End of the training window.
         start_train_ts (Optional[pd.Timestamp]): Start of the training window.
         n_trials_optuna (int): Number of Optuna hyperparameter-search trials.
@@ -174,8 +165,6 @@ class ConfigMulti:
         print(f"Targets (default): {config.targets}")
         print(f"agg_weights (default): {config.agg_weights}")
         print(f"index_name: {config.index_name}")
-        print(f"data_source: {config.data_source}")
-        print(f"data_test: {config.data_test}")
         print(f"start_download: {config.start_download}")
         print(f"end_download: {config.end_download}")
         print(f"data_start: {config.data_start}")
@@ -204,8 +193,6 @@ class ConfigMulti:
             predict_size=48,
             random_state=42,
             targets=["A", "B"],
-            data_source="data_in.csv",
-            data_test="data_test.csv",
             index_name="DateTime",
         )
         print(f"country_code: {custom_config.country_code}")
@@ -255,8 +242,6 @@ class ConfigMulti:
         include_poly_features: bool = False,
         # Data source and index
         index_name: str = "DateTime",
-        data_source: str = "data_in.csv",
-        data_test: str = "data_test.csv",
         start_download: Optional[str] = None,
         end_download: Optional[str] = None,
         # Derived date ranges (set after data loading via get_start_end())
@@ -270,7 +255,6 @@ class ConfigMulti:
         verbose: bool = False,
         cache_data: bool = False,
         cache_home: Optional[Any] = None,
-        data_home: Optional[Any] = None,
         # Derived training window (set after data loading)
         end_train_ts: Optional[pd.Timestamp] = None,
         start_train_ts: Optional[pd.Timestamp] = None,
@@ -350,8 +334,6 @@ class ConfigMulti:
         self.include_poly_features = include_poly_features
         # Data source and index
         self.index_name = index_name
-        self.data_source = data_source
-        self.data_test = data_test
         self.start_download = start_download
         self.end_download = end_download
         # Derived date ranges (set after data loading via get_start_end())
@@ -365,7 +347,6 @@ class ConfigMulti:
         self.verbose = verbose
         self.cache_data = cache_data
         self.cache_home = cache_home
-        self.data_home = data_home
         # Derived training window (set after data loading)
         self.end_train_ts = end_train_ts
         self.start_train_ts = start_train_ts
@@ -408,8 +389,6 @@ class ConfigMulti:
             print(f"Predict size: {p['predict_size']}")
             print(f"Random state: {p['random_state']}")
             print(f"index_name: {p['index_name']}")
-            print(f"data_source: {p['data_source']}")
-            print(f"data_test: {p['data_test']}")
             print(f"data_start: {p['data_start']}")
             print(f"data_end: {p['data_end']}")
             print(f"cov_start: {p['cov_start']}")
@@ -449,8 +428,6 @@ class ConfigMulti:
             "include_poly_features": self.include_poly_features,
             # Data source and index
             "index_name": self.index_name,
-            "data_source": self.data_source,
-            "data_test": self.data_test,
             "start_download": self.start_download,
             "end_download": self.end_download,
             # Derived date ranges
@@ -464,7 +441,6 @@ class ConfigMulti:
             "verbose": self.verbose,
             "cache_data": self.cache_data,
             "cache_home": self.cache_home,
-            "data_home": self.data_home,
             # Derived training window
             "end_train_ts": self.end_train_ts,
             "start_train_ts": self.start_train_ts,

@@ -21,9 +21,7 @@ Container for input time series data.
 
 #### Attributes {.doc-section .doc-section-attributes}
 
-| Name   | Type                                           | Description                                             |
-|--------|------------------------------------------------|---------------------------------------------------------|
-| data   | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | pandas DataFrame containing the input time series data. |
+
 
 #### Methods
 
@@ -128,12 +126,7 @@ Class abstraction for the information required to encode a period.
 
 #### Attributes {.doc-section .doc-section-attributes}
 
-| Name        | Type                                                  | Description                                                            |
-|-------------|-------------------------------------------------------|------------------------------------------------------------------------|
-| name        | [str](`str`)                                          | Name of the period (e.g., 'hour', 'day').                              |
-| n_periods   | [int](`int`)                                          | Number of periods to encode (e.g., 24 for hours).                      |
-| column      | [str](`str`)                                          | Name of the column in the DataFrame containing the period information. |
-| input_range | [Tuple](`typing.Tuple`)\[[int](`int`), [int](`int`)\] | Tuple of (min, max) values for the period (e.g., (0, 23) for hours).   |
+
 
 #### Examples {.doc-section .doc-section-examples}
 
