@@ -1,3 +1,10 @@
+## [0.30.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.1...v0.30.2) (2026-03-24)
+
+
+### Bug Fixes
+
+* data_home data_source removed ([2377f2d](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/2377f2d7b3aee1d996bd65fb439ad4354cea040a))
+
 ## [0.30.2-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.1...v0.30.2-rc.1) (2026-03-24)
 
 
