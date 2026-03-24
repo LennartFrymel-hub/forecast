@@ -1,3 +1,10 @@
+## [0.30.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.0...v0.30.1) (2026-03-24)
+
+
+### Bug Fixes
+
+* regressor->estimator ([f5a0909](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/f5a0909b2a260eb3652a9c182cac407e91943ce2))
+
 ## [0.30.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.0...v0.30.1-rc.1) (2026-03-24)
 
 
