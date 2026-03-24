@@ -34,18 +34,7 @@ feature building, tuning (simulated), and packaging predictions for UI.
 
 #### Attributes {.doc-section .doc-section-attributes}
 
-| Name         | Type                                                                                                                  | Description                                                  |
-|--------------|-----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
-| iteration    | [int](`int`)                                                                                                          | The current training iteration.                              |
-| end_dev      | [pd](`pandas`).[Timestamp](`pandas.Timestamp`)                                                                        | The end date of the development/training period.             |
-| train_size   | [Optional](`typing.Optional`)\[[pd](`pandas`).[Timedelta](`pandas.Timedelta`)\]                                       | Lookback window for training data.                           |
-| preprocessor | [ExogBuilder](`spotforecast2_safe.preprocessing.exog_builder.ExogBuilder`)                                            | Builder for exogenous features.                              |
-| name         | [str](`str`)                                                                                                          | Label for the model type.                                    |
-| forecaster   | [Optional](`typing.Optional`)\[[ForecasterRecursive](`spotforecast2_safe.forecaster.recursive.ForecasterRecursive`)\] | The underlying forecaster instance.                          |
-| is_tuned     | [bool](`bool`)                                                                                                        | Flag indicating if hyperparameter tuning has been performed. |
-| predict_size | [int](`int`)                                                                                                          | Prediction horizon in hours.                                 |
-| refit_size   | [int](`int`)                                                                                                          | Refit interval in days.                                      |
-| random_state | [int](`int`)                                                                                                          | Seed for reproducibility.                                    |
+
 
 #### Examples {.doc-section .doc-section-examples}
 

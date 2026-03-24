@@ -29,12 +29,7 @@ It is a simplified implementation to avoid external dependencies like scikit-leg
 
 #### Attributes {.doc-section .doc-section-attributes}
 
-| Name        | Type                                                  | Description                                                        |
-|-------------|-------------------------------------------------------|--------------------------------------------------------------------|
-| n_periods   | [int](`int`)                                          | Number of basis functions to place.                                |
-| column      | [str](`str`)                                          | Name of the column in the input DataFrame/Series to transform.     |
-| input_range | [Tuple](`typing.Tuple`)\[[int](`int`), [int](`int`)\] | The range of the input values (min, max).                          |
-| remainder   | [str](`str`)                                          | Policy for remaining columns (currently only 'drop' is supported). |
+
 
 #### Examples {.doc-section .doc-section-examples}
 

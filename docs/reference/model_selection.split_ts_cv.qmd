@@ -55,21 +55,7 @@ functions.
 
 #### Attributes {.doc-section .doc-section-attributes}
 
-| Name                  | Type   | Description                                                                                                                                    |
-|-----------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| steps                 |        | Number of observations used to be predicted in each fold.                                                                                      |
-| initial_train_size    |        | Number of observations used for initial training. If `None` or 0, the initial forecaster is not trained in the first fold.                     |
-| fold_stride           |        | Number of observations that the start of the test set advances between consecutive folds.                                                      |
-| overlapping_folds     |        | Whether the folds overlap.                                                                                                                     |
-| window_size           |        | Number of observations needed to generate the autoregressive predictors.                                                                       |
-| differentiation       |        | Number of observations to use for differentiation. This is used to extend the `last_window` as many observations as the differentiation order. |
-| refit                 |        | Whether to refit the forecaster in each fold.                                                                                                  |
-| fixed_train_size      |        | Whether the training size is fixed or increases in each fold.                                                                                  |
-| gap                   |        | Number of observations between the end of the training set and the start of the test set.                                                      |
-| skip_folds            |        | Number of folds to skip.                                                                                                                       |
-| allow_incomplete_fold |        | Whether to allow the last fold to include fewer observations than `steps`.                                                                     |
-| return_all_indexes    |        | Whether to return all indexes or only the start and end indexes of each fold.                                                                  |
-| verbose               |        | Whether to print information about generated folds.                                                                                            |
+
 
 #### Examples {.doc-section .doc-section-examples}
 
