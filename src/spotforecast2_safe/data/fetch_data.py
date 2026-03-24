@@ -364,7 +364,7 @@ def fetch_weather_data(
         ```
     """
     if cached:
-        cache_path = get_data_home() / "weather_cache.parquet"
+        cache_path = get_cache_home() / "weather_cache.parquet"
     else:
         cache_path = None
 
