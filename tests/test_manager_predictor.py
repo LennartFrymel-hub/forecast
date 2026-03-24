@@ -113,7 +113,7 @@ def mock_forecaster(train_idx, future_idx):
     y_internal = pd.Series(np.full(n_internal, 50.0), index=internal_idx)
 
     forecaster.create_train_X_y.return_value = (X_matrix, y_internal)
-    forecaster.regressor.predict.return_value = np.full(n_internal, 49.0)
+    forecaster.estimator.predict.return_value = np.full(n_internal, 49.0)
     forecaster.predict.return_value = pd.Series(
         np.full(N_FUTURE, 48.0), index=future_idx, name="pred"
     )

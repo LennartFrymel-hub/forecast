@@ -35,14 +35,14 @@ def build_prediction_package(
 ) -> Dict[str, Any]:
     """Build a prediction package compatible with PredictionFigure.
 
-    Computes true in-sample predictions via the fitted regressor and generates
+    Computes true in-sample predictions via the fitted estimator and generates
     a genuine future forecast of ``predict_size`` steps. If ``df_test`` is
     supplied, ground-truth test values are injected and future metrics
     (MAE, MAPE) are computed.
 
     Args:
         forecaster: A fitted skforecast ``ForecasterRecursive`` (or compatible)
-            instance with ``create_train_X_y``, ``regressor``, and ``predict``
+            instance with ``create_train_X_y``, ``estimator``, and ``predict``
             methods.
         target: Column name of the target series. Used to look up ground-truth
             values inside ``df_test`` when provided.
@@ -64,7 +64,7 @@ def build_prediction_package(
         - **train_actual** (``pd.Series``) — observed training values aligned
             to the in-sample prediction index (lags consumed from the start).
         - **train_pred** (``pd.Series``) — in-sample fitted values from the
-            underlying regressor.
+            underlying estimator.
         - **future_actual** (``pd.Series``) — always an empty ``float64``
             Series; the field exists for interface compatibility with
             ``PredictionFigure``.
@@ -145,7 +145,7 @@ def build_prediction_package(
         y=y_train,
         exog=exog_train,
     )
-    train_pred_values = forecaster.regressor.predict(X_train_matrix)
+    train_pred_values = forecaster.estimator.predict(X_train_matrix)
     train_pred = pd.Series(train_pred_values, index=y_train_internal.index)
     y_train_aligned = y_train.loc[train_pred.index]
 

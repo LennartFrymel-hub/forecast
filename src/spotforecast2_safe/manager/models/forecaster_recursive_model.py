@@ -757,7 +757,7 @@ class ForecasterRecursiveModel:
 
         X_train, y_train = self._get_training_data()
         y_train_pred = pd.Series(
-            self.forecaster.regressor.predict(X_train),
+            self.forecaster.estimator.predict(X_train),
             index=y_train.index,
         )
 
