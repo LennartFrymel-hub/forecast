@@ -474,7 +474,9 @@ class TestFetchWeatherData:
         with patch(
             "spotforecast2_safe.data.fetch_data.WeatherService"
         ) as mock_service_class:
-            with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
+            with patch(
+                "spotforecast2_safe.data.fetch_data.get_cache_home"
+            ) as mock_home:
                 mock_home.return_value = Path("/tmp/spotforecast2_data")
                 mock_service = MagicMock()
                 mock_service.get_dataframe.return_value = pd.DataFrame()
@@ -577,7 +579,9 @@ class TestFetchWeatherData:
         with patch(
             "spotforecast2_safe.data.fetch_data.WeatherService"
         ) as mock_service_class:
-            with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
+            with patch(
+                "spotforecast2_safe.data.fetch_data.get_cache_home"
+            ) as mock_home:
                 mock_home.return_value = Path("/tmp/spotforecast2_data")
                 mock_service = MagicMock()
                 mock_service.get_dataframe.return_value = pd.DataFrame()
@@ -615,7 +619,9 @@ class TestFetchWeatherData:
         with patch(
             "spotforecast2_safe.data.fetch_data.WeatherService"
         ) as mock_service_class:
-            with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
+            with patch(
+                "spotforecast2_safe.data.fetch_data.get_cache_home"
+            ) as mock_home:
                 mock_home.return_value = Path("/custom/path")
                 mock_service = MagicMock()
                 mock_service.get_dataframe.return_value = pd.DataFrame()
@@ -653,7 +659,9 @@ class TestFetchWeatherData:
         with patch(
             "spotforecast2_safe.data.fetch_data.WeatherService"
         ) as mock_service_class:
-            with patch("spotforecast2_safe.data.fetch_data.get_data_home") as mock_home:
+            with patch(
+                "spotforecast2_safe.data.fetch_data.get_cache_home"
+            ) as mock_home:
                 test_path = Path("/test/data/home")
                 mock_home.return_value = test_path
                 mock_service = MagicMock()

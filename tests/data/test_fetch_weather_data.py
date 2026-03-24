@@ -89,7 +89,7 @@ def test_fetch_weather_data_fallback_logic(mock_get, tmp_path):
 
     # 3. Fetch data for a NEW range, expecting fallback to repeat cache
     with patch(
-        "spotforecast2_safe.data.fetch_data.get_data_home", return_value=tmp_path
+        "spotforecast2_safe.data.fetch_data.get_cache_home", return_value=tmp_path
     ):
         df = fetch_weather_data(
             cov_start="2023-01-02T00:00",
@@ -110,7 +110,7 @@ def test_fetch_weather_data_cache_integrity(tmp_path, mock_weather_response):
 
     with patch("requests.Session.get", return_value=mock_weather_response):
         with patch(
-            "spotforecast2_safe.data.fetch_data.get_data_home", return_value=tmp_path
+            "spotforecast2_safe.data.fetch_data.get_cache_home", return_value=tmp_path
         ):
             # Fetch and populate cache
             fetch_weather_data(

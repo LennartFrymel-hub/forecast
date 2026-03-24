@@ -1,3 +1,10 @@
+## [0.30.5-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.4...v0.30.5-rc.1) (2026-03-24)
+
+
+### Bug Fixes
+
+* weather data in cache ([703663e](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/703663eab273c590cf5a194f1b5317fa01fcb1fc))
+
 ## [0.30.4](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.3...v0.30.4) (2026-03-24)
 
 
