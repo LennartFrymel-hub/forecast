@@ -1,3 +1,10 @@
+## [0.30.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.2...v0.30.3) (2026-03-24)
+
+
+### Bug Fixes
+
+* curate_data reordered ([f4d5e3f](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/f4d5e3fbcb52600245e0cf1260313f5ded6f468f))
+
 ## [0.30.3-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.2...v0.30.3-rc.1) (2026-03-24)
 
 
