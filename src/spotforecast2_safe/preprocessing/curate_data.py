@@ -4,6 +4,7 @@
 from collections.abc import Callable
 import pandas as pd
 
+
 def get_start_end(
     data: pd.DataFrame,
     forecast_horizon: int,
@@ -90,7 +91,6 @@ def curate_holidays(
     """
     try:
         assert holiday_df.shape[0] == data.shape[0] + forecast_horizon
-        print("Holiday dataframe has correct shape.")
     except AssertionError:
         print("Holiday dataframe has wrong shape.")
 
@@ -132,7 +132,6 @@ def curate_weather(weather_df: pd.DataFrame, data: pd.DataFrame, forecast_horizo
     """
     try:
         assert weather_df.shape[0] == data.shape[0] + forecast_horizon
-        print("Weather dataframe has correct shape.")
     except AssertionError:
         print("Weather dataframe has wrong shape.")
 

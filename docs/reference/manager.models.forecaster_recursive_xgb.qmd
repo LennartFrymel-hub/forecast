@@ -24,3 +24,7 @@ ForecasterRecursive specialization using XGBoost.
 
 #### Attributes {.doc-section .doc-section-attributes}
 
+| Name       | Type   | Description                 |
+|------------|--------|-----------------------------|
+| forecaster |        | The XGBoost forecaster.     |
+| name       |        | The name of the forecaster. |
