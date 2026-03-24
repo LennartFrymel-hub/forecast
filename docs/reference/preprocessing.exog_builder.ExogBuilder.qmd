@@ -12,7 +12,11 @@ holiday indicators.
 
 ## Attributes {.doc-section .doc-section-attributes}
 
-
+| Name          | Type                                                                                          | Description                                 |
+|---------------|-----------------------------------------------------------------------------------------------|---------------------------------------------|
+| periods       | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.data.Period`)\]                      | List of periodic features to encode.        |
+| country_code  | [Optional](`typing.Optional`)\[[str](`str`)\]                                                 | Country code for holiday lookups.           |
+| holidays_list | [Optional](`typing.Optional`)\[[holidays](`holidays`).[HolidayBase](`holidays.HolidayBase`)\] | List of holidays for the specified country. |
 
 ## Examples {.doc-section .doc-section-examples}
 

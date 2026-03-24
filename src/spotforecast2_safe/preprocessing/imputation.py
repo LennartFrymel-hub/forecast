@@ -151,7 +151,7 @@ def get_missing_weights(
         window_size (int):
             The size of the rolling window to consider for missing values.
         verbose (bool):
-            Whether to print additional information.
+            Whether to print additional information. Defaults to False.
 
     Returns:
         Tuple[pd.DataFrame, pd.Series]:
@@ -205,6 +205,7 @@ def apply_imputation(
     df_pipeline: pd.DataFrame,
     config: Any,
     logger: logging.Logger,
+    verbose: bool = False,
 ) -> tuple[pd.DataFrame, "WeightFunction | None"]:
     """Apply imputation to a DataFrame based on the method specified in config.
 
@@ -231,6 +232,7 @@ def apply_imputation(
               :func:`get_missing_weights` (``"weighted"`` method only).
         logger (logging.Logger): Standard-library logger used to emit
             ``INFO`` and ``WARNING`` messages.
+        verbose (bool): Whether to print additional information. Defaults to False.
 
     Returns:
         tuple[pd.DataFrame, WeightFunction | None]: A two-element tuple:
@@ -288,7 +290,7 @@ def apply_imputation(
         df_pipeline, weights_series = get_missing_weights(
             df_pipeline,
             window_size=config.window_size,
-            verbose=True,
+            verbose=verbose,
         )
         weight_func = WeightFunction(weights_series)
         logger.info("Weight function created with %d entries.", len(weights_series))

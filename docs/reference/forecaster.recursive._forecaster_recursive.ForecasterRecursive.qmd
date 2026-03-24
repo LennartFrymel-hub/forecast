@@ -42,7 +42,33 @@ as input for the next step (recursive strategy).
 
 ## Attributes {.doc-section .doc-section-attributes}
 
-
+| Name                        | Type   | Description                                                      |
+|-----------------------------|--------|------------------------------------------------------------------|
+| estimator                   |        | Fitted scikit-learn estimator.                                   |
+| lags                        |        | Lag indices used in the model.                                   |
+| lags_names                  |        | Names of lag features (e.g., ['lag_1', 'lag_2']).                |
+| window_features             |        | List of window feature transformers.                             |
+| window_features_names       |        | Names of window features.                                        |
+| window_size                 |        | Maximum window size needed (max of lags and window features).    |
+| transformer_y               |        | Transformer for target variable.                                 |
+| transformer_exog            |        | Transformer for exogenous variables.                             |
+| weight_func                 |        | Function for sample weighting.                                   |
+| differentiation             |        | Order of differencing applied.                                   |
+| differentiator              |        | TimeSeriesDifferentiator instance if differencing is used.       |
+| is_fitted                   |        | Boolean indicating if forecaster has been fitted.                |
+| fit_date                    |        | Timestamp of the last fit operation.                             |
+| last_window_                |        | Last window_size observations from training data.                |
+| index_type_                 |        | Type of index in training data (RangeIndex or DatetimeIndex).    |
+| index_freq_                 |        | Frequency of DatetimeIndex if applicable.                        |
+| training_range_             |        | First and last index values of training data.                    |
+| series_name_in_             |        | Name of the target series.                                       |
+| exog_in_                    |        | Boolean indicating if exogenous variables were used in training. |
+| exog_names_in_              |        | Names of exogenous variables.                                    |
+| exog_type_in_               |        | Type of exogenous input (Series or DataFrame).                   |
+| X_train_features_names_out_ |        | Names of all training features.                                  |
+| in_sample_residuals_        |        | Residuals from training set.                                     |
+| in_sample_residuals_by_bin_ |        | Residuals grouped by bins for probabilistic pred.                |
+| forecaster_id               |        | Identifier for the forecaster instance.                          |
 
 ## Note {.doc-section .doc-section-note}
 

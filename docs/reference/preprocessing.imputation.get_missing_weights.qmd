@@ -16,7 +16,7 @@ Return imputed DataFrame and a series indicating missing weights.
 |-------------|------------------------------------------------|----------------------------------------------------------------|------------|
 | data        | [pd](`pandas`).[DataFrame](`pandas.DataFrame`) | The input dataset.                                             | _required_ |
 | window_size | [int](`int`)                                   | The size of the rolling window to consider for missing values. | `72`       |
-| verbose     | [bool](`bool`)                                 | Whether to print additional information.                       | `False`    |
+| verbose     | [bool](`bool`)                                 | Whether to print additional information. Defaults to False.    | `False`    |
 
 ## Returns {.doc-section .doc-section-returns}
 

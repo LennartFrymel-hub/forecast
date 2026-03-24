@@ -1,7 +1,12 @@
 # preprocessing.imputation.apply_imputation { #spotforecast2_safe.preprocessing.imputation.apply_imputation }
 
 ```python
-preprocessing.imputation.apply_imputation(df_pipeline, config, logger)
+preprocessing.imputation.apply_imputation(
+    df_pipeline,
+    config,
+    logger,
+    verbose=False,
+)
 ```
 
 Apply imputation to a DataFrame based on the method specified in config.
@@ -24,6 +29,7 @@ always written to the logger.
 | df_pipeline | [pd](`pandas`).[DataFrame](`pandas.DataFrame`)  | DataFrame to impute.  Modified in-place for the ``"linear"`` method; a new DataFrame is returned for ``"weighted"`` (via :func:`get_missing_weights`).                                                                                                                                                                    | _required_ |
 | config      | [Any](`typing.Any`)                             | Configuration object that must expose: - ``imputation_method`` (``str``): ``"weighted"`` or ``"linear"``. - ``targets`` (``list[str]``): column names to interpolate   (``"linear"`` method only). - ``window_size`` (``int``): rolling-window size passed to   :func:`get_missing_weights` (``"weighted"`` method only). | _required_ |
 | logger      | [logging](`logging`).[Logger](`logging.Logger`) | Standard-library logger used to emit ``INFO`` and ``WARNING`` messages.                                                                                                                                                                                                                                                   | _required_ |
+| verbose     | [bool](`bool`)                                  | Whether to print additional information. Defaults to False.                                                                                                                                                                                                                                                               | `False`    |
 
 ## Returns {.doc-section .doc-section-returns}
 

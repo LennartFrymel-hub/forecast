@@ -41,7 +41,18 @@ initialization or used with sensible defaults.
 
 ## Attributes {.doc-section .doc-section-attributes}
 
-
+| Name                     | Type                                                                | Description                               |
+|--------------------------|---------------------------------------------------------------------|-------------------------------------------|
+| API_COUNTRY_CODE         | [str](`str`)                                                        | ISO country code for API queries.         |
+| periods                  | [List](`typing.List`)\[[Period](`spotforecast2_safe.data.Period`)\] | Cyclical feature encoding specifications. |
+| lags_consider            | [List](`typing.List`)\[[int](`int`)\]                               | Lag values for autoregressive features.   |
+| train_size               | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                      | Training data window.                     |
+| end_train_default        | [str](`str`)                                                        | Default training end date.                |
+| delta_val                | [pd](`pandas`).[Timedelta](`pandas.Timedelta`)                      | Validation window.                        |
+| predict_size             | [int](`int`)                                                        | Prediction horizon in hours.              |
+| refit_size               | [int](`int`)                                                        | Refit interval in days.                   |
+| random_state             | [int](`int`)                                                        | Random seed.                              |
+| n_hyperparameters_trials | [int](`int`)                                                        | Hyperparameter tuning trials.             |
 
 ## Notes {.doc-section .doc-section-notes}
 
