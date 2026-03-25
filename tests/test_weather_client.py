@@ -12,6 +12,7 @@ Verifies that:
 import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
+from urllib.parse import urlparse
 
 
 # ---------------------------------------------------------------------------
@@ -239,8 +240,9 @@ class TestWeatherClientFetchForecast:
         client.fetch_forecast(days_ahead=1)
 
         call_url = mock_get.call_args[0][0]
-        assert "api.open-meteo.com" in call_url
-        assert "archive" not in call_url
+        parsed = urlparse(call_url)
+        assert parsed.hostname == "api.open-meteo.com"
+        assert "archive" not in parsed.path
 
 
 # ---------------------------------------------------------------------------
