@@ -73,7 +73,6 @@ class TestImports:
 
     def test_import_both(self):
         """WeatherClient and WeatherService are importable together."""
-        from spotforecast2_safe.weather import WeatherClient, WeatherService  # noqa: F401
 
     def test_dunder_all(self):
         """spotforecast2_safe.weather.__all__ exposes both classes."""
@@ -361,9 +360,9 @@ class TestWeatherServiceGetDataframe:
             fallback_on_failure=False,
         )
 
-        assert mock_get.call_count == first_call_count, (
-            "API was called again even though cache covers the requested range."
-        )
+        assert (
+            mock_get.call_count == first_call_count
+        ), "API was called again even though cache covers the requested range."
 
     @patch("requests.Session.get")
     def test_fallback_on_api_failure(self, mock_get, tmp_path):

@@ -16,7 +16,7 @@ from requests.packages.urllib3.util.retry import Retry
 class WeatherClient:
     """Client for fetching weather data from Open-Meteo API.
     Handles the low-level API interactions, parameter building, and response parsing.
-    
+
     Args:
         latitude: Latitude of the location.
         longitude: Longitude of the location.
@@ -110,7 +110,7 @@ class WeatherClient:
         self, start: pd.Timestamp, end: pd.Timestamp, timezone: str = "UTC"
     ) -> pd.DataFrame:
         """Fetch historical data from Archive API.
-        
+
         Args:
             start: Start date for the historical data.
             end: End date for the historical data.
@@ -148,7 +148,7 @@ class WeatherService(WeatherClient):
 
     Extends WeatherClient with caching, hybrid fetching (archive+forecast),
     and fallback strategies.
-    
+
     Args:
         latitude: Latitude of the location.
         longitude: Longitude of the location.
