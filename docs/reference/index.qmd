@@ -9,7 +9,7 @@ Utilities for fetching and loading time series, weather, and holiday data.
 | --- | --- |
 | [data.fetch_data.fetch_data](data.fetch_data.fetch_data.qmd#spotforecast2_safe.data.fetch_data.fetch_data) | Fetches a dataset from a CSV file or processes a DataFrame. |
 | [data.fetch_data.fetch_holiday_data](data.fetch_data.fetch_holiday_data.qmd#spotforecast2_safe.data.fetch_data.fetch_holiday_data) | Fetches holiday data for the dataset period. |
-| [data.fetch_data.fetch_weather_data](data.fetch_data.fetch_weather_data.qmd#spotforecast2_safe.data.fetch_data.fetch_weather_data) | Fetches weather data for the dataset period plus forecast horizon. |
+| [data.fetch_data.fetch_weather_data](data.fetch_data.fetch_weather_data.qmd#spotforecast2_safe.data.fetch_data.fetch_weather_data) | Fetch weather data for the dataset period plus forecast horizon. |
 | [data.fetch_data.get_cache_home](data.fetch_data.get_cache_home.qmd#spotforecast2_safe.data.fetch_data.get_cache_home) | Return the location where persistent models are to be cached. |
 | [data.fetch_data.get_data_home](data.fetch_data.get_data_home.qmd#spotforecast2_safe.data.fetch_data.get_data_home) | Return the location where datasets are to be stored. |
 | [data.fetch_data.get_package_data_home](data.fetch_data.get_package_data_home.qmd#spotforecast2_safe.data.fetch_data.get_package_data_home) | Return the location of the internal package datasets. |

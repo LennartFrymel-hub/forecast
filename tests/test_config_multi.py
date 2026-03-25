@@ -797,9 +797,6 @@ class TestConfigMultiPipelineAttributes:
     def test_verbose_default_is_false(self):
         assert ConfigMulti().verbose is False
 
-    def test_cache_data_default_is_false(self):
-        assert ConfigMulti().cache_data is False
-
     def test_cache_home_default_is_none(self):
         assert ConfigMulti().cache_home is None
 
@@ -825,9 +822,6 @@ class TestConfigMultiPipelineAttributes:
 
     def test_custom_verbose(self):
         assert ConfigMulti(verbose=True).verbose is True
-
-    def test_custom_cache_data(self):
-        assert ConfigMulti(cache_data=True).cache_data is True
 
     def test_custom_cache_home(self):
         cfg = ConfigMulti(cache_home="/tmp/cache")
@@ -860,7 +854,6 @@ class TestConfigMultiPipelineAttributes:
         p = ConfigMulti().get_params()
         for key in (
             "verbose",
-            "cache_data",
             "cache_home",
             "end_train_ts",
             "start_train_ts",
@@ -874,7 +867,6 @@ class TestConfigMultiPipelineAttributes:
     def test_new_attrs_default_values_in_get_params(self):
         p = ConfigMulti().get_params()
         assert p["verbose"] is False
-        assert p["cache_data"] is False
         assert p["cache_home"] is None
         assert p["end_train_ts"] is None
         assert p["start_train_ts"] is None
@@ -887,7 +879,6 @@ class TestConfigMultiPipelineAttributes:
         ts = pd.Timestamp("2023-06-01", tz="UTC")
         cfg = ConfigMulti(
             verbose=True,
-            cache_data=True,
             cache_home="/c",
             end_train_ts=ts,
             start_train_ts=ts,
@@ -898,7 +889,6 @@ class TestConfigMultiPipelineAttributes:
         )
         p = cfg.get_params()
         assert p["verbose"] is True
-        assert p["cache_data"] is True
         assert p["cache_home"] == "/c"
         assert p["end_train_ts"] == ts
         assert p["start_train_ts"] == ts
@@ -913,11 +903,6 @@ class TestConfigMultiPipelineAttributes:
         cfg = ConfigMulti()
         cfg.set_params(verbose=True)
         assert cfg.verbose is True
-
-    def test_set_params_cache_data(self):
-        cfg = ConfigMulti()
-        cfg.set_params(cache_data=True)
-        assert cfg.cache_data is True
 
     def test_set_params_cache_home(self):
         cfg = ConfigMulti()

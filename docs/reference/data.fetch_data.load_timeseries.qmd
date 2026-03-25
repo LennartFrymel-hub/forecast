@@ -11,9 +11,9 @@ values with forward/backward fill.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name      | Type                                                                                             | Description                                                          | Default   |
-|-----------|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|-----------|
-| data_home | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[str](`str`), [Path](`pathlib.Path`)\]\] | Root data directory.  If *None*, resolved via :func:`get_data_home`. | `None`    |
+| Name      | Type                                                                                             | Description                                                      | Default   |
+|-----------|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------|-----------|
+| data_home | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[str](`str`), [Path](`pathlib.Path`)\]\] | Root data directory.  If None, resolved via ``get_data_home()``. | `None`    |
 
 ## Returns {.doc-section .doc-section-returns}
 

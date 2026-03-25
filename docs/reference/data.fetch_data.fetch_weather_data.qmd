@@ -9,27 +9,30 @@ data.fetch_data.fetch_weather_data(
     timezone='UTC',
     freq='h',
     fallback_on_failure=True,
-    cached=False,
     cache_home=None,
 )
 ```
 
-Fetches weather data for the dataset period plus forecast horizon.
-    Create weather dataframe using API with optional caching.
+Fetch weather data for the dataset period plus forecast horizon.
+
+Creates a weather DataFrame using the Open-Meteo API with optional
+caching.  Caching is controlled solely by the cache_home argument:
+when a path is provided the service reads from / writes to a parquet
+cache file inside that directory; when None (the default) no caching
+is performed.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name                | Type                                   | Description                                                                              | Default    |
-|---------------------|----------------------------------------|------------------------------------------------------------------------------------------|------------|
-| cov_start           | [str](`str`)                           | Start date for covariate data.                                                           | _required_ |
-| cov_end             | [str](`str`)                           | End date for covariate data.                                                             | _required_ |
-| latitude            | [float](`float`)                       | Latitude of the location for weather data. Default is 51.5136 (Dortmund).                | `51.5136`  |
-| longitude           | [float](`float`)                       | Longitude of the location for weather data. Default is 7.4653 (Dortmund).                | `7.4653`   |
-| timezone            | [str](`str`)                           | Timezone for the weather data.                                                           | `'UTC'`    |
-| freq                | [str](`str`)                           | Frequency of the weather data.                                                           | `'h'`      |
-| fallback_on_failure | [bool](`bool`)                         | Whether to use fallback data in case of failure.                                         | `True`     |
-| cached              | [bool](`bool`)                         | Whether to use cached data.                                                              | `False`    |
-| cache_home          | [str](`str`) or [Path](`pathlib.Path`) | Path to cache directory. Required if cached is True. If None, defaults to package cache. | `None`     |
+| Name                | Type                                                                                             | Description                                                                                                                                                                | Default    |
+|---------------------|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| cov_start           | [str](`str`)                                                                                     | Start date for covariate data.                                                                                                                                             | _required_ |
+| cov_end             | [str](`str`)                                                                                     | End date for covariate data.                                                                                                                                               | _required_ |
+| latitude            | [float](`float`)                                                                                 | Latitude of the location for weather data. Default is 51.5136 (Dortmund).                                                                                                  | `51.5136`  |
+| longitude           | [float](`float`)                                                                                 | Longitude of the location for weather data. Default is 7.4653 (Dortmund).                                                                                                  | `7.4653`   |
+| timezone            | [str](`str`)                                                                                     | Timezone for the weather data.                                                                                                                                             | `'UTC'`    |
+| freq                | [str](`str`)                                                                                     | Frequency of the weather data.                                                                                                                                             | `'h'`      |
+| fallback_on_failure | [bool](`bool`)                                                                                   | Whether to use fallback data in case of failure.                                                                                                                           | `True`     |
+| cache_home          | [Optional](`typing.Optional`)\[[Union](`typing.Union`)\[[str](`str`), [Path](`pathlib.Path`)\]\] | Optional path to cache directory.  When provided, fetched weather data is cached in ``<cache_home>/weather_cache.parquet``.  When None (default), no caching is performed. | `None`     |
 
 ## Returns {.doc-section .doc-section-returns}
 
@@ -49,6 +52,6 @@ weather_df = fetch_weather_data(
     timezone='UTC',
     freq='h',
     fallback_on_failure=True,
-    cached=True)
+    cache_home='~/.spotforecast2_cache')
 weather_df.head()
 ```
