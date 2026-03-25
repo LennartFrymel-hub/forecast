@@ -1,3 +1,10 @@
+## [0.30.10-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.9...v0.30.10-rc.1) (2026-03-25)
+
+
+### Bug Fixes
+
+* cache ([1950750](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/1950750e8760743f7ac04d122c3d273bcfe30621))
+
 ## [0.30.9](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.8...v0.30.9) (2026-03-25)
 
 
