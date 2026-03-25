@@ -167,12 +167,9 @@ def fetch_data(
         filename (str or Path, optional):
             Full absolute path of the CSV file containing the dataset
             (e.g., ``'/home/data/my_data.csv'``).  Required when
-            *dataframe* is ``None``.  Use :func:`get_data_home` or
-            :func:`get_package_data_home` to build the path:
-
-            .. code-block:: python
-
-                fetch_data(filename=get_data_home() / "my_data.csv")
+            dataframe is None.  Use ``get_data_home()`` or
+            ``get_package_data_home()`` to build the path, for example
+            ``fetch_data(filename=get_data_home() / "my_data.csv")``.
 
         dataframe (pd.DataFrame, optional):
             A pandas DataFrame to process. If provided, it will be processed with
@@ -394,8 +391,8 @@ def load_timeseries(
     values with forward/backward fill.
 
     Args:
-        data_home: Root data directory.  If *None*, resolved via
-            :func:`get_data_home`.
+        data_home: Root data directory.  If None, resolved via
+            ``get_data_home()``.
 
     Returns:
         pd.Series: Hourly actual-load series indexed by UTC timestamps.
@@ -459,8 +456,8 @@ def load_timeseries_forecast(
     values with forward/backward fill.
 
     Args:
-        data_home: Root data directory.  If *None*, resolved via
-            :func:`get_data_home`.
+        data_home: Root data directory.  If None, resolved via
+            ``get_data_home()``.
 
     Returns:
         pd.Series: Hourly forecasted-load series indexed by UTC timestamps.
