@@ -25,7 +25,7 @@ class TestGetCacheHome:
         assert cache_home.exists()
 
         # Should be in home directory with expected name
-        assert cache_home.name == "spotforecast2_cache"
+        assert cache_home.name == ".spotforecast2_cache"
         assert cache_home.parent == Path.home()
 
     def test_cache_home_with_string_path(self):
