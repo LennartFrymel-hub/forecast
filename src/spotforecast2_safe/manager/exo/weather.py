@@ -9,6 +9,7 @@ and transforms it into rolling-window features suitable for use as exogenous
 variables in recursive forecasting models.
 """
 
+from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -37,7 +38,7 @@ def get_weather_features(
     window_periods: Optional[List[str]] = None,
     window_functions: Optional[List[str]] = None,
     fallback_on_failure: bool = True,
-    cached: bool = True,
+    cache_home: Optional[Union[str, Path]] = None,
     verbose: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Fetch weather data and compute rolling-window features.
@@ -76,8 +77,10 @@ def get_weather_features(
         fallback_on_failure: If ``True``, use locally cached fallback
             data when the weather API is unavailable.  Defaults to
             ``True``.
-        cached: If ``True``, read from the local weather cache before
-            issuing a network request.  Defaults to ``True``.
+        cache_home: Optional path to cache directory.  When provided,
+            fetched weather data is cached in
+            ``<cache_home>/weather_cache.parquet``.  When None (default),
+            no caching is performed.
         verbose: If ``True``, print progress messages to stdout.
             Defaults to ``False``.
 
@@ -144,7 +147,7 @@ def get_weather_features(
         timezone=timezone,
         freq=freq,
         fallback_on_failure=fallback_on_failure,
-        cached=cached,
+        cache_home=cache_home,
     )
 
     curate_weather(weather_df, data, forecast_horizon=forecast_horizon)

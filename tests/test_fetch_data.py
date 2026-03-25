@@ -575,7 +575,7 @@ class TestFetchWeatherData:
             assert call_kwargs["fallback_on_failure"] is False
 
     def test_fetch_weather_data_cached_true(self):
-        """Test fetch_weather_data with caching enabled."""
+        """Test fetch_weather_data with caching enabled via cache_home."""
         with patch(
             "spotforecast2_safe.data.fetch_data.WeatherService"
         ) as mock_service_class:
@@ -590,7 +590,7 @@ class TestFetchWeatherData:
                 fetch_weather_data(
                     cov_start="2023-01-01T00:00",
                     cov_end="2023-01-11T00:00",
-                    cached=True,
+                    cache_home="/tmp/spotforecast2_data",
                 )
 
                 init_kwargs = mock_service_class.call_args[1]
@@ -599,7 +599,7 @@ class TestFetchWeatherData:
                 )
 
     def test_fetch_weather_data_cached_false(self):
-        """Test fetch_weather_data with caching disabled."""
+        """Test fetch_weather_data with caching disabled (cache_home=None)."""
         with patch(
             "spotforecast2_safe.data.fetch_data.WeatherService"
         ) as mock_service_class:
@@ -608,7 +608,7 @@ class TestFetchWeatherData:
             mock_service_class.return_value = mock_service
 
             fetch_weather_data(
-                cov_start="2023-01-01T00:00", cov_end="2023-01-11T00:00", cached=False
+                cov_start="2023-01-01T00:00", cov_end="2023-01-11T00:00"
             )
 
             init_kwargs = mock_service_class.call_args[1]
@@ -635,7 +635,7 @@ class TestFetchWeatherData:
                     timezone="Europe/Paris",
                     freq="15min",
                     fallback_on_failure=False,
-                    cached=True,
+                    cache_home="/custom/path",
                 )
 
                 # Check service initialization
@@ -671,7 +671,7 @@ class TestFetchWeatherData:
                 fetch_weather_data(
                     cov_start="2023-01-01T00:00",
                     cov_end="2023-01-11T00:00",
-                    cached=True,
+                    cache_home="/test/data/home",
                 )
 
                 expected_cache_path = test_path / "weather_cache.parquet"

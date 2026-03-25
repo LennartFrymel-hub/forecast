@@ -52,7 +52,7 @@ def test_fetch_weather_data_success(mock_get, mock_weather_response):
     start = "2023-01-01T00:00"
     end = "2023-01-01T23:00"
 
-    df = fetch_weather_data(cov_start=start, cov_end=end, cached=False)
+    df = fetch_weather_data(cov_start=start, cov_end=end)
 
     assert isinstance(df, pd.DataFrame)
     assert len(df) == 24
@@ -71,7 +71,6 @@ def test_fetch_weather_data_api_failure_no_fallback(mock_get):
             cov_start="2023-01-01",
             cov_end="2023-01-01",
             fallback_on_failure=False,
-            cached=False,
         )
 
 
@@ -95,7 +94,7 @@ def test_fetch_weather_data_fallback_logic(mock_get, tmp_path):
             cov_start="2023-01-02T00:00",
             cov_end="2023-01-02T05:00",
             fallback_on_failure=True,
-            cached=True,
+            cache_home=tmp_path,
         )
 
     # Should have 6 points (0 to 5)
@@ -114,7 +113,7 @@ def test_fetch_weather_data_cache_integrity(tmp_path, mock_weather_response):
         ):
             # Fetch and populate cache
             fetch_weather_data(
-                cov_start="2023-01-01T00:00", cov_end="2023-01-01T23:00", cached=True
+                cov_start="2023-01-01T00:00", cov_end="2023-01-01T23:00", cache_home=tmp_path
             )
 
             assert cache_file.exists()
@@ -128,7 +127,7 @@ def test_fetch_weather_data_cache_integrity(tmp_path, mock_weather_response):
                 df = fetch_weather_data(
                     cov_start="2023-01-01T00:00",
                     cov_end="2023-01-01T23:00",
-                    cached=True,
+                    cache_home=tmp_path,
                 )
                 assert len(df) == 24
                 assert not mock_get_fail.called
@@ -149,7 +148,7 @@ def test_fetch_weather_data_alignment():
         mock_df = pd.DataFrame({"temp": np.arange(11)}, index=idx_hourly)
         mock_hybrid.return_value = mock_df
 
-        df = fetch_weather_data(cov_start=start, cov_end=end, freq=freq, cached=False)
+        df = fetch_weather_data(cov_start=start, cov_end=end, freq=freq)
 
         # Expected index: 0, 2, 4, 6, 8, 10 -> 6 points
         assert len(df) == 6
