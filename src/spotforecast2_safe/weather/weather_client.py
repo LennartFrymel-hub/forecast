@@ -150,10 +150,14 @@ class WeatherService(WeatherClient):
     and fallback strategies.
 
     Args:
-        latitude: Latitude of the location.
-        longitude: Longitude of the location.
-        cache_path: Optional path to cache file for storing fetched data.
-        use_forecast: Whether to use forecast data for future dates (default True).
+        latitude:
+            Latitude of the location.
+        longitude:
+            Longitude of the location.
+        cache_path:
+            Optional path to cache file for storing fetched data. If provided, the service will attempt to load from cache before fetching and will save new data to this path. Default is None (no caching).
+        use_forecast:
+            Whether to use forecast data for future dates (default True).
     """
 
     def __init__(

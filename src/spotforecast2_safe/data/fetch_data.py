@@ -322,31 +322,31 @@ def fetch_weather_data(
     timezone: str = "UTC",
     freq: str = "h",
     fallback_on_failure: bool = True,
-    cached=False,
     cache_home: Optional[Union[str, Path]] = None,
 ) -> pd.DataFrame:
-    """Fetches weather data for the dataset period plus forecast horizon.
-        Create weather dataframe using API with optional caching.
+    """Fetch weather data for the dataset period plus forecast horizon.
+
+    Creates a weather DataFrame using the Open-Meteo API with optional
+    caching.  Caching is controlled solely by the cache_home argument:
+    when a path is provided the service reads from / writes to a parquet
+    cache file inside that directory; when None (the default) no caching
+    is performed.
 
     Args:
-        cov_start (str):
-            Start date for covariate data.
-        cov_end (str):
-            End date for covariate data.
-        latitude (float):
-            Latitude of the location for weather data. Default is 51.5136 (Dortmund).
-        longitude (float):
-            Longitude of the location for weather data. Default is 7.4653 (Dortmund).
-        timezone (str):
-            Timezone for the weather data.
-        freq (str):
-            Frequency of the weather data.
-        fallback_on_failure (bool):
-            Whether to use fallback data in case of failure.
-        cached (bool):
-            Whether to use cached data.
-        cache_home (str or Path, optional):
-            Path to cache directory. Required if cached is True. If None, defaults to package cache.
+        cov_start: Start date for covariate data.
+        cov_end: End date for covariate data.
+        latitude: Latitude of the location for weather data.
+            Default is 51.5136 (Dortmund).
+        longitude: Longitude of the location for weather data.
+            Default is 7.4653 (Dortmund).
+        timezone: Timezone for the weather data.
+        freq: Frequency of the weather data.
+        fallback_on_failure: Whether to use fallback data in case of
+            failure.
+        cache_home: Optional path to cache directory.  When provided,
+            fetched weather data is cached in
+            ``<cache_home>/weather_cache.parquet``.  When None (default),
+            no caching is performed.
 
     Returns:
         pd.DataFrame: DataFrame containing weather information.
@@ -362,11 +362,11 @@ def fetch_weather_data(
             timezone='UTC',
             freq='h',
             fallback_on_failure=True,
-            cached=True)
+            cache_home='~/.spotforecast2_cache')
         weather_df.head()
         ```
     """
-    if cached:
+    if cache_home is not None:
         cache_path = get_cache_home(cache_home=cache_home) / "weather_cache.parquet"
     else:
         cache_path = None
