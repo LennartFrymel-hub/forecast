@@ -25,7 +25,6 @@ from pathlib import Path
 from spotforecast2_safe.data.fetch_data import (
     load_timeseries_forecast,
     load_timeseries,
-    get_package_data_home,
 )
 
 
