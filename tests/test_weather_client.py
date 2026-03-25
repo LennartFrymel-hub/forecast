@@ -77,10 +77,10 @@ class TestImports:
 
     def test_dunder_all(self):
         """spotforecast2_safe.weather.__all__ exposes both classes."""
-        import spotforecast2_safe.weather as w
+        from spotforecast2_safe.weather import __all__ as weather_all
 
-        assert "WeatherClient" in w.__all__
-        assert "WeatherService" in w.__all__
+        assert "WeatherClient" in weather_all
+        assert "WeatherService" in weather_all
 
     def test_weather_service_is_subclass(self):
         """WeatherService is a subclass of WeatherClient."""
