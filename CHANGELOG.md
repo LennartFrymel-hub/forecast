@@ -1,3 +1,13 @@
+## [0.30.6](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.5...v0.30.6) (2026-03-25)
+
+
+### Bug Fixes
+
+* .spotforecast2_cache, weather ([47911c1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/47911c13e6fda41613ebdadfaf17f6e913eda4d7))
+* .spotforecast2_cache, weather ([95017dd](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/95017dd12f13e845711afd51ce31d728f3be3d64))
+* fetch_date weather cache ([6823760](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/682376057a1aac3c4cb5c288e3c9900b9c1aba4a))
+* fetch_date weather cache ([dccf6a3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/dccf6a3ce6876a80996db6410c078c2c80d8cd5c))
+
 ## [0.30.6-rc.3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.6-rc.2...v0.30.6-rc.3) (2026-03-25)
 
 
