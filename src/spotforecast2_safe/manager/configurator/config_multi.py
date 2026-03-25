@@ -72,8 +72,6 @@ class ConfigMulti:
             ``(lower, upper)`` tuples, one entry per target column. ``None`` until set.
         verbose (bool): If ``True``, enable verbose output for pipeline steps.
             Defaults to ``False``.
-        cache_data (bool): If ``True``, cache intermediate data to disk.
-            Defaults to ``False``.
         cache_home (Optional[Any]): Path to the cache directory. ``None`` means
             the library default (``~/spotforecast2_cache/``) is used.
         end_train_ts (Optional[pd.Timestamp]): End of the training window.
@@ -132,7 +130,6 @@ class ConfigMulti:
         cov_end (Optional[pd.Timestamp]): End of the covariate date range.
         bounds (Optional[List[tuple]]): Per-column outlier bounds ``(lower, upper)``.
         verbose (bool): Verbose output toggle.
-        cache_data (bool): Cache intermediate data toggle.
         cache_home (Optional[Any]): Path to the cache directory.
         end_train_ts (Optional[pd.Timestamp]): End of the training window.
         start_train_ts (Optional[pd.Timestamp]): Start of the training window.
@@ -253,7 +250,6 @@ class ConfigMulti:
         bounds: Optional[List[tuple]] = None,
         # Verbosity and caching
         verbose: bool = False,
-        cache_data: bool = False,
         cache_home: Optional[Any] = None,
         # Derived training window (set after data loading)
         end_train_ts: Optional[pd.Timestamp] = None,
@@ -345,7 +341,6 @@ class ConfigMulti:
         self.bounds = bounds
         # Verbosity and caching
         self.verbose = verbose
-        self.cache_data = cache_data
         self.cache_home = cache_home
         # Derived training window (set after data loading)
         self.end_train_ts = end_train_ts
@@ -439,7 +434,6 @@ class ConfigMulti:
             "bounds": self.bounds,
             # Verbosity and caching
             "verbose": self.verbose,
-            "cache_data": self.cache_data,
             "cache_home": self.cache_home,
             # Derived training window
             "end_train_ts": self.end_train_ts,

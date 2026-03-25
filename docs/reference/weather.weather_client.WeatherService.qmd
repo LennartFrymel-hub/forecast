@@ -16,12 +16,12 @@ and fallback strategies.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name         | Type                                                    | Description                                                   | Default    |
-|--------------|---------------------------------------------------------|---------------------------------------------------------------|------------|
-| latitude     | [float](`float`)                                        | Latitude of the location.                                     | _required_ |
-| longitude    | [float](`float`)                                        | Longitude of the location.                                    | _required_ |
-| cache_path   | [Optional](`typing.Optional`)\[[Path](`pathlib.Path`)\] | Optional path to cache file for storing fetched data.         | `None`     |
-| use_forecast | [bool](`bool`)                                          | Whether to use forecast data for future dates (default True). | `True`     |
+| Name         | Type                                                    | Description                                                                                                                                                                                       | Default    |
+|--------------|---------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| latitude     | [float](`float`)                                        | Latitude of the location.                                                                                                                                                                         | _required_ |
+| longitude    | [float](`float`)                                        | Longitude of the location.                                                                                                                                                                        | _required_ |
+| cache_path   | [Optional](`typing.Optional`)\[[Path](`pathlib.Path`)\] | Optional path to cache file for storing fetched data. If provided, the service will attempt to load from cache before fetching and will save new data to this path. Default is None (no caching). | `None`     |
+| use_forecast | [bool](`bool`)                                          | Whether to use forecast data for future dates (default True).                                                                                                                                     | `True`     |
 
 ## Methods
 
