@@ -5,8 +5,14 @@ weather.weather_client.WeatherClient(latitude, longitude)
 ```
 
 Client for fetching weather data from Open-Meteo API.
-
 Handles the low-level API interactions, parameter building, and response parsing.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type             | Description                | Default    |
+|-----------|------------------|----------------------------|------------|
+| latitude  | [float](`float`) | Latitude of the location.  | _required_ |
+| longitude | [float](`float`) | Longitude of the location. | _required_ |
 
 ## Methods
 
@@ -23,6 +29,14 @@ weather.weather_client.WeatherClient.fetch_archive(start, end, timezone='UTC')
 
 Fetch historical data from Archive API.
 
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type                                           | Description                            | Default    |
+|----------|------------------------------------------------|----------------------------------------|------------|
+| start    | [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | Start date for the historical data.    | _required_ |
+| end      | [pd](`pandas`).[Timestamp](`pandas.Timestamp`) | End date for the historical data.      | _required_ |
+| timezone | [str](`str`)                                   | Timezone for the data (default "UTC"). | `'UTC'`    |
+
 ### fetch_forecast { #spotforecast2_safe.weather.weather_client.WeatherClient.fetch_forecast }
 
 ```python
@@ -30,3 +44,10 @@ weather.weather_client.WeatherClient.fetch_forecast(days_ahead, timezone='UTC')
 ```
 
 Fetch forecast data from Forecast API.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type         | Description                            | Default    |
+|------------|--------------|----------------------------------------|------------|
+| days_ahead | [int](`int`) | Number of days ahead for the forecast. | _required_ |
+| timezone   | [str](`str`) | Timezone for the data (default "UTC"). | `'UTC'`    |
