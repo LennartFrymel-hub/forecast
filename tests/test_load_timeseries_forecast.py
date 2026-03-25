@@ -18,7 +18,6 @@ The test suite is organised around five concerns:
 
 import os
 import shutil
-import tempfile
 import pytest
 import pandas as pd
 from pathlib import Path
