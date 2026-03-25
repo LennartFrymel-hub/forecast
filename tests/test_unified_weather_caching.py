@@ -15,7 +15,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-import pytest
 
 from spotforecast2_safe.data.fetch_data import fetch_weather_data
 from spotforecast2_safe.manager.exo.weather import get_weather_features
