@@ -14,6 +14,15 @@ High-level service for weather data generation.
 Extends WeatherClient with caching, hybrid fetching (archive+forecast),
 and fallback strategies.
 
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name         | Type                                                    | Description                                                   | Default    |
+|--------------|---------------------------------------------------------|---------------------------------------------------------------|------------|
+| latitude     | [float](`float`)                                        | Latitude of the location.                                     | _required_ |
+| longitude    | [float](`float`)                                        | Longitude of the location.                                    | _required_ |
+| cache_path   | [Optional](`typing.Optional`)\[[Path](`pathlib.Path`)\] | Optional path to cache file for storing fetched data.         | `None`     |
+| use_forecast | [bool](`bool`)                                          | Whether to use forecast data for future dates (default True). | `True`     |
+
 ## Methods
 
 | Name | Description |
@@ -33,5 +42,14 @@ weather.weather_client.WeatherService.get_dataframe(
 ```
 
 Get weather DataFrame for a specified range using best available methods.
-
 Refactored from spotpredict.create_weather_df.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name                | Type                                                                                    | Description                                             | Default    |
+|---------------------|-----------------------------------------------------------------------------------------|---------------------------------------------------------|------------|
+| start               | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | Start date for the data.                                | _required_ |
+| end                 | [Union](`typing.Union`)\[[str](`str`), [pd](`pandas`).[Timestamp](`pandas.Timestamp`)\] | End date for the data.                                  | _required_ |
+| timezone            | [str](`str`)                                                                            | Timezone for the data (default "UTC").                  | `'UTC'`    |
+| freq                | [str](`str`)                                                                            | Frequency for the data (default "h").                   | `'h'`      |
+| fallback_on_failure | [bool](`bool`)                                                                          | Whether to use fallback data on failure (default True). | `True`     |
