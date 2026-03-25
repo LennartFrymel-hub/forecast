@@ -15,8 +15,11 @@ from requests.packages.urllib3.util.retry import Retry
 
 class WeatherClient:
     """Client for fetching weather data from Open-Meteo API.
-
     Handles the low-level API interactions, parameter building, and response parsing.
+    
+    Args:
+        latitude: Latitude of the location.
+        longitude: Longitude of the location.
     """
 
     ARCHIVE_BASE_URL = "https://archive-api.open-meteo.com/v1/archive"
@@ -46,6 +49,14 @@ class WeatherClient:
         Args:
             latitude: Latitude of the location.
             longitude: Longitude of the location.
+
+        Examples:
+            ```{python}
+            from spotforecast2_safe.weather import WeatherClient
+            client = WeatherClient(latitude=52.52, longitude=13.405)
+            df = client.get_dataframe(start="2023-01-01", end="2023-01-07")
+            print(df.head())
+            ```
         """
         self.latitude = latitude
         self.longitude = longitude
@@ -98,7 +109,13 @@ class WeatherClient:
     def fetch_archive(
         self, start: pd.Timestamp, end: pd.Timestamp, timezone: str = "UTC"
     ) -> pd.DataFrame:
-        """Fetch historical data from Archive API."""
+        """Fetch historical data from Archive API.
+        
+        Args:
+            start: Start date for the historical data.
+            end: End date for the historical data.
+            timezone: Timezone for the data (default "UTC").
+        """
         params = {
             "latitude": self.latitude,
             "longitude": self.longitude,
@@ -110,7 +127,12 @@ class WeatherClient:
         return self._fetch(self.ARCHIVE_BASE_URL, params)
 
     def fetch_forecast(self, days_ahead: int, timezone: str = "UTC") -> pd.DataFrame:
-        """Fetch forecast data from Forecast API."""
+        """Fetch forecast data from Forecast API.
+
+        Args:
+            days_ahead: Number of days ahead for the forecast.
+            timezone: Timezone for the data (default "UTC").
+        """
         params = {
             "latitude": self.latitude,
             "longitude": self.longitude,
@@ -126,6 +148,12 @@ class WeatherService(WeatherClient):
 
     Extends WeatherClient with caching, hybrid fetching (archive+forecast),
     and fallback strategies.
+    
+    Args:
+        latitude: Latitude of the location.
+        longitude: Longitude of the location.
+        cache_path: Optional path to cache file for storing fetched data.
+        use_forecast: Whether to use forecast data for future dates (default True).
     """
 
     def __init__(
@@ -148,8 +176,14 @@ class WeatherService(WeatherClient):
         fallback_on_failure: bool = True,
     ) -> pd.DataFrame:
         """Get weather DataFrame for a specified range using best available methods.
-
         Refactored from spotpredict.create_weather_df.
+
+        Args:
+            start: Start date for the data.
+            end: End date for the data.
+            timezone: Timezone for the data (default "UTC").
+            freq: Frequency for the data (default "h").
+            fallback_on_failure: Whether to use fallback data on failure (default True).
         """
         start_ts = pd.Timestamp(start)
         end_ts = pd.Timestamp(end)
@@ -283,9 +317,4 @@ class WeatherService(WeatherClient):
 
         # Fill gaps
         df = df.ffill().bfill()
-
-        # Convert to requested timezone if needed (though we keep internal UTC mostly)
-        # User requested specific tz output usually?
-        # Original code returned normalized DF. Let's ensure frequency matches exactly.
-
         return df

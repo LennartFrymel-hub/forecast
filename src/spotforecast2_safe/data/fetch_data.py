@@ -72,7 +72,7 @@ def get_cache_home(
     """Return the location where persistent models are to be cached.
 
     By default the cache directory is set to a folder named
-    ``spotforecast2_cache`` in the user home folder.  Alternatively, it
+    ``.spotforecast2_cache`` in the user home folder.  Alternatively, it
     can be set by the ``SPOTFORECAST2_CACHE`` environment variable or
     programmatically by giving an explicit folder path.  The ``~`` symbol
     is expanded to the user home folder.  When ``create_dir`` is ``True``
@@ -87,7 +87,7 @@ def get_cache_home(
         cache_home: Path to the spotforecast cache directory.  If
             ``None``, the value of the ``SPOTFORECAST2_CACHE`` environment
             variable is used when set, otherwise the default path
-            ``~/spotforecast2_cache`` is used.
+            ``~/.spotforecast2_cache`` is used.
         create_dir: Whether to create the cache directory if it does not
             exist.  When ``True`` (the default), the directory and any
             missing parent directories are created automatically.  When
@@ -142,7 +142,7 @@ def get_cache_home(
     """
     if cache_home is None:
         cache_home = environ.get(
-            "SPOTFORECAST2_CACHE", Path.home() / "spotforecast2_cache"
+            "SPOTFORECAST2_CACHE", Path.home() / ".spotforecast2_cache"
         )
     # Ensure cache_home is a Path() object pointing to an absolute path
     cache_home = Path(cache_home).expanduser().absolute()
