@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import pandas as pd
+
 from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
 
 

@@ -10,9 +10,11 @@ using numpy.percentile with optimized performance using numpy.searchsorted.
 """
 
 from __future__ import annotations
+
 import warnings
-import numpy as np
 from typing import Any
+
+import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.exceptions import NotFittedError
 

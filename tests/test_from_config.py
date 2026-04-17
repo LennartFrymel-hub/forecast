@@ -14,7 +14,6 @@ from spotforecast2_safe.manager.models.forecaster_recursive_model import (
     ForecasterRecursiveModel,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

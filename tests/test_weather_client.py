@@ -9,11 +9,11 @@ Verifies that:
 - WeatherService caching, hybrid-fetch, and fallback logic work correctly.
 """
 
-import pytest
-import pandas as pd
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 from urllib.parse import urlparse
 
+import pandas as pd
+import pytest
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -108,6 +108,7 @@ class TestWeatherClientInstantiation:
     def test_session_created(self):
         """WeatherClient creates a requests Session with retry logic."""
         import requests
+
         from spotforecast2_safe.weather import WeatherClient
 
         client = WeatherClient(latitude=51.0, longitude=7.0)
@@ -168,6 +169,7 @@ class TestWeatherClientFetchArchive:
     def test_fetch_archive_http_error_raises(self, mock_get):
         """fetch_archive propagates HTTP errors as exceptions."""
         import requests as req
+
         from spotforecast2_safe.weather import WeatherClient
 
         mock_get.side_effect = req.exceptions.ConnectionError("unreachable")
@@ -399,6 +401,7 @@ class TestWeatherServiceGetDataframe:
     def test_api_failure_no_cache_raises(self, mock_get):
         """get_dataframe raises when fallback is False and API fails."""
         import requests as req
+
         from spotforecast2_safe.weather import WeatherService
 
         mock_get.side_effect = req.exceptions.ConnectionError("unreachable")

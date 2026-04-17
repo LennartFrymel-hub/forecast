@@ -5,8 +5,9 @@ Implements pytest tests for examples from docs/preprocessing/outliers.qmd
 to ensure documentation accuracy and example functionality.
 """
 
-from spotforecast2_safe.preprocessing.outlier import mark_outliers
 import pandas as pd
+
+from spotforecast2_safe.preprocessing.outlier import mark_outliers
 
 
 def test_docs_outliers_mark_outliers_example():

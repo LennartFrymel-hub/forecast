@@ -19,11 +19,12 @@ An additional class covers the structural properties of the returned
 DataFrame (shape, index range, NaN handling, freq resampling).
 """
 
-import pytest
-import pandas as pd
 from unittest.mock import patch
-from spotforecast2_safe.weather.weather_client import WeatherService
 
+import pandas as pd
+import pytest
+
+from spotforecast2_safe.weather.weather_client import WeatherService
 
 # ---------------------------------------------------------------------------
 # Module constants
@@ -153,7 +154,9 @@ class TestTimestampHandling:
             svc.get_dataframe(start=_START, end=_END, timezone="UTC")
 
         fetch_start = mock_fetch.call_args.args[0]
-        assert fetch_start.tz is not None, "start passed to _fetch_hybrid must be tz-aware"
+        assert (
+            fetch_start.tz is not None
+        ), "start passed to _fetch_hybrid must be tz-aware"
 
     def test_naive_non_utc_string_is_localised_then_converted(self, svc):
         """Naive string with timezone='Europe/Berlin' is converted to UTC internally.
@@ -302,7 +305,9 @@ class TestCacheMiss:
 
         mock_fetch.assert_called_once()
 
-    def test_cache_not_covering_end_triggers_fetch(self, svc, narrow_cache_df, fetch_df):
+    def test_cache_not_covering_end_triggers_fetch(
+        self, svc, narrow_cache_df, fetch_df
+    ):
         """_fetch_hybrid is called when cache.index.max() < end_utc.
 
         narrow_cache_df ends at 2023-06-02 23:00 UTC, which is before
@@ -400,7 +405,9 @@ class TestFallbackBehavior:
 
         with (
             patch.object(svc, "_load_cache", return_value=cache),
-            patch.object(svc, "_fetch_hybrid", side_effect=RuntimeError("network error")),
+            patch.object(
+                svc, "_fetch_hybrid", side_effect=RuntimeError("network error")
+            ),
             patch.object(svc, "_save_cache"),
         ):
             with pytest.raises(RuntimeError, match="network error"):
@@ -445,7 +452,9 @@ class TestFallbackBehavior:
 class TestCacheMerge:
     """Verify that fetched data is correctly merged with an existing cache."""
 
-    def test_partial_cache_merged_with_fetch_result(self, svc_cached, narrow_cache_df, fetch_df):
+    def test_partial_cache_merged_with_fetch_result(
+        self, svc_cached, narrow_cache_df, fetch_df
+    ):
         """After a fetch, the result is concatenated with the existing cache.
 
         Args:

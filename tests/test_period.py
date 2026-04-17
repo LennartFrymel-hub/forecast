@@ -1,4 +1,5 @@
 import pytest
+
 from spotforecast2_safe.data.data import Period
 
 

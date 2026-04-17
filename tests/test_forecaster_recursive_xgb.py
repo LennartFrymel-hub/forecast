@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import pytest
-import pandas as pd
 import numpy as np
-from spotforecast2_safe.manager.models.forecaster_recursive_xgb import (
-    ForecasterRecursiveXGB,
-)
+import pandas as pd
+import pytest
+
 from spotforecast2_safe.manager.models.forecaster_recursive_model import (
     ForecasterRecursiveModel,
+)
+from spotforecast2_safe.manager.models.forecaster_recursive_xgb import (
+    ForecasterRecursiveXGB,
 )
 
 

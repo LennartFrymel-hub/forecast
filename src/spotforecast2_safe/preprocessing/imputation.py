@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
 import logging
-import pandas as pd
 from typing import Any, Optional, Union
+
 import numpy as np
+import pandas as pd
 
 from spotforecast2_safe.preprocessing.linearly_interpolate_ts import (
     LinearlyInterpolateTS,

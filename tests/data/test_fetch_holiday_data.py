@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import pytest
 import pandas as pd
+import pytest
+
 from spotforecast2_safe.data.fetch_data import fetch_holiday_data
 
 

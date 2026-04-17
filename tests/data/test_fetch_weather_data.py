@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import pytest
-import pandas as pd
+from unittest.mock import MagicMock, patch
+
 import numpy as np
-from unittest.mock import patch, MagicMock
+import pandas as pd
+import pytest
+
 from spotforecast2_safe.data.fetch_data import fetch_weather_data
 
 
@@ -113,7 +115,9 @@ def test_fetch_weather_data_cache_integrity(tmp_path, mock_weather_response):
         ):
             # Fetch and populate cache
             fetch_weather_data(
-                cov_start="2023-01-01T00:00", cov_end="2023-01-01T23:00", cache_home=tmp_path
+                cov_start="2023-01-01T00:00",
+                cov_end="2023-01-01T23:00",
+                cache_home=tmp_path,
             )
 
             assert cache_file.exists()

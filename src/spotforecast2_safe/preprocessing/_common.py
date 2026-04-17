@@ -7,7 +7,8 @@ Common preprocessing functions and utilities.
 """
 
 import functools
-from typing import Callable, Any
+from typing import Any, Callable
+
 import numpy as np
 from numba import njit
 

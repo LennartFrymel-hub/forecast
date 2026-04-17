@@ -4,10 +4,11 @@ Comprehensive pytest tests for n2n_predict_with_covariates module.
 Tests cover the main forecasting pipeline, helper functions, and edge cases.
 """
 
+from unittest.mock import patch
+
 import numpy as np
 import pandas as pd
 import pytest
-from unittest.mock import patch
 
 from spotforecast2_safe.processing.n2n_predict_with_covariates import (
     _apply_cyclical_encoding,

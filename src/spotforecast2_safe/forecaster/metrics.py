@@ -32,21 +32,23 @@ Examples:
 """
 
 from __future__ import annotations
-from typing import Callable
-import numpy as np
-import pandas as pd
+
 import inspect
 from functools import wraps
+from typing import Callable
+
+import numpy as np
+import pandas as pd
 from sklearn.metrics import (
-    mean_squared_error,
-    mean_absolute_error,
-    mean_absolute_percentage_error,
-    mean_squared_log_error,
-    median_absolute_error,
-    mean_pinball_loss,
     accuracy_score,
     balanced_accuracy_score,
     f1_score,
+    mean_absolute_error,
+    mean_absolute_percentage_error,
+    mean_pinball_loss,
+    mean_squared_error,
+    mean_squared_log_error,
+    median_absolute_error,
     precision_score,
     recall_score,
 )

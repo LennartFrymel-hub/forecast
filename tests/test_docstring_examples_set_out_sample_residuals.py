@@ -8,10 +8,11 @@ def test_docstring_example_set_out_sample_residuals():
     Test the docstring example for set_out_sample_residuals.
     """
     # Imports from the example
-    from sklearn.linear_model import LinearRegression
-    from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
-    import pandas as pd
     import numpy as np
+    import pandas as pd
+    from sklearn.linear_model import LinearRegression
+
+    from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
     # Example code
     forecaster = ForecasterRecursive(estimator=LinearRegression(), lags=3)

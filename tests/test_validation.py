@@ -1,20 +1,18 @@
 """Tests for validation utilities."""
 
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
 
-from spotforecast2_safe.utils.validation import (
-    check_y,
+from spotforecast2_safe.exceptions import DataTypeWarning, MissingValuesWarning
+from spotforecast2_safe.utils.validation import (  # MissingValuesWarning, # Imported locally in function if needed, or from exceptions; DataTypeWarning, # Imported locally or from exceptions
     check_exog,
-    get_exog_dtypes,
-    check_interval,
-    # MissingValuesWarning, # Imported locally in function if needed, or from exceptions
     check_exog_dtypes,
-    # DataTypeWarning, # Imported locally or from exceptions
+    check_interval,
     check_predict_input,
+    check_y,
+    get_exog_dtypes,
 )
-from spotforecast2_safe.exceptions import MissingValuesWarning, DataTypeWarning
 
 
 class TestCheckY:

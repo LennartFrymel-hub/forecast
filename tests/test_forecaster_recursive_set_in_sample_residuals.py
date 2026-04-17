@@ -2,12 +2,13 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.linear_model import LinearRegression
-from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+
 from spotforecast2_safe.exceptions import NotFittedError
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
 
 def test_set_in_sample_residuals_not_fitted_error():

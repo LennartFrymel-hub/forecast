@@ -22,7 +22,6 @@ import pandas as pd
 
 from spotforecast2_safe.preprocessing.curate_data import reset_index
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

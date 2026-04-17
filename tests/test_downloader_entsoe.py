@@ -1,14 +1,16 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import unittest
-from unittest.mock import MagicMock, patch
-import pandas as pd
-from pathlib import Path
-import tempfile
 import shutil
 import sys
-from spotforecast2_safe.downloader.entsoe import merge_build_manual, download_new_data
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pandas as pd
+
+from spotforecast2_safe.downloader.entsoe import download_new_data, merge_build_manual
 
 # Mock entsoe before importing our module
 mock_entsoe = MagicMock()
