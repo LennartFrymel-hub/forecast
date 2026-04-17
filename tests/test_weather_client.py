@@ -414,17 +414,28 @@ class TestWeatherServiceGetDataframe:
 
 
 class TestWeatherServiceFinalize:
-    """WeatherService._finalize_df resamples and fills gaps correctly."""
+    """WeatherService._finalize_df resamples, and raises or fills gaps."""
 
-    def test_finalize_fills_nans(self):
-        """_finalize_df forward-fills NaN values."""
+    def test_finalize_default_raises_on_nan(self):
+        """Default ``fill_missing=False`` refuses to return NaN rows."""
         from spotforecast2_safe.weather import WeatherService
 
         svc = WeatherService(latitude=51.0, longitude=7.0)
         idx = pd.date_range("2023-01-01", periods=5, freq="h", tz="UTC")
         df = pd.DataFrame({"temperature_2m": [1.0, None, None, 4.0, 5.0]}, index=idx)
 
-        result = svc._finalize_df(df, freq="h", timezone="UTC")
+        with pytest.raises(ValueError, match="missing row"):
+            svc._finalize_df(df, freq="h", timezone="UTC")
+
+    def test_finalize_fill_missing_true_restores_legacy(self):
+        """``fill_missing=True`` opts into forward/back-fill behavior."""
+        from spotforecast2_safe.weather import WeatherService
+
+        svc = WeatherService(latitude=51.0, longitude=7.0)
+        idx = pd.date_range("2023-01-01", periods=5, freq="h", tz="UTC")
+        df = pd.DataFrame({"temperature_2m": [1.0, None, None, 4.0, 5.0]}, index=idx)
+
+        result = svc._finalize_df(df, freq="h", timezone="UTC", fill_missing=True)
         assert not result.isnull().any().any()
 
     def test_finalize_hourly_does_not_resample(self):

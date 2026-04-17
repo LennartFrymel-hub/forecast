@@ -500,6 +500,7 @@ class TestFetchWeatherData:
                     timezone="UTC",
                     freq="h",
                     fallback_on_failure=True,
+                    fill_missing=False,
                 )
 
     def test_fetch_weather_data_custom_coordinates(self):
@@ -607,9 +608,7 @@ class TestFetchWeatherData:
             mock_service.get_dataframe.return_value = pd.DataFrame()
             mock_service_class.return_value = mock_service
 
-            fetch_weather_data(
-                cov_start="2023-01-01T00:00", cov_end="2023-01-11T00:00"
-            )
+            fetch_weather_data(cov_start="2023-01-01T00:00", cov_end="2023-01-11T00:00")
 
             init_kwargs = mock_service_class.call_args[1]
             assert init_kwargs["cache_path"] is None

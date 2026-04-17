@@ -153,7 +153,9 @@ class TestTimestampHandling:
             svc.get_dataframe(start=_START, end=_END, timezone="UTC")
 
         fetch_start = mock_fetch.call_args.args[0]
-        assert fetch_start.tz is not None, "start passed to _fetch_hybrid must be tz-aware"
+        assert (
+            fetch_start.tz is not None
+        ), "start passed to _fetch_hybrid must be tz-aware"
 
     def test_naive_non_utc_string_is_localised_then_converted(self, svc):
         """Naive string with timezone='Europe/Berlin' is converted to UTC internally.
@@ -302,7 +304,9 @@ class TestCacheMiss:
 
         mock_fetch.assert_called_once()
 
-    def test_cache_not_covering_end_triggers_fetch(self, svc, narrow_cache_df, fetch_df):
+    def test_cache_not_covering_end_triggers_fetch(
+        self, svc, narrow_cache_df, fetch_df
+    ):
         """_fetch_hybrid is called when cache.index.max() < end_utc.
 
         narrow_cache_df ends at 2023-06-02 23:00 UTC, which is before
@@ -400,7 +404,9 @@ class TestFallbackBehavior:
 
         with (
             patch.object(svc, "_load_cache", return_value=cache),
-            patch.object(svc, "_fetch_hybrid", side_effect=RuntimeError("network error")),
+            patch.object(
+                svc, "_fetch_hybrid", side_effect=RuntimeError("network error")
+            ),
             patch.object(svc, "_save_cache"),
         ):
             with pytest.raises(RuntimeError, match="network error"):
@@ -445,7 +451,9 @@ class TestFallbackBehavior:
 class TestCacheMerge:
     """Verify that fetched data is correctly merged with an existing cache."""
 
-    def test_partial_cache_merged_with_fetch_result(self, svc_cached, narrow_cache_df, fetch_df):
+    def test_partial_cache_merged_with_fetch_result(
+        self, svc_cached, narrow_cache_df, fetch_df
+    ):
         """After a fetch, the result is concatenated with the existing cache.
 
         Args:
@@ -653,11 +661,12 @@ class TestOutputProperties:
 
         assert result.index.tz is not None
 
-    def test_output_contains_no_nan_values(self, svc):
-        """_finalize_df fills all NaN values via forward- and back-fill.
+    def test_default_raises_on_nan_rows(self, svc):
+        """Default ``fill_missing=False`` refuses to return NaN rows.
 
-        Rows 10 to 14 are set to NaN before the call; the returned
-        DataFrame must have zero missing values.
+        Rows 10 to 14 are set to NaN before the call.  The fail-safe
+        default must surface the gap instead of returning imputed
+        values disguised as measurements.
 
         Args:
             svc: WeatherService fixture.
@@ -670,7 +679,27 @@ class TestOutputProperties:
             patch.object(svc, "_fetch_hybrid", return_value=df),
             patch.object(svc, "_save_cache"),
         ):
-            result = svc.get_dataframe(start=_START, end=_END)
+            with pytest.raises(ValueError, match="missing row"):
+                svc.get_dataframe(start=_START, end=_END)
+
+    def test_fill_missing_true_restores_legacy_behavior(self, svc):
+        """``fill_missing=True`` forward/back-fills NaN rows.
+
+        Rows 10 to 14 are set to NaN before the call; with the opt-in
+        flag the returned DataFrame must contain zero missing values.
+
+        Args:
+            svc: WeatherService fixture.
+        """
+        df = _hourly_df(_START, _PERIODS)
+        df.iloc[10:15, 0] = float("nan")
+
+        with (
+            patch.object(svc, "_load_cache", return_value=None),
+            patch.object(svc, "_fetch_hybrid", return_value=df),
+            patch.object(svc, "_save_cache"),
+        ):
+            result = svc.get_dataframe(start=_START, end=_END, fill_missing=True)
 
         assert result.isnull().sum().sum() == 0
 

@@ -49,6 +49,11 @@ In the absence of "Accuracy" (as no model is trained), the following software me
 
 - **Input**: DataFrame with `NaN` or `Inf`.
 - **Behavior**: Throws an explicit `ValueError`. No silent processing (Silent Failure).
+- **Public loaders**: `load_timeseries`, `load_timeseries_forecast`, and
+  `WeatherService.get_dataframe` refuse to return silently-imputed
+  values by default. Callers must opt in to legacy forward/back-fill
+  via `on_missing='ffill_bfill'` (loaders) or `fill_missing=True`
+  (weather client) to restore pre-1.0 behavior.
 
 ### Input Validation
 - **Strict Checks**: Type hinting and runtime checks for `pd.DataFrame` and `np.ndarray`.
