@@ -3,22 +3,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
 from __future__ import annotations
-from typing import Callable
-from copy import deepcopy
+
 import warnings
+from copy import deepcopy
+from typing import Callable
+
 import numpy as np
 import pandas as pd
-from joblib import Parallel, delayed, cpu_count
+from joblib import Parallel, cpu_count, delayed
 from tqdm.auto import tqdm
 
-from spotforecast2_safe.forecaster.metrics import add_y_train_argument, _get_metric
 from spotforecast2_safe.exceptions import (
-    LongTrainingWarning,
     IgnoredArgumentWarning,
+    LongTrainingWarning,
     set_skforecast_warnings,
 )
-from spotforecast2_safe.model_selection.split_ts_cv import TimeSeriesFold
+from spotforecast2_safe.forecaster.metrics import _get_metric, add_y_train_argument
 from spotforecast2_safe.model_selection.split_one_step import OneStepAheadFold
+from spotforecast2_safe.model_selection.split_ts_cv import TimeSeriesFold
 from spotforecast2_safe.model_selection.utils_common import (
     check_backtesting_input,
     check_one_step_ahead_input,

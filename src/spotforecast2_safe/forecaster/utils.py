@@ -2,33 +2,35 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
-from typing import Any, List, Optional, Tuple, Union
-import pandas as pd
-import numpy as np
-import warnings
 import uuid
+import warnings
 from copy import copy, deepcopy
+from typing import Any, List, Optional, Tuple, Union
+
+import numpy as np
+import pandas as pd
 from sklearn.compose import ColumnTransformer
-from spotforecast2_safe.utils import (
-    initialize_lags,
-    initialize_weights,
-    check_select_fit_kwargs,
-    check_y,
-    check_exog,
-    get_exog_dtypes,
-    check_exog_dtypes,
-    check_predict_input,
-    check_interval,
-    input_to_frame,
-    expand_index,
-    transform_dataframe,
-)
+
 from spotforecast2_safe.exceptions import (
-    set_skforecast_warnings,
-    UnknownLevelWarning,
     IgnoredArgumentWarning,
     InputTypeWarning,
     MissingValuesWarning,
+    UnknownLevelWarning,
+    set_skforecast_warnings,
+)
+from spotforecast2_safe.utils import (
+    check_exog,
+    check_exog_dtypes,
+    check_interval,
+    check_predict_input,
+    check_select_fit_kwargs,
+    check_y,
+    expand_index,
+    get_exog_dtypes,
+    initialize_lags,
+    initialize_weights,
+    input_to_frame,
+    transform_dataframe,
 )
 
 try:
@@ -1521,7 +1523,9 @@ def initialize_transformer_series(
         True
     """
     from copy import deepcopy
+
     from sklearn.base import clone
+
     from spotforecast2_safe.exceptions import IgnoredArgumentWarning
 
     if forecaster_name == "ForecasterRecursiveMultiSeries":

@@ -41,19 +41,22 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+
 from spotforecast2_safe.data.fetch_data import fetch_data
-from spotforecast2_safe.preprocessing.curate_data import basic_ts_checks
-from spotforecast2_safe.preprocessing.curate_data import agg_and_resample_data
-from spotforecast2_safe.preprocessing.outlier import mark_outliers
-from spotforecast2_safe.preprocessing.split import split_rel_train_val_test
+from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
 from spotforecast2_safe.forecaster.utils import predict_multivariate
-from spotforecast2_safe.preprocessing.curate_data import get_start_end
 from spotforecast2_safe.manager.persistence import (
-    _save_forecasters,
     _load_forecasters,
     _model_directory_exists,
+    _save_forecasters,
 )
+from spotforecast2_safe.preprocessing.curate_data import (
+    agg_and_resample_data,
+    basic_ts_checks,
+    get_start_end,
+)
+from spotforecast2_safe.preprocessing.outlier import mark_outliers
+from spotforecast2_safe.preprocessing.split import split_rel_train_val_test
 
 try:
     from tqdm.auto import tqdm

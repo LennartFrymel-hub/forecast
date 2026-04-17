@@ -4,8 +4,9 @@
 """Utilities for generating holiday dataframe as covariate."""
 
 from typing import Union
-import pandas as pd
+
 import holidays
+import pandas as pd
 
 
 def create_holiday_df(

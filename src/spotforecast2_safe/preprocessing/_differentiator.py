@@ -5,6 +5,7 @@
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
+
 from ._common import _check_X_numpy_ndarray_1d
 
 

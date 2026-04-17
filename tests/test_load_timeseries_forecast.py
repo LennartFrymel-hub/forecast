@@ -18,15 +18,12 @@ The test suite is organised around five concerns:
 
 import os
 import shutil
-import pytest
-import pandas as pd
 from pathlib import Path
 
-from spotforecast2_safe.data.fetch_data import (
-    load_timeseries_forecast,
-    load_timeseries,
-)
+import pandas as pd
+import pytest
 
+from spotforecast2_safe.data.fetch_data import load_timeseries, load_timeseries_forecast
 
 # ---------------------------------------------------------------------------
 # Constants

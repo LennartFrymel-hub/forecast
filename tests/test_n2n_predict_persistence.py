@@ -489,9 +489,7 @@ class TestModelPersistenceIntegration:
     @patch("spotforecast2_safe.manager.persistence.dump")
     def test_concurrent_model_access(self, mock_dump, mock_load, temp_model_dir):
         """Test handling multiple models simultaneously."""
-        from spotforecast2_safe.manager.persistence import (
-            _save_forecasters,
-        )
+        from spotforecast2_safe.manager.persistence import _save_forecasters
 
         models = {f"target_{i}": MagicMock() for i in range(50)}
         result = _save_forecasters(models, temp_model_dir, verbose=False)

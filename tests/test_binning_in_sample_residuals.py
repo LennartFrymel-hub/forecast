@@ -10,9 +10,10 @@ conformal prediction intervals, including:
 - Reproducibility across multiple invocations
 """
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
+
 from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
 
 

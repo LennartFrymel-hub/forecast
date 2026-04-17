@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 from spotforecast2_safe.forecaster.utils import select_n_jobs_fit_forecaster
 
 

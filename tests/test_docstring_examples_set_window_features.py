@@ -9,6 +9,7 @@ def test_docstring_example_set_window_features():
     """
     # Imports from the example
     from sklearn.linear_model import LinearRegression
+
     from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
     from spotforecast2_safe.preprocessing import RollingFeatures
 

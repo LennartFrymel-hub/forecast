@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
-from unittest.mock import patch, MagicMock
-from spotforecast2_safe.downloader.entsoe import merge_build_manual, download_new_data
+
+from spotforecast2_safe.downloader.entsoe import download_new_data, merge_build_manual
 
 
 def test_merge_build_manual_creates_merged_file(tmp_path):

@@ -5,7 +5,7 @@
 
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any, Union
+from typing import Any, Dict, Optional, Union
 
 import pandas as pd
 import requests

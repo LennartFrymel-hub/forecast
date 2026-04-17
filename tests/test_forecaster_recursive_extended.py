@@ -3,8 +3,9 @@
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
 from scipy.stats import norm
+from sklearn.linear_model import LinearRegression
+
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 from spotforecast2_safe.preprocessing import RollingFeatures
 

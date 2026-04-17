@@ -4,10 +4,11 @@
 import logging
 from typing import Any
 
+from lightgbm import LGBMRegressor
 
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+
 from .forecaster_recursive_model import ForecasterRecursiveModel
-from lightgbm import LGBMRegressor
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import LinearRegression
+
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursiveMultiSeries
 
 

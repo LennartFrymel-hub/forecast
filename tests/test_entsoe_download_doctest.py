@@ -3,6 +3,7 @@ Pytest tests for download_new_data examples (doctest validation).
 """
 
 import os
+
 from spotforecast2_safe.downloader import entsoe
 
 

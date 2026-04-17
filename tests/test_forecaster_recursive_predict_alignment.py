@@ -4,8 +4,9 @@
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
-from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 from sklearn.preprocessing import StandardScaler
+
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
 
 def test_predict_output_series():

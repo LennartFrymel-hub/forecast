@@ -5,16 +5,18 @@ forecasting operations, including window features initialization, data
 validation, and HTML styling.
 """
 
-import pytest
-import pandas as pd
-import numpy as np
 import warnings
+
+import numpy as np
+import pandas as pd
+import pytest
+
 from spotforecast2_safe.forecaster.utils import (
-    initialize_window_features,
     check_extract_values_and_index,
-    get_style_repr_html,
     check_residuals_input,
     date_to_index_position,
+    get_style_repr_html,
+    initialize_window_features,
 )
 from spotforecast2_safe.preprocessing import RollingFeatures
 

@@ -23,11 +23,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from spotforecast2_safe.preprocessing.imputation import (
-    WeightFunction,
-    apply_imputation,
-)
-
+from spotforecast2_safe.preprocessing.imputation import WeightFunction, apply_imputation
 
 # ---------------------------------------------------------------------------
 # Helpers / fixtures
@@ -93,8 +89,8 @@ class TestApplyImputationImportPaths:
         assert callable(fn)
 
     def test_submodule_and_package_are_same_object(self):
-        from spotforecast2_safe.preprocessing.imputation import apply_imputation as fn1
         from spotforecast2_safe.preprocessing import apply_imputation as fn2
+        from spotforecast2_safe.preprocessing.imputation import apply_imputation as fn1
 
         assert fn1 is fn2
 

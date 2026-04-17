@@ -3,6 +3,7 @@
 import os
 import tempfile
 from pathlib import Path
+
 import pytest
 
 from spotforecast2_safe.data.fetch_data import get_cache_home

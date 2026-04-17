@@ -66,11 +66,26 @@ try:
 except ImportError:  # pragma: no cover - fallback when tqdm is not installed
     tqdm = None
 
-from spotforecast2_safe.data.fetch_data import (
-    fetch_data,
-)
+from spotforecast2_safe.data.fetch_data import fetch_data
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 from spotforecast2_safe.forecaster.utils import predict_multivariate
+from spotforecast2_safe.manager.exo.calendar import (
+    get_calendar_features,
+    get_day_night_features,
+    get_holiday_features,
+)
+from spotforecast2_safe.manager.exo.weather import get_weather_features
+from spotforecast2_safe.manager.features import (
+    apply_cyclical_encoding,
+    create_interaction_features,
+    merge_data_and_covariates,
+    select_exogenous_features,
+)
+from spotforecast2_safe.manager.persistence import (
+    _load_forecasters,
+    _model_directory_exists,
+    _save_forecasters,
+)
 from spotforecast2_safe.preprocessing import RollingFeatures
 from spotforecast2_safe.preprocessing.curate_data import (
     agg_and_resample_data,
@@ -80,24 +95,6 @@ from spotforecast2_safe.preprocessing.curate_data import (
 from spotforecast2_safe.preprocessing.imputation import get_missing_weights
 from spotforecast2_safe.preprocessing.outlier import mark_outliers
 from spotforecast2_safe.preprocessing.split import split_rel_train_val_test
-from spotforecast2_safe.manager.persistence import (
-    _save_forecasters,
-    _load_forecasters,
-    _model_directory_exists,
-)
-from spotforecast2_safe.manager.exo.weather import get_weather_features
-from spotforecast2_safe.manager.exo.calendar import (
-    get_calendar_features,
-    get_day_night_features,
-    get_holiday_features,
-)
-from spotforecast2_safe.manager.features import (
-    apply_cyclical_encoding,
-    create_interaction_features,
-    select_exogenous_features,
-    merge_data_and_covariates,
-)
-
 
 # ============================================================================
 # Helper Functions for Feature Engineering

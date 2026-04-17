@@ -5,6 +5,7 @@ import pandas as pd
 def test_docstring_example_recursive_predict_bootstrapping():
     # Example from _recursive_predict_bootstrapping docstring
     from sklearn.linear_model import LinearRegression
+
     from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
     forecaster = ForecasterRecursive(estimator=LinearRegression(), lags=2)
@@ -29,6 +30,7 @@ def test_docstring_example_predict_bootstrapping():
     import numpy as np
     import pandas as pd
     from sklearn.linear_model import LinearRegression
+
     from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
     rng = np.random.default_rng(123)
@@ -45,6 +47,7 @@ def test_docstring_example_predict_interval_conformal():
     import numpy as np
     import pandas as pd
     from sklearn.linear_model import LinearRegression
+
     from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
     rng = np.random.default_rng(123)
@@ -61,6 +64,7 @@ def test_docstring_example_predict_interval():
     import numpy as np
     import pandas as pd
     from sklearn.linear_model import LinearRegression
+
     from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
     rng = np.random.default_rng(123)
