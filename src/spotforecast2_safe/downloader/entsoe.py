@@ -217,11 +217,18 @@ def download_new_data(
             logger.info(
                 "No start date provided. Resuming from last data point: %s", start_date
             )
-        except Exception:
-            # Fallback if no data is present
+        except (FileNotFoundError, ValueError, IndexError) as exc:
+            # Narrow fallback: only the three signals that mean "no prior
+            # data on disk yet". Anything else (ImportError, OSError
+            # beyond FileNotFoundError, KeyError from a schema change,
+            # ...) is a real bug and must propagate so the caller can see
+            # it instead of silently starting from 7 days ago.
             start_date = pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=7)
-            logger.info(
-                "No previous data found. Starting from default date: %s", start_date
+            logger.warning(
+                "No previous data found (%s: %s). Starting from default date: %s",
+                type(exc).__name__,
+                exc,
+                start_date,
             )
     else:
         start_date = pd.to_datetime(start, utc=True)
