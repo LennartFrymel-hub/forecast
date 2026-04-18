@@ -213,7 +213,13 @@ __marimo__/
 .vscode/
 
 # Claude Code
-.claude/settings.json
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.claude-memory/
+.qc/
+QUALITY_GATE_REPORT.md
+REVIEW_FINDINGS.md
 
 # Project-specific ignores
 notebooks/01_base_predictor.qmd
