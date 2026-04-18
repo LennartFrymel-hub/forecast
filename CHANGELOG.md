@@ -1,3 +1,10 @@
+## [1.0.0-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v1.0.0-rc.1...v1.0.0-rc.2) (2026-04-18)
+
+
+### Bug Fixes
+
+* **weather:** quarantine corrupt parquet cache instead of silent None ([e03d134](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/e03d1347b5ad5136d2bd818b64df085222eb8ee8))
+
 ## [1.0.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.10...v1.0.0-rc.1) (2026-04-18)
 
 
