@@ -3,7 +3,7 @@
 
 from os import environ
 from pathlib import Path
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 import pandas as pd
 from pandas import Timestamp
