@@ -501,6 +501,7 @@ class TestFetchWeatherData:
                     timezone="UTC",
                     freq="h",
                     fallback_on_failure=True,
+                    fill_missing=False,
                 )
 
     def test_fetch_weather_data_custom_coordinates(self):

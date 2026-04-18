@@ -7,7 +7,8 @@ The test suite is organised around five concerns:
 
     1. Happy-path contracts — return type, index properties, and value
        correctness on well-formed input.
-    2. Missing-value handling — NaN rows are filled by ffill/bfill.
+    2. Missing-value handling — default raises; ``on_missing='ffill_bfill'``
+       opts into legacy forward/back-fill behavior.
     3. Error handling — FileNotFoundError when the CSV is absent;
        KeyError (raised by pandas) when the column is missing.
     4. data_home resolution — explicit argument, environment variable,
@@ -290,7 +291,7 @@ class TestValueCorrectness:
 
 
 class TestMissingValueHandling:
-    """Verify that NaN rows are forward/backward filled."""
+    """Verify fail-safe NaN handling (raise by default, opt-in fill)."""
 
     def test_no_nans_in_clean_data(self, data_dir):
         """A clean CSV produces a Series with zero NaN values.
@@ -301,17 +302,28 @@ class TestMissingValueHandling:
         result = load_timeseries_forecast(data_home=data_dir)
         assert result.isna().sum() == 0
 
-    def test_nans_are_filled_by_ffill_bfill(self, data_dir_with_nans):
-        """NaN rows are eliminated by forward-fill followed by backward-fill.
+    def test_default_raises_on_nan(self, data_dir_with_nans):
+        """Default ``on_missing='raise'`` refuses to return imputed data.
 
         Args:
             data_dir_with_nans: Fixture with NaN rows in Forecasted Load.
         """
-        result = load_timeseries_forecast(data_home=data_dir_with_nans)
+        with pytest.raises(ValueError, match="missing value"):
+            load_timeseries_forecast(data_home=data_dir_with_nans)
+
+    def test_explicit_ffill_bfill_opts_in(self, data_dir_with_nans):
+        """``on_missing='ffill_bfill'`` restores the legacy behavior.
+
+        Args:
+            data_dir_with_nans: Fixture with NaN rows in Forecasted Load.
+        """
+        result = load_timeseries_forecast(
+            data_home=data_dir_with_nans, on_missing="ffill_bfill"
+        )
         assert result.isna().sum() == 0
 
     def test_ffill_uses_preceding_value(self, tmp_path):
-        """The filled value at the first NaN position equals the row before it.
+        """Opt-in ffill copies the preceding value into the first NaN.
 
         Row 5 is NaN; after ffill its value must equal row 4's value (4 * 1.1).
 
@@ -321,11 +333,11 @@ class TestMissingValueHandling:
         interim = tmp_path / "interim"
         interim.mkdir()
         _write_energy_csv_with_nans(interim, nan_rows=[5])
-        result = load_timeseries_forecast(data_home=tmp_path)
+        result = load_timeseries_forecast(data_home=tmp_path, on_missing="ffill_bfill")
         assert result.iloc[5] == pytest.approx(4 * 1.1)
 
     def test_leading_nan_filled_by_bfill(self, tmp_path):
-        """A NaN at row 0 (no preceding value) is filled by backward-fill.
+        """Opt-in bfill fills a leading NaN from the next value.
 
         Row 0 is NaN; after bfill its value must equal row 1's value (1 * 1.1).
 
@@ -335,8 +347,19 @@ class TestMissingValueHandling:
         interim = tmp_path / "interim"
         interim.mkdir()
         _write_energy_csv_with_nans(interim, nan_rows=[0])
-        result = load_timeseries_forecast(data_home=tmp_path)
+        result = load_timeseries_forecast(data_home=tmp_path, on_missing="ffill_bfill")
         assert result.iloc[0] == pytest.approx(1 * 1.1)
+
+    def test_error_message_lists_gap_timestamps(self, data_dir_with_nans):
+        """The ValueError message includes the first few gap timestamps.
+
+        Args:
+            data_dir_with_nans: Fixture with NaN rows in Forecasted Load.
+        """
+        with pytest.raises(ValueError) as exc:
+            load_timeseries_forecast(data_home=data_dir_with_nans)
+        assert "Forecasted Load" in str(exc.value)
+        assert "ffill_bfill" in str(exc.value)
 
 
 # ---------------------------------------------------------------------------

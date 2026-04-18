@@ -662,11 +662,12 @@ class TestOutputProperties:
 
         assert result.index.tz is not None
 
-    def test_output_contains_no_nan_values(self, svc):
-        """_finalize_df fills all NaN values via forward- and back-fill.
+    def test_default_raises_on_nan_rows(self, svc):
+        """Default ``fill_missing=False`` refuses to return NaN rows.
 
-        Rows 10 to 14 are set to NaN before the call; the returned
-        DataFrame must have zero missing values.
+        Rows 10 to 14 are set to NaN before the call.  The fail-safe
+        default must surface the gap instead of returning imputed
+        values disguised as measurements.
 
         Args:
             svc: WeatherService fixture.
@@ -679,7 +680,27 @@ class TestOutputProperties:
             patch.object(svc, "_fetch_hybrid", return_value=df),
             patch.object(svc, "_save_cache"),
         ):
-            result = svc.get_dataframe(start=_START, end=_END)
+            with pytest.raises(ValueError, match="missing row"):
+                svc.get_dataframe(start=_START, end=_END)
+
+    def test_fill_missing_true_restores_legacy_behavior(self, svc):
+        """``fill_missing=True`` forward/back-fills NaN rows.
+
+        Rows 10 to 14 are set to NaN before the call; with the opt-in
+        flag the returned DataFrame must contain zero missing values.
+
+        Args:
+            svc: WeatherService fixture.
+        """
+        df = _hourly_df(_START, _PERIODS)
+        df.iloc[10:15, 0] = float("nan")
+
+        with (
+            patch.object(svc, "_load_cache", return_value=None),
+            patch.object(svc, "_fetch_hybrid", return_value=df),
+            patch.object(svc, "_save_cache"),
+        ):
+            result = svc.get_dataframe(start=_START, end=_END, fill_missing=True)
 
         assert result.isnull().sum().sum() == 0
 

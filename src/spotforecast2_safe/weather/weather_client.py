@@ -179,9 +179,15 @@ class WeatherService(WeatherClient):
         timezone: str = "UTC",
         freq: str = "h",
         fallback_on_failure: bool = True,
+        fill_missing: bool = False,
     ) -> pd.DataFrame:
         """Get weather DataFrame for a specified range using best available methods.
-        Refactored from spotpredict.create_weather_df.
+
+        Refactored from spotpredict.create_weather_df.  Since the 1.0
+        major release, remaining gaps after fetch are **rejected** by
+        default so that synthesised values never reach downstream
+        consumers labelled as measurements.  Pass ``fill_missing=True``
+        to opt into the legacy forward/back-fill behavior.
 
         Args:
             start: Start date for the data.
@@ -189,6 +195,14 @@ class WeatherService(WeatherClient):
             timezone: Timezone for the data (default "UTC").
             freq: Frequency for the data (default "h").
             fallback_on_failure: Whether to use fallback data on failure (default True).
+            fill_missing: Whether to forward- and back-fill remaining
+                NaN gaps after fetch/resample (default False).  When
+                False (the fail-safe default), any remaining NaN
+                raises ``ValueError`` with the gap timestamps.
+
+        Raises:
+            ValueError: If ``fill_missing=False`` and the merged frame
+                still contains NaNs after resample.
         """
         start_ts = pd.Timestamp(start)
         end_ts = pd.Timestamp(end)
@@ -209,7 +223,7 @@ class WeatherService(WeatherClient):
             if cached_df.index.min() <= start_utc and cached_df.index.max() >= end_utc:
                 self.logger.info("Using full cached data.")
                 return self._finalize_df(
-                    cached_df.loc[start_utc:end_utc], freq, timezone
+                    cached_df.loc[start_utc:end_utc], freq, timezone, fill_missing
                 )
 
         # 2. Hybrid Fetch (filling gaps if cache exists, or fetching all)
@@ -236,7 +250,9 @@ class WeatherService(WeatherClient):
             self._save_cache(df)
 
         # 4. Return slice
-        return self._finalize_df(df.loc[start_utc:end_utc], freq, timezone)
+        return self._finalize_df(
+            df.loc[start_utc:end_utc], freq, timezone, fill_missing
+        )
 
     def _fetch_hybrid(
         self, start: pd.Timestamp, end: pd.Timestamp, timezone: str
@@ -314,12 +330,44 @@ class WeatherService(WeatherClient):
             self.cache_path.parent.mkdir(parents=True, exist_ok=True)
             df.to_parquet(self.cache_path)
 
-    def _finalize_df(self, df: pd.DataFrame, freq: str, timezone: str) -> pd.DataFrame:
-        """Resample and localize."""
-        # Resample
-        if freq != "h":  # Assuming API returns hourly
-            df = df.resample(freq).ffill()  # Forward fill for weather is reasonable
+    def _finalize_df(
+        self,
+        df: pd.DataFrame,
+        freq: str,
+        timezone: str,
+        fill_missing: bool = False,
+    ) -> pd.DataFrame:
+        """Resample, localise, and (optionally) fill gaps.
 
-        # Fill gaps
-        df = df.ffill().bfill()
+        Args:
+            df: Merged frame ready to be returned.
+            freq: Target pandas frequency string.
+            timezone: Target timezone (unused; kept for signature
+                stability — callers slice in UTC beforehand).
+            fill_missing: When True, forward- then back-fill any
+                remaining NaN (legacy behavior).  When False (the
+                fail-safe default), any remaining NaN raises
+                ``ValueError`` listing the first few gap timestamps.
+
+        Raises:
+            ValueError: If ``fill_missing=False`` and the frame still
+                has NaNs after resample.
+        """
+        if freq != "h":
+            df = df.resample(freq).ffill()
+
+        if fill_missing:
+            return df.ffill().bfill()
+
+        gap_mask = df.isna().any(axis=1)
+        if gap_mask.any():
+            gaps = df.index[gap_mask]
+            preview = ", ".join(str(ts) for ts in gaps[:5])
+            more = f" (+{len(gaps) - 5} more)" if len(gaps) > 5 else ""
+            raise ValueError(
+                f"{len(gaps)} missing row(s) in weather frame after "
+                f"resample at freq={freq!r}. First gaps: [{preview}]"
+                f"{more}. Pass fill_missing=True to opt into legacy "
+                "ffill/bfill imputation."
+            )
         return df
