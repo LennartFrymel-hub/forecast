@@ -1,5 +1,7 @@
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
-from unittest.mock import patch, MagicMock
+
 from spotforecast2_safe.processing.n2n_predict import n2n_predict
 
 

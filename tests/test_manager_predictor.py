@@ -22,7 +22,6 @@ from spotforecast2_safe.manager.predictor import (
     get_model_prediction,
 )
 
-
 # =============================================================================
 # Existing tests for get_model_prediction
 # =============================================================================

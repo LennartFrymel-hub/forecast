@@ -1,14 +1,71 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import pandas as pd
-from pathlib import Path
 from os import environ
-from typing import Optional, Union
-from spotforecast2_safe.utils.generate_holiday import create_holiday_df
-from spotforecast2_safe.utils.convert_to_utc import convert_to_utc
+from pathlib import Path
+from typing import Literal, Optional, Union
+
+import pandas as pd
 from pandas import Timestamp
+
+from spotforecast2_safe.utils.convert_to_utc import convert_to_utc
+from spotforecast2_safe.utils.generate_holiday import create_holiday_df
 from spotforecast2_safe.weather.weather_client import WeatherService
+
+OnMissing = Literal["raise", "ffill_bfill", "passthrough"]
+
+
+def _apply_on_missing(
+    y: pd.Series, on_missing: OnMissing, column: str, csv_path: Path
+) -> pd.Series:
+    """Enforce the fail-safe contract on a loaded series.
+
+    If ``on_missing='raise'`` (default since the 1.0 major bump) and any
+    NaN is present, raises ``ValueError`` listing the first few gap
+    timestamps so the caller can act on them explicitly instead of
+    inheriting imputed values disguised as measurements.
+
+    Args:
+        y: The series just read from the CSV.
+        on_missing: Contract selector. ``'raise'`` (default) refuses to
+            return a series that silently embeds imputed values;
+            ``'ffill_bfill'`` opts into the legacy forward/back-fill
+            behavior; ``'passthrough'`` returns the series as read, so
+            an explicit downstream imputer (e.g.
+            :class:`spotforecast2_safe.preprocessing.LinearlyInterpolateTS`)
+            can decide.
+        column: Name of the column for the error message.
+        csv_path: Source path for the error message.
+
+    Returns:
+        The same series if ``on_missing='raise'`` and no NaNs are
+        present, the input unchanged for ``'passthrough'``, or an
+        imputed copy for ``'ffill_bfill'``.
+
+    Raises:
+        ValueError: If NaNs are present and ``on_missing='raise'``, or
+            if ``on_missing`` is not a recognized value.
+    """
+    if on_missing not in ("raise", "ffill_bfill", "passthrough"):
+        raise ValueError(
+            f"on_missing must be 'raise', 'ffill_bfill', or "
+            f"'passthrough'; got {on_missing!r}."
+        )
+    if on_missing == "passthrough":
+        return y
+    if not y.isna().any():
+        return y
+    if on_missing == "raise":
+        gaps = y.index[y.isna()]
+        preview = ", ".join(str(ts) for ts in gaps[:5])
+        more = f" (+{len(gaps) - 5} more)" if len(gaps) > 5 else ""
+        raise ValueError(
+            f"{len(gaps)} missing value(s) detected in column '{column}' "
+            f"of {csv_path}. First gaps: [{preview}]{more}. "
+            "Pass on_missing='ffill_bfill' to opt into legacy imputation "
+            "or on_missing='passthrough' to return raw NaN."
+        )
+    return y.ffill().bfill()
 
 
 def get_data_home(data_home: Optional[Union[str, Path]] = None) -> Path:
@@ -320,6 +377,7 @@ def fetch_weather_data(
     freq: str = "h",
     fallback_on_failure: bool = True,
     cache_home: Optional[Union[str, Path]] = None,
+    fill_missing: bool = False,
 ) -> pd.DataFrame:
     """Fetch weather data for the dataset period plus forecast horizon.
 
@@ -344,6 +402,9 @@ def fetch_weather_data(
             fetched weather data is cached in
             ``<cache_home>/weather_cache.parquet``.  When None (default),
             no caching is performed.
+        fill_missing: Whether to forward- and back-fill remaining NaN
+            gaps (default False).  Forwarded to
+            ``WeatherService.get_dataframe``; see its docstring.
 
     Returns:
         pd.DataFrame: DataFrame containing weather information.
@@ -378,27 +439,38 @@ def fetch_weather_data(
         timezone=timezone,
         freq=freq,
         fallback_on_failure=fallback_on_failure,
+        fill_missing=fill_missing,
     )
     return weather_df
 
 
 def load_timeseries(
     data_home: Optional[Union[str, Path]] = None,
+    on_missing: OnMissing = "raise",
 ) -> pd.Series:
     """Load the actual-load time series from ``interim/energy_load.csv``.
-    Reads the ``Actual Load`` column, converts the index to a UTC
-    ``DatetimeIndex`` with hourly frequency, and fills any missing
-    values with forward/backward fill.
+
+    Reads the ``Actual Load`` column and converts the index to a UTC
+    ``DatetimeIndex`` with hourly frequency.  Missing values are
+    **rejected** by default so callers cannot accidentally feed
+    imputed values into downstream safety-critical pipelines.  Pass
+    ``on_missing='ffill_bfill'`` to opt into the legacy
+    forward/backward fill behavior that was the default before the
+    1.0 major release.
 
     Args:
         data_home: Root data directory.  If None, resolved via
             ``get_data_home()``.
+        on_missing: How to handle NaN rows in ``Actual Load``.
+            ``'raise'`` (default) fails fast with the gap timestamps;
+            ``'ffill_bfill'`` forward- then back-fills.
 
     Returns:
         pd.Series: Hourly actual-load series indexed by UTC timestamps.
 
     Raises:
         FileNotFoundError: If ``interim/energy_load.csv`` does not exist.
+        ValueError: If ``on_missing='raise'`` and the series has NaNs.
 
     Examples:
         >>> import os, tempfile, shutil
@@ -442,22 +514,29 @@ def load_timeseries(
     df = df.asfreq("h")
 
     y = df["Actual Load"]
-    if y.isna().any():
-        y = y.ffill().bfill()
-    return y
+    return _apply_on_missing(y, on_missing, "Actual Load", csv_path)
 
 
 def load_timeseries_forecast(
     data_home: Optional[Union[str, Path]] = None,
+    on_missing: OnMissing = "raise",
 ) -> pd.Series:
     """Load the day-ahead forecast time series from ``interim/energy_load.csv``.
-    Reads the ``Forecasted Load`` column, converts the index to a UTC
-    ``DatetimeIndex`` with hourly frequency, and fills any missing
-    values with forward/backward fill.
+
+    Reads the ``Forecasted Load`` column and converts the index to a
+    UTC ``DatetimeIndex`` with hourly frequency.  Missing values are
+    **rejected** by default so callers cannot accidentally feed
+    imputed values into downstream safety-critical pipelines.  Pass
+    ``on_missing='ffill_bfill'`` to opt into the legacy
+    forward/backward fill behavior that was the default before the
+    1.0 major release.
 
     Args:
         data_home: Root data directory.  If None, resolved via
             ``get_data_home()``.
+        on_missing: How to handle NaN rows in ``Forecasted Load``.
+            ``'raise'`` (default) fails fast with the gap timestamps;
+            ``'ffill_bfill'`` forward- then back-fills.
 
     Returns:
         pd.Series: Hourly forecasted-load series indexed by UTC timestamps.
@@ -465,6 +544,7 @@ def load_timeseries_forecast(
     Raises:
         FileNotFoundError: If ``interim/energy_load.csv`` does not exist.
         KeyError: If ``Forecasted Load`` column is not present.
+        ValueError: If ``on_missing='raise'`` and the series has NaNs.
 
     Examples:
         >>> import os, tempfile, shutil
@@ -506,6 +586,4 @@ def load_timeseries_forecast(
     df = df.asfreq("h")
 
     y = df["Forecasted Load"]
-    if y.isna().any():
-        y = y.ffill().bfill()
-    return y
+    return _apply_on_missing(y, on_missing, "Forecasted Load", csv_path)

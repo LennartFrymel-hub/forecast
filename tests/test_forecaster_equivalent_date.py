@@ -1,8 +1,9 @@
-import pytest
 import numpy as np
 import pandas as pd
-from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+import pytest
+
 from spotforecast2_safe.exceptions import MissingValuesWarning
+from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
 
 
 def test_init_invalid_offset():

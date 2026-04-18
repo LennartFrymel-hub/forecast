@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.linear_model import LinearRegression
+
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 from spotforecast2_safe.model_selection import TimeSeriesFold
 from spotforecast2_safe.model_selection.validation import _backtesting_forecaster

@@ -1,3 +1,30 @@
+## [1.0.0-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v1.0.0-rc.1...v1.0.0-rc.2) (2026-04-18)
+
+
+### Bug Fixes
+
+* **weather:** quarantine corrupt parquet cache instead of silent None ([e03d134](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/e03d1347b5ad5136d2bd818b64df085222eb8ee8))
+
+## [1.0.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.10...v1.0.0-rc.1) (2026-04-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* **data:** callers relying on silent NaN imputation in these
+public entry points must now pass `on_missing="ffill_bfill"` or
+`fill_missing=True`. See `MODEL_CARD.md` §4 for the migration note.
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+
+### Features
+
+* **data:** raise on NaN in public data loaders and weather client ([8a207b3](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/8a207b3650f6db058f50cb4d2e4d9034ca39c10b))
+
+
+### Bug Fixes
+
+* **data:** import Literal for OnMissing type alias ([93c7c0a](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/93c7c0add54877661c41cbc6f2d7db08f4fe01e2))
+
 ## [0.30.10](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.9...v0.30.10) (2026-03-25)
 
 

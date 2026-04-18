@@ -23,10 +23,10 @@ Examples:
         warnings.simplefilter('ignore', category=MissingValuesWarning)
 """
 
-import warnings
 import inspect
-from functools import wraps
 import textwrap
+import warnings
+from functools import wraps
 
 try:
     from rich.console import Console

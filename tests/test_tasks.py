@@ -3,10 +3,10 @@
 
 """Tests for spotforecast2_safe task scripts."""
 
-import unittest
-from unittest.mock import patch
 import tempfile
+import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import pandas as pd
 

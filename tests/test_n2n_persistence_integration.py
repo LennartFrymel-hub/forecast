@@ -53,12 +53,12 @@ class TestModelDirParameter:
 
     def test_model_dir_default_value(self):
         """Test that model_dir has correct default value."""
+        # Check the function signature
+        import inspect
+
         from spotforecast2_safe.processing.n2n_predict_with_covariates import (
             n2n_predict_with_covariates,
         )
-
-        # Check the function signature
-        import inspect
 
         sig = inspect.signature(n2n_predict_with_covariates)
         # Default should be None, which triggers get_cache_home() usage
@@ -75,22 +75,22 @@ class TestForceTrainParameter:
 
     def test_force_train_parameter_exists(self):
         """Test that force_train parameter exists."""
+        import inspect
+
         from spotforecast2_safe.processing.n2n_predict_with_covariates import (
             n2n_predict_with_covariates,
         )
-
-        import inspect
 
         sig = inspect.signature(n2n_predict_with_covariates)
         assert "force_train" in sig.parameters
 
     def test_force_train_default_is_true(self):
         """Test that force_train defaults to True."""
+        import inspect
+
         from spotforecast2_safe.processing.n2n_predict_with_covariates import (
             n2n_predict_with_covariates,
         )
-
-        import inspect
 
         sig = inspect.signature(n2n_predict_with_covariates)
         assert sig.parameters["force_train"].default is True
@@ -145,9 +145,7 @@ class TestPersistenceFunctions:
     @patch("spotforecast2_safe.manager.persistence.dump")
     def test_save_forecasters_with_patch(self, mock_dump, temp_model_dir):
         """Test _save_forecasters with mocked dump."""
-        from spotforecast2_safe.manager.persistence import (
-            _save_forecasters,
-        )
+        from spotforecast2_safe.manager.persistence import _save_forecasters
 
         mock_forecaster = MagicMock()
         result = _save_forecasters(

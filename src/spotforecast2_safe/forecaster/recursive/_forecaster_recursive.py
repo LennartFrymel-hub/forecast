@@ -3,47 +3,49 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
 from __future__ import annotations
-from typing import Callable, Union, List, Optional, Tuple, Dict
-import sys
+
 import inspect
+import sys
+import warnings
+from copy import copy
+from typing import Callable, Dict, List, Optional, Tuple, Union
+
 import numpy as np
 import pandas as pd
-from copy import copy
-from sklearn.pipeline import Pipeline
 from sklearn.linear_model._base import LinearModel
-import warnings
+from sklearn.pipeline import Pipeline
 
-from spotforecast2_safe.forecaster.base import ForecasterBase
 from spotforecast2_safe.exceptions import (
-    NotFittedError,
     DataTransformationWarning,
+    NotFittedError,
     ResidualsUsageWarning,
     set_skforecast_warnings,
 )
-from spotforecast2_safe.preprocessing import TimeSeriesDifferentiator, QuantileBinner
-from spotforecast2_safe.utils import (
-    check_y,
-    check_exog,
-    get_exog_dtypes,
-    input_to_frame,
-    initialize_lags,
-    expand_index,
-    initialize_weights,
-    check_select_fit_kwargs,
-    check_exog_dtypes,
-    check_predict_input,
-    transform_dataframe,
-    check_interval,
-    check_residuals_input,
-    date_to_index_position,
-    set_cpu_gpu_device,
-)
+from spotforecast2_safe.forecaster.base import ForecasterBase
 from spotforecast2_safe.forecaster.utils import (
-    initialize_window_features,
     check_extract_values_and_index,
     get_style_repr_html,
     initialize_estimator,
+    initialize_window_features,
     transform_numpy,
+)
+from spotforecast2_safe.preprocessing import QuantileBinner, TimeSeriesDifferentiator
+from spotforecast2_safe.utils import (
+    check_exog,
+    check_exog_dtypes,
+    check_interval,
+    check_predict_input,
+    check_residuals_input,
+    check_select_fit_kwargs,
+    check_y,
+    date_to_index_position,
+    expand_index,
+    get_exog_dtypes,
+    initialize_lags,
+    initialize_weights,
+    input_to_frame,
+    set_cpu_gpu_device,
+    transform_dataframe,
 )
 
 # from spotforecast2_safe import __version__  # Removed to avoid circular import

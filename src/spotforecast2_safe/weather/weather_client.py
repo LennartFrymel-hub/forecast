@@ -5,7 +5,7 @@
 
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any, Union
+from typing import Any, Dict, Optional, Union
 
 import pandas as pd
 import requests
@@ -179,9 +179,15 @@ class WeatherService(WeatherClient):
         timezone: str = "UTC",
         freq: str = "h",
         fallback_on_failure: bool = True,
+        fill_missing: bool = False,
     ) -> pd.DataFrame:
         """Get weather DataFrame for a specified range using best available methods.
-        Refactored from spotpredict.create_weather_df.
+
+        Refactored from spotpredict.create_weather_df.  Since the 1.0
+        major release, remaining gaps after fetch are **rejected** by
+        default so that synthesised values never reach downstream
+        consumers labelled as measurements.  Pass ``fill_missing=True``
+        to opt into the legacy forward/back-fill behavior.
 
         Args:
             start: Start date for the data.
@@ -189,6 +195,14 @@ class WeatherService(WeatherClient):
             timezone: Timezone for the data (default "UTC").
             freq: Frequency for the data (default "h").
             fallback_on_failure: Whether to use fallback data on failure (default True).
+            fill_missing: Whether to forward- and back-fill remaining
+                NaN gaps after fetch/resample (default False).  When
+                False (the fail-safe default), any remaining NaN
+                raises ``ValueError`` with the gap timestamps.
+
+        Raises:
+            ValueError: If ``fill_missing=False`` and the merged frame
+                still contains NaNs after resample.
         """
         start_ts = pd.Timestamp(start)
         end_ts = pd.Timestamp(end)
@@ -209,7 +223,7 @@ class WeatherService(WeatherClient):
             if cached_df.index.min() <= start_utc and cached_df.index.max() >= end_utc:
                 self.logger.info("Using full cached data.")
                 return self._finalize_df(
-                    cached_df.loc[start_utc:end_utc], freq, timezone
+                    cached_df.loc[start_utc:end_utc], freq, timezone, fill_missing
                 )
 
         # 2. Hybrid Fetch (filling gaps if cache exists, or fetching all)
@@ -236,7 +250,9 @@ class WeatherService(WeatherClient):
             self._save_cache(df)
 
         # 4. Return slice
-        return self._finalize_df(df.loc[start_utc:end_utc], freq, timezone)
+        return self._finalize_df(
+            df.loc[start_utc:end_utc], freq, timezone, fill_missing
+        )
 
     def _fetch_hybrid(
         self, start: pd.Timestamp, end: pd.Timestamp, timezone: str
@@ -299,27 +315,118 @@ class WeatherService(WeatherClient):
         return new_data
 
     def _load_cache(self) -> Optional[pd.DataFrame]:
+        """Load the parquet cache, quarantining corrupt files.
+
+        A missing cache file returns ``None`` silently (expected on the
+        first run).  A *corrupt* or *partially-written* cache used to
+        return ``None`` silently via a bare ``except Exception`` — that
+        hid silent cache loss behind the same return value as a cache
+        miss.  In a safety-critical pipeline that means silent
+        divergence between runs.
+
+        This method now:
+
+        - returns ``None`` for the expected "not yet cached" path,
+        - on ``pyarrow.lib.ArrowInvalid`` / ``OSError`` /
+          ``FileNotFoundError`` (race) / ``ValueError`` from
+          ``read_parquet``, **logs a WARNING** with the cache path,
+          renames the bad file to ``<cache>.corrupt-<epoch>`` so the
+          next run starts fresh, and returns ``None``,
+        - lets any other exception propagate (an unfamiliar failure
+          mode should not be silently consumed).
+
+        Returns:
+            The cached DataFrame or ``None`` if the cache is absent,
+            the quarantine path is writable and the cache was
+            corrupt, or ``self.cache_path`` is unset.
+        """
         if not self.cache_path or not self.cache_path.exists():
             return None
         try:
             df = pd.read_parquet(self.cache_path)
-            if df.index.tz is None:
-                df.index = df.index.tz_localize("UTC")
-            return df
-        except Exception:
+        except (OSError, ValueError) as exc:
+            self._quarantine_corrupt_cache(exc)
             return None
+        if df.index.tz is None:
+            df.index = df.index.tz_localize("UTC")
+        return df
+
+    def _quarantine_corrupt_cache(self, exc: BaseException) -> None:
+        """Log and move a damaged cache out of the way.
+
+        Args:
+            exc: The exception raised by ``read_parquet``; included in
+                the log record so the caller can diagnose.
+        """
+        import time
+
+        cache_path = self.cache_path
+        if cache_path is None:
+            return
+        quarantine = cache_path.with_suffix(
+            cache_path.suffix + f".corrupt-{int(time.time())}"
+        )
+        self.logger.warning(
+            "Weather cache at %s is unreadable (%s: %s); "
+            "moving to %s so the next run starts fresh.",
+            cache_path,
+            type(exc).__name__,
+            exc,
+            quarantine,
+        )
+        try:
+            cache_path.rename(quarantine)
+        except OSError as rename_exc:
+            self.logger.warning(
+                "Could not quarantine %s: %s: %s",
+                cache_path,
+                type(rename_exc).__name__,
+                rename_exc,
+            )
 
     def _save_cache(self, df: pd.DataFrame):
         if self.cache_path:
             self.cache_path.parent.mkdir(parents=True, exist_ok=True)
             df.to_parquet(self.cache_path)
 
-    def _finalize_df(self, df: pd.DataFrame, freq: str, timezone: str) -> pd.DataFrame:
-        """Resample and localize."""
-        # Resample
-        if freq != "h":  # Assuming API returns hourly
-            df = df.resample(freq).ffill()  # Forward fill for weather is reasonable
+    def _finalize_df(
+        self,
+        df: pd.DataFrame,
+        freq: str,
+        timezone: str,
+        fill_missing: bool = False,
+    ) -> pd.DataFrame:
+        """Resample, localise, and (optionally) fill gaps.
 
-        # Fill gaps
-        df = df.ffill().bfill()
+        Args:
+            df: Merged frame ready to be returned.
+            freq: Target pandas frequency string.
+            timezone: Target timezone (unused; kept for signature
+                stability — callers slice in UTC beforehand).
+            fill_missing: When True, forward- then back-fill any
+                remaining NaN (legacy behavior).  When False (the
+                fail-safe default), any remaining NaN raises
+                ``ValueError`` listing the first few gap timestamps.
+
+        Raises:
+            ValueError: If ``fill_missing=False`` and the frame still
+                has NaNs after resample.
+        """
+        if freq != "h":
+            df = df.resample(freq).ffill()
+
+        if fill_missing:
+            return df.ffill().bfill()
+
+        gap_mask = df.isna().any(axis=1)
+        if gap_mask.any():
+            gaps = df.index[gap_mask]
+            preview = ", ".join(str(ts) for ts in gaps[:5])
+            more = f" (+{len(gaps) - 5} more)" if len(gaps) > 5 else ""
+            raise ValueError(
+                f"{len(gaps)} missing row(s) in weather frame after "
+                f"resample at freq={freq!r}. First gaps: [{preview}]"
+                f"{more}. Pass fill_missing=True to opt into legacy "
+                "ffill/bfill imputation."
+            )
         return df

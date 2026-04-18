@@ -17,7 +17,6 @@ from spotforecast2_safe.manager.models.forecaster_recursive_model import (
 )
 from spotforecast2_safe.model_selection import TimeSeriesFold
 
-
 # ------------------------------------------------------------------ #
 # Fixtures
 # ------------------------------------------------------------------ #

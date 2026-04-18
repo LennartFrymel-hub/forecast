@@ -7,16 +7,12 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-
 import pandas as pd
 from joblib import dump
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 
 from spotforecast2_safe.data.data import Period
-from spotforecast2_safe.data.fetch_data import (
-    load_timeseries,
-    load_timeseries_forecast,
-)
+from spotforecast2_safe.data.fetch_data import load_timeseries, load_timeseries_forecast
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 from spotforecast2_safe.model_selection import TimeSeriesFold, backtesting_forecaster
 from spotforecast2_safe.preprocessing import LinearlyInterpolateTS
@@ -560,7 +556,7 @@ class ForecasterRecursiveModel:
             raise ValueError("Forecaster not initialized")
 
         # Load data
-        y = load_timeseries()
+        y = load_timeseries(on_missing="passthrough")
         y = LinearlyInterpolateTS().fit_transform(y)
         X = self.preprocessor.build(start_date=y.index.min(), end_date=self.end_dev)
 
@@ -605,7 +601,7 @@ class ForecasterRecursiveModel:
         if self.forecaster is None:
             raise ValueError("Forecaster not initialized")
 
-        y = load_timeseries()
+        y = load_timeseries(on_missing="passthrough")
         y = LinearlyInterpolateTS().fit_transform(y)
         X = self.preprocessor.build(start_date=y.index.min(), end_date=self.end_dev)
 
@@ -639,7 +635,7 @@ class ForecasterRecursiveModel:
         if self.forecaster is None:
             raise ValueError("Forecaster not initialized")
 
-        y = load_timeseries()
+        y = load_timeseries(on_missing="passthrough")
         y = LinearlyInterpolateTS().fit_transform(y)
         X = self.preprocessor.build(start_date=y.index.min(), end_date=y.index.max())
 
@@ -700,7 +696,7 @@ class ForecasterRecursiveModel:
         if self.forecaster is None:
             raise ValueError("Forecaster not initialized")
 
-        y = load_timeseries()
+        y = load_timeseries(on_missing="passthrough")
         y = LinearlyInterpolateTS().fit_transform(y)
         X = self.preprocessor.build(start_date=y.index.min(), end_date=y.index.max())
 
@@ -784,10 +780,10 @@ class ForecasterRecursiveModel:
             Tuple[dict, Tuple[pd.Series, pd.Series]]:
                 ``(metrics, (y_actual, y_forecast))``.
         """
-        y = load_timeseries()
+        y = load_timeseries(on_missing="passthrough")
         y = LinearlyInterpolateTS().fit_transform(y)
 
-        y_forecast = load_timeseries_forecast()
+        y_forecast = load_timeseries_forecast(on_missing="passthrough")
         y_forecast = LinearlyInterpolateTS().fit_transform(y_forecast)
 
         start_future = self.end_dev + pd.Timedelta(hours=1)
@@ -918,12 +914,14 @@ class ForecasterRecursiveModel:
             return {}
 
         try:
-            y = load_timeseries()
+            y = load_timeseries(on_missing="passthrough")
             y = LinearlyInterpolateTS().fit_transform(y)
 
             # Benchmark (back-test mode only; ignored in genuine-future mode)
             try:
-                future_forecast_series = load_timeseries_forecast()
+                future_forecast_series = load_timeseries_forecast(
+                    on_missing="passthrough"
+                )
                 future_forecast_series = LinearlyInterpolateTS().fit_transform(
                     future_forecast_series
                 )

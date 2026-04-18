@@ -5,13 +5,15 @@
 """Common validation and initialization utilities for model selection."""
 
 from __future__ import annotations
-from typing import Callable, Generator
+
 import warnings
+from typing import Callable, Generator
+
 import numpy as np
 import pandas as pd
 from joblib import cpu_count
 from sklearn.exceptions import NotFittedError
-from sklearn.linear_model._base import LinearModel, LinearClassifierMixin
+from sklearn.linear_model._base import LinearClassifierMixin, LinearModel
 from sklearn.pipeline import Pipeline
 
 from spotforecast2_safe.forecaster.utils import check_interval, date_to_index_position

@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import unittest
-from unittest.mock import MagicMock, patch
-from pathlib import Path
-import tempfile
 import shutil
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 from spotforecast2_safe.manager.trainer import get_last_model
 
 

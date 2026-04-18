@@ -9,11 +9,11 @@ Verifies that:
 - WeatherService caching, hybrid-fetch, and fallback logic work correctly.
 """
 
-import pytest
-import pandas as pd
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 from urllib.parse import urlparse
 
+import pandas as pd
+import pytest
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -108,6 +108,7 @@ class TestWeatherClientInstantiation:
     def test_session_created(self):
         """WeatherClient creates a requests Session with retry logic."""
         import requests
+
         from spotforecast2_safe.weather import WeatherClient
 
         client = WeatherClient(latitude=51.0, longitude=7.0)
@@ -168,6 +169,7 @@ class TestWeatherClientFetchArchive:
     def test_fetch_archive_http_error_raises(self, mock_get):
         """fetch_archive propagates HTTP errors as exceptions."""
         import requests as req
+
         from spotforecast2_safe.weather import WeatherClient
 
         mock_get.side_effect = req.exceptions.ConnectionError("unreachable")
@@ -399,6 +401,7 @@ class TestWeatherServiceGetDataframe:
     def test_api_failure_no_cache_raises(self, mock_get):
         """get_dataframe raises when fallback is False and API fails."""
         import requests as req
+
         from spotforecast2_safe.weather import WeatherService
 
         mock_get.side_effect = req.exceptions.ConnectionError("unreachable")
@@ -413,18 +416,84 @@ class TestWeatherServiceGetDataframe:
             )
 
 
-class TestWeatherServiceFinalize:
-    """WeatherService._finalize_df resamples and fills gaps correctly."""
+class TestWeatherServiceCache:
+    """WeatherService._load_cache quarantines corrupt parquet files."""
 
-    def test_finalize_fills_nans(self):
-        """_finalize_df forward-fills NaN values."""
+    def test_load_cache_missing_returns_none(self, tmp_path):
+        """No cache file → silent ``None`` (expected first-run path)."""
+        from spotforecast2_safe.weather import WeatherService
+
+        svc = WeatherService(
+            latitude=51.0,
+            longitude=7.0,
+            cache_path=tmp_path / "never_written.parquet",
+        )
+        assert svc._load_cache() is None
+
+    def test_load_cache_quarantines_corrupt_file(self, tmp_path, caplog):
+        """A corrupt parquet is renamed and a WARNING is logged.
+
+        Args:
+            tmp_path: pytest temporary directory.
+            caplog: pytest log-capture fixture.
+        """
+        import logging
+
+        from spotforecast2_safe.weather import WeatherService
+
+        bad = tmp_path / "weather_cache.parquet"
+        bad.write_bytes(b"not a parquet file")
+        svc = WeatherService(latitude=51.0, longitude=7.0, cache_path=bad)
+
+        with caplog.at_level(logging.WARNING):
+            result = svc._load_cache()
+
+        assert result is None
+        assert not bad.exists(), "corrupt cache should have been renamed"
+        quarantine = list(tmp_path.glob("weather_cache.parquet.corrupt-*"))
+        assert len(quarantine) == 1
+        assert any(
+            "unreadable" in rec.message for rec in caplog.records
+        ), "WARNING log with 'unreadable' should be emitted"
+
+    def test_load_cache_valid_parquet_round_trips(self, tmp_path):
+        """A healthy parquet file is returned verbatim."""
+        from spotforecast2_safe.weather import WeatherService
+
+        idx = pd.date_range("2023-01-01", periods=3, freq="h", tz="UTC")
+        good = pd.DataFrame({"temperature_2m": [1.0, 2.0, 3.0]}, index=idx)
+        cache = tmp_path / "weather_cache.parquet"
+        good.to_parquet(cache)
+
+        svc = WeatherService(latitude=51.0, longitude=7.0, cache_path=cache)
+        loaded = svc._load_cache()
+        assert loaded is not None
+        pd.testing.assert_frame_equal(loaded, good, check_freq=False)
+
+
+class TestWeatherServiceFinalize:
+    """WeatherService._finalize_df resamples, and raises or fills gaps."""
+
+    def test_finalize_default_raises_on_nan(self):
+        """Default ``fill_missing=False`` refuses to return NaN rows."""
         from spotforecast2_safe.weather import WeatherService
 
         svc = WeatherService(latitude=51.0, longitude=7.0)
         idx = pd.date_range("2023-01-01", periods=5, freq="h", tz="UTC")
         df = pd.DataFrame({"temperature_2m": [1.0, None, None, 4.0, 5.0]}, index=idx)
 
-        result = svc._finalize_df(df, freq="h", timezone="UTC")
+        with pytest.raises(ValueError, match="missing row"):
+            svc._finalize_df(df, freq="h", timezone="UTC")
+
+    def test_finalize_fill_missing_true_restores_legacy(self):
+        """``fill_missing=True`` opts into forward/back-fill behavior."""
+        from spotforecast2_safe.weather import WeatherService
+
+        svc = WeatherService(latitude=51.0, longitude=7.0)
+        idx = pd.date_range("2023-01-01", periods=5, freq="h", tz="UTC")
+        df = pd.DataFrame({"temperature_2m": [1.0, None, None, 4.0, 5.0]}, index=idx)
+
+        result = svc._finalize_df(df, freq="h", timezone="UTC", fill_missing=True)
         assert not result.isnull().any().any()
 
     def test_finalize_hourly_does_not_resample(self):

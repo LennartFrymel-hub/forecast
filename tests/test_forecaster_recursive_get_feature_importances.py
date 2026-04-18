@@ -2,14 +2,15 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
-import pytest
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+import pytest
 from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
-from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+
 from spotforecast2_safe.exceptions import NotFittedError
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
 
 class MockEstimatorImportances(BaseEstimator, RegressorMixin):

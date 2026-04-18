@@ -7,9 +7,12 @@ Base class for time series cross-validation splitting.
 """
 
 from __future__ import annotations
+
 import warnings
+
 import numpy as np
 import pandas as pd
+
 from spotforecast2_safe.exceptions import IgnoredArgumentWarning
 
 

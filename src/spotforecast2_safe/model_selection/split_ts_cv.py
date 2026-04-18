@@ -7,16 +7,19 @@ Time series cross-validation splitting.
 """
 
 from __future__ import annotations
-import warnings
+
 import itertools
+import warnings
+
 import numpy as np
 import pandas as pd
 
+from spotforecast2_safe.exceptions import IgnoredArgumentWarning
 from spotforecast2_safe.forecaster.utils import (
     date_to_index_position,
     get_style_repr_html,
 )
-from spotforecast2_safe.exceptions import IgnoredArgumentWarning
+
 from .split_base import BaseFold
 
 

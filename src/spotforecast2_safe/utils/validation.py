@@ -8,13 +8,15 @@ Validation utilities for time series forecasting.
 This module provides validation functions for time series data and exogenous variables.
 """
 
-from typing import Any, Union, List, Tuple, Optional, Dict
 import warnings
-import pandas as pd
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import numpy as np
+import pandas as pd
+
 from spotforecast2_safe.exceptions import (
-    MissingValuesWarning,
     DataTypeWarning,
+    MissingValuesWarning,
     UnknownLevelWarning,
 )
 

@@ -1,9 +1,12 @@
-import pytest
-import pandas as pd
 from datetime import datetime
 
-from spotforecast2_safe.preprocessing.curate_data import get_start_end
-from spotforecast2_safe.preprocessing.curate_data import remove_duplicate_timestamps
+import pandas as pd
+import pytest
+
+from spotforecast2_safe.preprocessing.curate_data import (
+    get_start_end,
+    remove_duplicate_timestamps,
+)
 
 
 class TestGetStartEnd:

@@ -1,16 +1,17 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
+from lightgbm import LGBMRegressor
+
 from spotforecast2_safe.manager.models.forecaster_recursive_lgbm import (
     ForecasterRecursiveLGBM,
 )
 from spotforecast2_safe.manager.models.forecaster_recursive_model import (
     ForecasterRecursiveModel,
 )
-from lightgbm import LGBMRegressor
 
 
 def test_forecaster_recursive_lgbm_initialization():
