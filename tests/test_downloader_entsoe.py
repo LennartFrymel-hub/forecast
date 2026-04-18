@@ -116,5 +116,86 @@ class TestEntsoeDownloader(unittest.TestCase):
         mock_client_class.assert_not_called()
 
 
+class TestDownloadNewDataResumeFallback(unittest.TestCase):
+    """B4 regression: narrow the "no prior data" fallback.
+
+    ``download_new_data`` used to catch every ``Exception`` from
+    ``fetch_data()`` and silently default to "seven days ago". That
+    masks real bugs (import failures, schema drift, permission errors)
+    behind the same log line as a first-run bootstrap. We now only
+    absorb ``FileNotFoundError``, ``ValueError`` (the current "no
+    filename" signal from ``fetch_data``), and ``IndexError`` (empty
+    frame). Anything else must propagate.
+    """
+
+    def setUp(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        (self.test_dir / "raw").mkdir()
+        (self.test_dir / "interim").mkdir()
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
+
+    @patch("spotforecast2_safe.downloader.entsoe.get_data_home")
+    @patch("spotforecast2_safe.downloader.entsoe.fetch_data")
+    def test_filenotfound_triggers_7day_fallback(self, mock_fetch, mock_get_home):
+        """FileNotFoundError is the canonical "no prior data" signal."""
+        mock_get_home.return_value = self.test_dir
+        mock_fetch.side_effect = FileNotFoundError("no interim file yet")
+
+        mock_entsoe_mod = MagicMock()
+        mock_client = mock_entsoe_mod.EntsoePandasClient.return_value
+        mock_client.query_load_and_forecast.return_value = pd.DataFrame(
+            {"Actual": [1.0]},
+            index=[pd.Timestamp.now(tz="UTC")],
+        )
+        sys.modules["entsoe"] = mock_entsoe_mod
+
+        download_new_data(api_key="fake_key", force=True)
+
+        # Client was called; fallback resolved.
+        mock_entsoe_mod.EntsoePandasClient.assert_called_once()
+
+    @patch("spotforecast2_safe.downloader.entsoe.get_data_home")
+    @patch("spotforecast2_safe.downloader.entsoe.fetch_data")
+    def test_indexerror_on_empty_frame_triggers_fallback(
+        self, mock_fetch, mock_get_home
+    ):
+        """An empty DataFrame raises IndexError on ``index[-1]``; absorb it."""
+        mock_get_home.return_value = self.test_dir
+        mock_fetch.return_value = pd.DataFrame(index=pd.DatetimeIndex([], tz="UTC"))
+
+        mock_entsoe_mod = MagicMock()
+        mock_client = mock_entsoe_mod.EntsoePandasClient.return_value
+        mock_client.query_load_and_forecast.return_value = pd.DataFrame(
+            {"Actual": [1.0]},
+            index=[pd.Timestamp.now(tz="UTC")],
+        )
+        sys.modules["entsoe"] = mock_entsoe_mod
+
+        download_new_data(api_key="fake_key", force=True)
+
+        mock_entsoe_mod.EntsoePandasClient.assert_called_once()
+
+    @patch("spotforecast2_safe.downloader.entsoe.get_data_home")
+    @patch("spotforecast2_safe.downloader.entsoe.fetch_data")
+    def test_unexpected_exception_propagates(self, mock_fetch, mock_get_home):
+        """Anything outside the narrowed set must NOT be silently absorbed.
+
+        A PermissionError here used to be swallowed into the 7-day
+        default, masking a real filesystem bug. It should surface.
+        """
+        mock_get_home.return_value = self.test_dir
+        mock_fetch.side_effect = PermissionError("cannot read interim dir")
+
+        mock_entsoe_mod = MagicMock()
+        sys.modules["entsoe"] = mock_entsoe_mod
+
+        with self.assertRaises(PermissionError):
+            download_new_data(api_key="fake_key", force=True)
+
+        mock_entsoe_mod.EntsoePandasClient.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()
