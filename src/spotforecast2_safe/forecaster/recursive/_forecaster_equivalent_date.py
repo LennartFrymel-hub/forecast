@@ -3,30 +3,32 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
 from __future__ import annotations
-from typing import Callable, Any
-import warnings
+
 import sys
+import warnings
+from typing import Any, Callable
+
 import numpy as np
 import pandas as pd
 from sklearn.exceptions import NotFittedError
 
 from spotforecast2_safe.exceptions import MissingValuesWarning
-from spotforecast2_safe.preprocessing import QuantileBinner
-
-# from spotforecast2_safe import __version__  # Removed to avoid circular import
-
 from spotforecast2_safe.forecaster.utils import (
     check_extract_values_and_index,
-    get_style_repr_html,
     check_residuals_input,
+    get_style_repr_html,
 )
+from spotforecast2_safe.preprocessing import QuantileBinner
 from spotforecast2_safe.utils import (
-    check_y,
     check_interval,
-    expand_index,
     check_predict_input,
+    check_y,
+    expand_index,
 )
+
 from ._warnings import ResidualsUsageWarning
+
+# from spotforecast2_safe import __version__  # Removed to avoid circular import
 
 
 class ForecasterEquivalentDate:

@@ -3,13 +3,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
 from __future__ import annotations
-from typing import Callable
-import warnings
+
+import inspect
 import sys
+import warnings
+from copy import copy, deepcopy
+from typing import Callable
+
 import numpy as np
 import pandas as pd
-import inspect
-from copy import copy, deepcopy
 from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model._base import LinearModel
@@ -17,8 +19,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn.svm._base import BaseLibSVM
 
-# from spotforecast2_safe import __version__ as spotforecast_version
-from spotforecast2_safe.forecaster.base import ForecasterBase
 from spotforecast2_safe.exceptions import (
     DataTransformationWarning,
     IgnoredArgumentWarning,
@@ -27,37 +27,40 @@ from spotforecast2_safe.exceptions import (
     ResidualsUsageWarning,
     UnknownLevelWarning,
 )
+
+# from spotforecast2_safe import __version__ as spotforecast_version
+from spotforecast2_safe.forecaster.base import ForecasterBase
 from spotforecast2_safe.forecaster.utils import (
-    initialize_lags,
-    initialize_window_features,
-    initialize_weights,
-    initialize_transformer_series,
-    initialize_differentiator_multiseries,
-    check_select_fit_kwargs,
-    check_preprocess_series,
-    check_preprocess_exog_multiseries,
     align_series_and_exog_multiseries,
+    check_exog,
+    check_exog_dtypes,
+    check_interval,
+    check_predict_input,
+    check_preprocess_exog_multiseries,
+    check_preprocess_series,
+    check_residuals_input,
+    check_select_fit_kwargs,
+    expand_index,
+    get_exog_dtypes,
+    get_style_repr_html,
+    initialize_differentiator_multiseries,
+    initialize_estimator,
+    initialize_lags,
+    initialize_transformer_series,
+    initialize_weights,
+    initialize_window_features,
+    input_to_frame,
     prepare_levels_multiseries,
     preprocess_levels_self_last_window_multiseries,
-    check_exog,
-    get_exog_dtypes,
-    check_exog_dtypes,
-    check_predict_input,
-    check_residuals_input,
-    check_interval,
-    input_to_frame,
-    expand_index,
-    transform_numpy,
-    transform_dataframe,
-    set_skforecast_warnings,
-    get_style_repr_html,
     set_cpu_gpu_device,
-    initialize_estimator,
+    set_skforecast_warnings,
+    transform_dataframe,
+    transform_numpy,
 )
-from spotforecast2_safe.preprocessing import TimeSeriesDifferentiator, QuantileBinner
 from spotforecast2_safe.model_selection.utils_common import (
     _extract_data_folds_multiseries,
 )
+from spotforecast2_safe.preprocessing import QuantileBinner, TimeSeriesDifferentiator
 
 
 class ForecasterRecursiveMultiSeries(ForecasterBase):

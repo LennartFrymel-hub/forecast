@@ -1,16 +1,17 @@
 """Test WeightFunction class pickling and integration with ForecasterRecursive."""
 
-import pytest
-import pandas as pd
-import numpy as np
-import pickle
-from joblib import dump, load
-import tempfile
 import os
+import pickle
+import tempfile
 
-from spotforecast2_safe.preprocessing import WeightFunction
-from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+import numpy as np
+import pandas as pd
+import pytest
+from joblib import dump, load
 from sklearn.ensemble import RandomForestRegressor
+
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+from spotforecast2_safe.preprocessing import WeightFunction
 
 
 class TestWeightFunction:

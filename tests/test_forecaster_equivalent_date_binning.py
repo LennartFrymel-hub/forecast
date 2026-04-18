@@ -5,6 +5,7 @@
 import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import Day
+
 from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
 
 

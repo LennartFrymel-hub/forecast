@@ -1,16 +1,18 @@
-import pytest
-import pandas as pd
 import warnings
-from spotforecast2_safe.model_selection.utils_common import (
-    OneStepAheadValidationWarning,
-    initialize_lags_grid,
-    check_backtesting_input,
-    select_n_jobs_backtesting,
-)
-from spotforecast2_safe.model_selection import TimeSeriesFold
-from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+
+import pandas as pd
+import pytest
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
+
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+from spotforecast2_safe.model_selection import TimeSeriesFold
+from spotforecast2_safe.model_selection.utils_common import (
+    OneStepAheadValidationWarning,
+    check_backtesting_input,
+    initialize_lags_grid,
+    select_n_jobs_backtesting,
+)
 
 
 def test_onestepahead_validation_warning_example():

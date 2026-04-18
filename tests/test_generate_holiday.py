@@ -1,4 +1,5 @@
 import pandas as pd
+
 from spotforecast2_safe.utils.generate_holiday import create_holiday_df
 
 

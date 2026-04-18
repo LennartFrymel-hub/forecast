@@ -1,6 +1,7 @@
 """Tests for docstring examples in ForecasterRecursiveModel."""
 
 import doctest
+
 import spotforecast2_safe.manager.models.forecaster_recursive_model as model_module
 
 

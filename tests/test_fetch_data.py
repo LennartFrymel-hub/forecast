@@ -1,15 +1,16 @@
-import pytest
 import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-import pandas as pd
 from os import environ
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pandas as pd
+import pytest
 
 from spotforecast2_safe.data.fetch_data import (
-    get_data_home,
     fetch_data,
     fetch_holiday_data,
     fetch_weather_data,
+    get_data_home,
 )
 
 

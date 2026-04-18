@@ -8,11 +8,7 @@ from pathlib import Path
 
 from joblib import dump
 
-from spotforecast2_safe.manager.trainer import (
-    get_path_model,
-    load_iteration,
-)
-
+from spotforecast2_safe.manager.trainer import get_path_model, load_iteration
 
 # ------------------------------------------------------------------ #
 # get_path_model

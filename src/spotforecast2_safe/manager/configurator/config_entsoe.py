@@ -7,6 +7,7 @@ from dataclasses import replace
 from typing import Dict, List, Optional
 
 import pandas as pd
+
 from spotforecast2_safe.data import Period
 
 

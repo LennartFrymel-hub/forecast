@@ -9,7 +9,8 @@ This module provides functions for initializing and validating forecaster
 configuration parameters like lags and weights.
 """
 
-from typing import Any, Union, List, Tuple, Optional
+from typing import Any, List, Optional, Tuple, Union
+
 import numpy as np
 
 

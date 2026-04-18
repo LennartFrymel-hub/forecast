@@ -1,11 +1,13 @@
-import pytest
-import pandas as pd
-import numpy as np
 import pickle
+
+import numpy as np
+import pandas as pd
+import pytest
+
 from spotforecast2_safe.preprocessing.imputation import (
     WeightFunction,
-    get_missing_weights,
     custom_weights,
+    get_missing_weights,
 )
 
 

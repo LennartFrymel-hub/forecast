@@ -8,15 +8,14 @@ Safety-critical requirements:
 - Provides clear error messages for debugging
 """
 
-import pytest
-import pandas as pd
-import numpy as np
 import warnings
+
+import numpy as np
+import pandas as pd
+import pytest
+
+from spotforecast2_safe.exceptions import IgnoredArgumentWarning, InputTypeWarning
 from spotforecast2_safe.forecaster.utils import check_preprocess_series
-from spotforecast2_safe.exceptions import (
-    IgnoredArgumentWarning,
-    InputTypeWarning,
-)
 
 
 class TestCheckPreprocessSeriesBasicValidation:

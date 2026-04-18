@@ -6,8 +6,8 @@
 import logging
 from typing import Any
 
-
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
+
 from .forecaster_recursive_model import ForecasterRecursiveModel
 
 # Try to import XGBoost

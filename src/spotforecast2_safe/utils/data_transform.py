@@ -8,7 +8,8 @@ Data transformation utilities for time series forecasting.
 This module provides functions for normalizing and transforming data formats.
 """
 
-from typing import Union, Optional
+from typing import Optional, Union
+
 import numpy as np
 import pandas as pd
 

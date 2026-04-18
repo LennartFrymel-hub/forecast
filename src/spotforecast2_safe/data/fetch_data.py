@@ -1,13 +1,15 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import pandas as pd
-from pathlib import Path
 from os import environ
-from typing import Literal, Optional, Union
-from spotforecast2_safe.utils.generate_holiday import create_holiday_df
-from spotforecast2_safe.utils.convert_to_utc import convert_to_utc
+from pathlib import Path
+from typing import Optional, Union
+
+import pandas as pd
 from pandas import Timestamp
+
+from spotforecast2_safe.utils.convert_to_utc import convert_to_utc
+from spotforecast2_safe.utils.generate_holiday import create_holiday_df
 from spotforecast2_safe.weather.weather_client import WeatherService
 
 OnMissing = Literal["raise", "ffill_bfill", "passthrough"]

@@ -3,19 +3,21 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
 import warnings
+from typing import Any, List
+
 import numpy as np
 import pandas as pd
-from typing import List, Any
+
 from ._common import (
-    _np_mean_jit,
-    _np_std_jit,
-    _np_min_jit,
-    _np_max_jit,
-    _np_sum_jit,
-    _np_median_jit,
-    _np_min_max_ratio_jit,
-    _np_cv_jit,
     _ewm_jit,
+    _np_cv_jit,
+    _np_max_jit,
+    _np_mean_jit,
+    _np_median_jit,
+    _np_min_jit,
+    _np_min_max_ratio_jit,
+    _np_std_jit,
+    _np_sum_jit,
 )
 
 

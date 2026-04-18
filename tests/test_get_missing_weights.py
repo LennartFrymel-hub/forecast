@@ -8,9 +8,10 @@ recursive forecasting with sample weighting to penalize observations near gaps.
 import numpy as np
 import pandas as pd
 import pytest
+
 from spotforecast2_safe.preprocessing.imputation import (
-    get_missing_weights,
     custom_weights,
+    get_missing_weights,
 )
 
 

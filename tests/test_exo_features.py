@@ -11,24 +11,22 @@ Covers:
 - Backward-compatible private aliases in n2n_predict_with_covariates
 """
 
+import importlib
+
 import numpy as np
 import pandas as pd
 import pytest
 from astral import LocationInfo
-import importlib
 
 from spotforecast2_safe.manager.exo import (
     get_calendar_features,
     get_day_night_features,
     get_holiday_features,
 )
-from spotforecast2_safe.manager.exo.calendar import (
-    get_calendar_features as _cal,
-    get_day_night_features as _dn,
-    get_holiday_features as _hol,
-)
+from spotforecast2_safe.manager.exo.calendar import get_calendar_features as _cal
+from spotforecast2_safe.manager.exo.calendar import get_day_night_features as _dn
+from spotforecast2_safe.manager.exo.calendar import get_holiday_features as _hol
 from spotforecast2_safe.manager.exo.weather import get_weather_features
-
 
 # =============================================================================
 # Shared fixtures

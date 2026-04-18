@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.preprocessing import StandardScaler
+
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
 # If RollingFeatures is not available, skip that test

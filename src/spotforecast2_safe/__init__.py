@@ -3,17 +3,17 @@
 
 
 from spotforecast2_safe.data import Period
-from spotforecast2_safe.preprocessing import (
-    RepeatingBasisFunction,
-    ExogBuilder,
-    LinearlyInterpolateTS,
-)
+from spotforecast2_safe.manager.configurator import ConfigEntsoe
 from spotforecast2_safe.manager.models import (
-    ForecasterRecursiveXGB,
     ForecasterRecursiveLGBM,
     ForecasterRecursiveModel,
+    ForecasterRecursiveXGB,
 )
-from spotforecast2_safe.manager.configurator import ConfigEntsoe
+from spotforecast2_safe.preprocessing import (
+    ExogBuilder,
+    LinearlyInterpolateTS,
+    RepeatingBasisFunction,
+)
 
 Config = ConfigEntsoe
 
@@ -25,7 +25,8 @@ via __version__ for programmatic access and documentation generation.
 
 try:
     # Modern approach: importlib.metadata (Python 3.8+)
-    from importlib.metadata import PackageNotFoundError, version as _get_version
+    from importlib.metadata import PackageNotFoundError
+    from importlib.metadata import version as _get_version
 
     __version__ = _get_version("spotforecast2-safe")
 except PackageNotFoundError:

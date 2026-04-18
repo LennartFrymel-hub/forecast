@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from typing import Dict, Optional, Union, List
-import pandas as pd
+from typing import Dict, List, Optional, Union
+
 import numpy as np
+import pandas as pd
 
 
 def agg_predict(

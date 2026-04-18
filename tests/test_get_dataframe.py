@@ -19,11 +19,12 @@ An additional class covers the structural properties of the returned
 DataFrame (shape, index range, NaN handling, freq resampling).
 """
 
-import pytest
-import pandas as pd
 from unittest.mock import patch
-from spotforecast2_safe.weather.weather_client import WeatherService
 
+import pandas as pd
+import pytest
+
+from spotforecast2_safe.weather.weather_client import WeatherService
 
 # ---------------------------------------------------------------------------
 # Module constants

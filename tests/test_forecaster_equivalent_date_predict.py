@@ -2,12 +2,13 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later AND BSD-3-Clause
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 from pandas.tseries.offsets import Day
-from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
+
 from spotforecast2_safe.exceptions import MissingValuesWarning
+from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
 
 
 def test_predict_integer_offset_n_offsets_1():

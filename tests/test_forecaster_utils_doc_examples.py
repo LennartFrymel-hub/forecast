@@ -1,23 +1,24 @@
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 from spotforecast2_safe.forecaster.utils import (
-    check_preprocess_series,
-    exog_to_direct_numpy,
-    prepare_steps_direct,
-    transform_numpy,
-    initialize_window_features,
     check_extract_values_and_index,
-    get_style_repr_html,
+    check_preprocess_series,
     check_residuals_input,
     date_to_index_position,
+    exog_to_direct_numpy,
+    get_style_repr_html,
     initialize_estimator,
-    predict_multivariate,
     initialize_transformer_series,
+    initialize_window_features,
+    predict_multivariate,
+    prepare_steps_direct,
+    transform_numpy,
 )
-from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 
 
 def test_check_preprocess_series_examples():

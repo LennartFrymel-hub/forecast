@@ -8,8 +8,9 @@ This module provides utilities for calculating performance metrics
 for prediction models in safety-critical systems.
 """
 
-import pandas as pd
 from typing import Dict
+
+import pandas as pd
 
 
 def calculate_metrics(actual: pd.Series, predicted: pd.Series) -> Dict[str, float]:

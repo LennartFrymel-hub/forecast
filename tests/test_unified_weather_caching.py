@@ -19,7 +19,6 @@ import pandas as pd
 from spotforecast2_safe.data.fetch_data import fetch_weather_data
 from spotforecast2_safe.manager.exo.weather import get_weather_features
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -100,25 +99,19 @@ class TestFetchWeatherDataCaching:
 
     def test_cache_home_none_means_no_cache(self):
         """When cache_home is None, WeatherService gets cache_path=None."""
-        with patch(
-            "spotforecast2_safe.data.fetch_data.WeatherService"
-        ) as mock_cls:
+        with patch("spotforecast2_safe.data.fetch_data.WeatherService") as mock_cls:
             mock_svc = MagicMock()
             mock_svc.get_dataframe.return_value = pd.DataFrame()
             mock_cls.return_value = mock_svc
 
-            fetch_weather_data(
-                cov_start="2023-01-01", cov_end="2023-01-02"
-            )
+            fetch_weather_data(cov_start="2023-01-01", cov_end="2023-01-02")
 
             init_kwargs = mock_cls.call_args[1]
             assert init_kwargs["cache_path"] is None
 
     def test_cache_home_provided_means_caching(self):
         """When cache_home is provided, WeatherService gets a cache path."""
-        with patch(
-            "spotforecast2_safe.data.fetch_data.WeatherService"
-        ) as mock_cls:
+        with patch("spotforecast2_safe.data.fetch_data.WeatherService") as mock_cls:
             with patch(
                 "spotforecast2_safe.data.fetch_data.get_cache_home"
             ) as mock_home:

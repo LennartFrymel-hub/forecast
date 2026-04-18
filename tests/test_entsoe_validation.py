@@ -1,12 +1,14 @@
 # SPDX-FileCopyrightText: 2026 bartzbeielstein
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import unittest
-from unittest.mock import patch
-import pandas as pd
-from pathlib import Path
-import tempfile
 import shutil
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+import pandas as pd
+
 from spotforecast2_safe.downloader.entsoe import merge_build_manual
 
 
