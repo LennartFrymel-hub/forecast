@@ -1,3 +1,10 @@
+## [1.0.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v1.0.0...v1.0.1-rc.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* **downloader:** narrow ENTSO-E resume fallback to real 'no-data' signals ([d5e2c72](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/d5e2c727864b4fad1cdcdbbf752fa00aa2e666f9))
+
 ## [1.0.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v0.30.10...v1.0.0) (2026-04-18)
 
 
