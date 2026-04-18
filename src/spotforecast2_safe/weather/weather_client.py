@@ -315,15 +315,74 @@ class WeatherService(WeatherClient):
         return new_data
 
     def _load_cache(self) -> Optional[pd.DataFrame]:
+        """Load the parquet cache, quarantining corrupt files.
+
+        A missing cache file returns ``None`` silently (expected on the
+        first run).  A *corrupt* or *partially-written* cache used to
+        return ``None`` silently via a bare ``except Exception`` — that
+        hid silent cache loss behind the same return value as a cache
+        miss.  In a safety-critical pipeline that means silent
+        divergence between runs.
+
+        This method now:
+
+        - returns ``None`` for the expected "not yet cached" path,
+        - on ``pyarrow.lib.ArrowInvalid`` / ``OSError`` /
+          ``FileNotFoundError`` (race) / ``ValueError`` from
+          ``read_parquet``, **logs a WARNING** with the cache path,
+          renames the bad file to ``<cache>.corrupt-<epoch>`` so the
+          next run starts fresh, and returns ``None``,
+        - lets any other exception propagate (an unfamiliar failure
+          mode should not be silently consumed).
+
+        Returns:
+            The cached DataFrame or ``None`` if the cache is absent,
+            the quarantine path is writable and the cache was
+            corrupt, or ``self.cache_path`` is unset.
+        """
         if not self.cache_path or not self.cache_path.exists():
             return None
         try:
             df = pd.read_parquet(self.cache_path)
-            if df.index.tz is None:
-                df.index = df.index.tz_localize("UTC")
-            return df
-        except Exception:
+        except (OSError, ValueError) as exc:
+            self._quarantine_corrupt_cache(exc)
             return None
+        if df.index.tz is None:
+            df.index = df.index.tz_localize("UTC")
+        return df
+
+    def _quarantine_corrupt_cache(self, exc: BaseException) -> None:
+        """Log and move a damaged cache out of the way.
+
+        Args:
+            exc: The exception raised by ``read_parquet``; included in
+                the log record so the caller can diagnose.
+        """
+        import time
+
+        cache_path = self.cache_path
+        if cache_path is None:
+            return
+        quarantine = cache_path.with_suffix(
+            cache_path.suffix + f".corrupt-{int(time.time())}"
+        )
+        self.logger.warning(
+            "Weather cache at %s is unreadable (%s: %s); "
+            "moving to %s so the next run starts fresh.",
+            cache_path,
+            type(exc).__name__,
+            exc,
+            quarantine,
+        )
+        try:
+            cache_path.rename(quarantine)
+        except OSError as rename_exc:
+            self.logger.warning(
+                "Could not quarantine %s: %s: %s",
+                cache_path,
+                type(rename_exc).__name__,
+                rename_exc,
+            )
 
     def _save_cache(self, df: pd.DataFrame):
         if self.cache_path:

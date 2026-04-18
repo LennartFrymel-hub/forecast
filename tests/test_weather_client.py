@@ -416,6 +416,61 @@ class TestWeatherServiceGetDataframe:
             )
 
 
+class TestWeatherServiceCache:
+    """WeatherService._load_cache quarantines corrupt parquet files."""
+
+    def test_load_cache_missing_returns_none(self, tmp_path):
+        """No cache file → silent ``None`` (expected first-run path)."""
+        from spotforecast2_safe.weather import WeatherService
+
+        svc = WeatherService(
+            latitude=51.0,
+            longitude=7.0,
+            cache_path=tmp_path / "never_written.parquet",
+        )
+        assert svc._load_cache() is None
+
+    def test_load_cache_quarantines_corrupt_file(self, tmp_path, caplog):
+        """A corrupt parquet is renamed and a WARNING is logged.
+
+        Args:
+            tmp_path: pytest temporary directory.
+            caplog: pytest log-capture fixture.
+        """
+        import logging
+
+        from spotforecast2_safe.weather import WeatherService
+
+        bad = tmp_path / "weather_cache.parquet"
+        bad.write_bytes(b"not a parquet file")
+        svc = WeatherService(latitude=51.0, longitude=7.0, cache_path=bad)
+
+        with caplog.at_level(logging.WARNING):
+            result = svc._load_cache()
+
+        assert result is None
+        assert not bad.exists(), "corrupt cache should have been renamed"
+        quarantine = list(tmp_path.glob("weather_cache.parquet.corrupt-*"))
+        assert len(quarantine) == 1
+        assert any(
+            "unreadable" in rec.message for rec in caplog.records
+        ), "WARNING log with 'unreadable' should be emitted"
+
+    def test_load_cache_valid_parquet_round_trips(self, tmp_path):
+        """A healthy parquet file is returned verbatim."""
+        from spotforecast2_safe.weather import WeatherService
+
+        idx = pd.date_range("2023-01-01", periods=3, freq="h", tz="UTC")
+        good = pd.DataFrame({"temperature_2m": [1.0, 2.0, 3.0]}, index=idx)
+        cache = tmp_path / "weather_cache.parquet"
+        good.to_parquet(cache)
+
+        svc = WeatherService(latitude=51.0, longitude=7.0, cache_path=cache)
+        loaded = svc._load_cache()
+        assert loaded is not None
+        pd.testing.assert_frame_equal(loaded, good, check_freq=False)
+
+
 class TestWeatherServiceFinalize:
     """WeatherService._finalize_df resamples, and raises or fills gaps."""
 
