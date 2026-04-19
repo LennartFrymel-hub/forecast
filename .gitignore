@@ -251,3 +251,4 @@ codeql-custom-queries-python/
 mkdocs.yml.bak
 
 /.quarto/
+/bart26h/local
