@@ -1,3 +1,15 @@
+## [1.1.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v1.0.1...v1.1.0) (2026-04-19)
+
+
+### Features
+
+* model card and reuse ([f5ff52b](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/f5ff52b04f93511acfda49e21856080d21bb2649))
+
+
+### Documentation
+
+* bart26h ([9a673aa](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/9a673aa3effeed3c30729779e7c4cd8fab82d792))
+
 ## [1.0.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v1.0.0...v1.0.1) (2026-04-18)
 
 
