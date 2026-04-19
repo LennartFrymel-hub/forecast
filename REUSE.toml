@@ -50,3 +50,37 @@ path = ["**/__pycache__/**", ".pytest_cache/**", "site/**"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 bartzbeielstein"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# bart26h/ — technical report sources authored by the project owner
+[[annotations]]
+path = ["bart26h/.gitignore", "bart26h/_quarto.yml"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 bartzbeielstein"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# bart26h/_extensions/mikemahoney218/arxiv — vendored Quarto extension (MIT upstream)
+[[annotations]]
+path = [
+  "bart26h/_extensions/mikemahoney218/arxiv/_extension.yml",
+  "bart26h/_extensions/mikemahoney218/arxiv/partials/_authors.tex",
+  "bart26h/_extensions/mikemahoney218/arxiv/partials/before-body.tex",
+  "bart26h/_extensions/mikemahoney218/arxiv/partials/title.tex",
+  "bart26h/_extensions/mikemahoney218/arxiv/shortcodes.lua",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2023 Mike Mahoney"
+SPDX-License-Identifier = "MIT"
+
+# arxiv.sty — vendored from kourgeorge/arxiv-style (MIT upstream)
+[[annotations]]
+path = ["bart26h/arxiv.sty", "bart26h/_extensions/mikemahoney218/arxiv/arxiv.sty"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2020 George Kour"
+SPDX-License-Identifier = "MIT"
+
+# orcidlink.sty — LPPL-1.3c (Leo C. Stein, 2020); upstream: https://ctan.org/pkg/orcidlink
+[[annotations]]
+path = ["bart26h/orcidlink.sty", "bart26h/_extensions/mikemahoney218/arxiv/orcidlink.sty"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2020 Leo C. Stein"
+SPDX-License-Identifier = "LPPL-1.3c"

@@ -99,7 +99,7 @@ Run formatting tools before committing:
 ```bash
 black src/ tests/
 isort src/ tests/
-flake8 src/ tests/ --max-line-length=100
+flake8 src/ tests/ --max-line-length=180
 uv run ruff check src/ tests/
 ```
 
