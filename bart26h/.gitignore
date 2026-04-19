@@ -1,0 +1,11 @@
+_freeze/
+_manuscript/
+.quarto/
+index_files/
+index.quarto_ipynb*
+index.tex
+index.pdf
+arxiv_submission/
+
+/.quarto/
+**/*.quarto_ipynb
