@@ -49,7 +49,7 @@ def get_version_from_pyproject() -> str:
 
 def get_version_from_model_card() -> str:
     """Extract version from MODEL_CARD.md (current state)."""
-    model_card = Path(__file__).parent.parent / "docs" / "safe" / "MODEL_CARD.md"
+    model_card = Path(__file__).parent.parent / "MODEL_CARD.md"
     
     if not model_card.exists():
         return None
@@ -83,7 +83,7 @@ def get_version_from_docs_index() -> Optional[str]:
 
 def update_model_card(version: str, dry_run: bool = False) -> bool:
     """Update version in MODEL_CARD.md."""
-    model_card = Path(__file__).parent.parent / "docs" / "safe" / "MODEL_CARD.md"
+    model_card = Path(__file__).parent.parent / "MODEL_CARD.md"
     
     if not model_card.exists():
         print(f"⚠ MODEL_CARD.md not found at {model_card}")

@@ -27,7 +27,7 @@ Current release identifier:
 
     cpe:2.3:a:sequential_parameter_optimization:spotforecast2_safe:{{< var version >}}:*:*:*:*:*:*:*
 
-See [Model/Method Card](safe/MODEL_CARD.qmd#1-system-details) for additional compliance details.
+See [Model/Method Card](safe/MODEL_CARD.qmd#model-details) for additional compliance details.
 
 ## Installation
 
@@ -52,7 +52,7 @@ uv sync
 
 ## ⚠️ Disclaimer & Liability
 
-IMPORTANT: This software is provided "as is" and any express or implied warranties are disclaimed. The use of this software in safety-critical systems is at the sole risk of the user. For full details, see the [Disclaimer in the Model Card](safe/MODEL_CARD.qmd#8-disclaimer-liability).
+IMPORTANT: This software is provided "as is" and any express or implied warranties are disclaimed. The use of this software in safety-critical systems is at the sole risk of the user. For full details, see the [Disclaimer in the Model Card](safe/MODEL_CARD.qmd#disclaimer-liability).
 
 ## Links
 
