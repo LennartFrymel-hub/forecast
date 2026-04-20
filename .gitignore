@@ -254,3 +254,4 @@ mkdocs.yml.bak
 /bart26h/local
 docs/index.html
 docs/index_files/
+bart26h/index.fdb_latexmk
