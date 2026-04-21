@@ -149,10 +149,20 @@
       {
         "assets": [
           {
-            "path": "dist/*.whl"
+            "path": "dist/*.whl",
+            "label": "Python Wheel"
           },
           {
-            "path": "dist/*.tar.gz"
+            "path": "dist/*.tar.gz",
+            "label": "Source Distribution"
+          },
+          {
+            "path": "dist/sbom.cdx.json",
+            "label": "CycloneDX 1.5 SBOM"
+          },
+          {
+            "path": "dist/*.sigstore*",
+            "label": "Sigstore signature bundle (keyless OIDC, Rekor)"
           }
         ]
       }

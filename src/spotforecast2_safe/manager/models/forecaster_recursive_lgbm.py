@@ -41,7 +41,11 @@ class ForecasterRecursiveLGBM(ForecasterRecursiveModel):
         super().__init__(iteration, name="lgbm", **kwargs)
         self.forecaster = ForecasterRecursive(
             estimator=LGBMRegressor(
-                n_jobs=-1, verbose=-1, random_state=self.random_state
+                n_jobs=-1,
+                verbose=-1,
+                random_state=self.random_state,
+                deterministic=True,
+                force_col_wise=True,
             ),
             lags=lags,
         )

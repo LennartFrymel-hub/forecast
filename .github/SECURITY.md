@@ -74,6 +74,41 @@ Published security advisories can be found in the [GitHub Security Advisories](h
 3. Follow the contribution guidelines
 4. Run full test suite before submitting PRs
 
+## Verifying Release Artefacts
+
+Every release attaches four artefact classes to the GitHub Release:
+
+1. the Python wheel (`*.whl`),
+2. the source distribution (`*.tar.gz`),
+3. a CycloneDX 1.5 SBOM of the resolved production dependency graph
+   (`sbom.cdx.json`), exported from `uv.lock` by `uv export --format
+   cyclonedx1.5 --no-dev`, and
+4. one Sigstore bundle per artefact (`*.sigstore` or `*.sigstore.json`)
+   produced by keyless OIDC signing in the release workflow; each bundle
+   is also recorded in the public Rekor transparency log.
+
+End users and auditors can verify any release artefact against its bundle
+with `sigstore-python`:
+
+```bash
+pip install sigstore
+sigstore verify identity \
+  --bundle spotforecast2_safe-<VERSION>-py3-none-any.whl.sigstore \
+  --cert-identity "https://github.com/sequential-parameter-optimization/spotforecast2-safe/.github/workflows/release.yml@refs/heads/main" \
+  --cert-oidc-issuer "https://token.actions.githubusercontent.com" \
+  spotforecast2_safe-<VERSION>-py3-none-any.whl
+```
+
+Use the same command (with the matching bundle name) to verify the source
+distribution and the SBOM. A missing, tampered, or unsigned artefact fails
+verification and MUST be rejected; the corresponding Rekor entry is
+recoverable via `sigstore verify identity --offline` if air-gapped audit
+is required.
+
+This end-to-end evidence covers IEC 62443-4-1 SUM-3 (secure update
+delivery) and Annex I Part I / Part II of the EU Cyber Resilience Act
+(delivery integrity and software-bill-of-materials obligation).
+
 ## Dependencies & Supply Chain Security
 
 This project maintains minimal dependencies to reduce the attack surface:
