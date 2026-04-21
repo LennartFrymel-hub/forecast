@@ -70,3 +70,16 @@ def test_package_prediction_interface():
     """Test package_prediction method exists."""
     model = ForecasterRecursiveLGBM(iteration=0)
     assert hasattr(model, "package_prediction")
+
+
+def test_lgbm_determinism_flags_are_pinned():
+    """The LightGBM backend must be instantiated with the flags that
+    eliminate the row-wise vs. column-wise histogram divergence on
+    multi-core systems. Changing any of these flags silently would break
+    the bit-level determinism claim in the compliance narrative; this
+    test fails loudly when that happens."""
+    model = ForecasterRecursiveLGBM(iteration=0)
+    params = model.forecaster.estimator.get_params()
+    assert params["deterministic"] is True
+    assert params["force_col_wise"] is True
+    assert params["random_state"] == model.random_state
