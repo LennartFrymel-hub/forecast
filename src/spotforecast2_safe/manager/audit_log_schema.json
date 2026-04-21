@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spotforecast2-safe/audit_log_schema/1.0.0.json",
+  "title": "spotforecast2-safe audit log record",
+  "description": "One line in an audit log file emitted by spotforecast2_safe.manager.logger.JsonAuditFormatter. Exactly one Python LogRecord maps to one JSON object that must conform to this schema. Any change to this file MUST be accompanied by a Conventional-Commits breaking-change marker (type!:) on at least one commit in the pull request; the ci.yml job 'audit-log-schema-gate' enforces this.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "timestamp_utc",
+    "logger",
+    "level",
+    "event",
+    "message"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Pinned audit-log schema version. Changing this constant requires a breaking-change commit and cascades to a MAJOR semver bump through semantic-release."
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "description": "ISO 8601 UTC timestamp with microsecond precision and a trailing 'Z'. Example: '2026-04-21T20:32:14.123456Z'."
+    },
+    "logger": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Python logger name that emitted the record."
+    },
+    "level": {
+      "type": "string",
+      "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+    },
+    "event": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Short slug naming the operational event (e.g. 'task_start', 'fit', 'predict', 'fetch'). Defaults to 'log' when no 'event' key is passed via LogRecord extras."
+    },
+    "message": {
+      "type": "string",
+      "description": "Fully formatted, human-readable message."
+    },
+    "task": {
+      "type": "string",
+      "description": "Name of the top-level task that triggered this record, if applicable."
+    },
+    "context": {
+      "type": "object",
+      "description": "Optional structured context supplied by the caller via the LogRecord 'extra' dict."
+    },
+    "exception": {
+      "type": "string",
+      "description": "Formatted traceback attached when the record carried exc_info."
+    }
+  }
+}

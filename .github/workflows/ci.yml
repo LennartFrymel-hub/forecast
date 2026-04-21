@@ -54,6 +54,37 @@ jobs:
           done
           exit "${status}"
 
+  audit-log-schema-gate:
+    name: Audit Log Schema Versioning Gate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code with full history
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Enforce breaking-change marker when audit log schema changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SCHEMA_PATH: src/spotforecast2_safe/manager/audit_log_schema.json
+        run: |
+          set -euo pipefail
+          if git diff --name-only "${BASE_SHA}...${HEAD_SHA}" | grep -qx "${SCHEMA_PATH}"; then
+            if ! git log --format=%s "${BASE_SHA}..${HEAD_SHA}" \
+                 | grep -qE '^[a-z]+(\([^)]+\))?!:'; then
+              echo "::error file=${SCHEMA_PATH}::${SCHEMA_PATH} was modified but no commit on this pull request carries a Conventional-Commits breaking-change marker (type!: or type(scope)!:). The audit-log schema is part of the public compliance contract; any change must cascade to a MAJOR semver bump via semantic-release."
+              exit 1
+            fi
+            echo "Schema change is accompanied by a breaking-change commit."
+          else
+            echo "Schema unchanged; gate satisfied trivially."
+          fi
+
   test:
     name: Test on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
