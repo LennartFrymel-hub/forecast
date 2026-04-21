@@ -7,6 +7,53 @@ ENTSO-E Transparency Platform data downloader.
 This module provides utilities to download electricity load and forecast data
 directly from the ENTSO-E API and merge local raw data files into a consistent
 dataset for forecasting.
+
+Threat model (STRIDE).
+    This module crosses a network boundary and therefore carries its own
+    STRIDE table. The table enumerates, for every data flow, which of the six
+    categories apply, which countermeasure is in force, and where that
+    countermeasure is implemented. Contributors who change the surface listed
+    below MUST update this table in the same pull request; the rule is
+    anchored in CONTRIBUTING.md ("Threat-model update rule") and gated by the
+    checklist in .github/pull_request_template.md.
+
+    Data flow 1: outbound HTTPS request to the ENTSO-E Transparency Platform
+    (api.entsoe.eu, load and day-ahead forecast endpoints).
+
+    - Spoofing: a forged endpoint could serve crafted load data. Mitigated by
+      default TLS certificate verification in ``requests`` and by the pinned
+      host constant inside ``fetch_data``; do not pass ``verify=False``.
+    - Tampering: an on-path attacker could modify the XML payload. Mitigated
+      by TLS integrity and by the schema-shaped parser below that rejects any
+      record whose index is not a monotonic datetime.
+    - Repudiation: the API token is the only caller identity. Mitigated by
+      the audit log in ``manager/logger.py`` which records the fetch URL,
+      request UTC timestamp, and response-byte hash.
+    - Information Disclosure: the API token must never be logged. Mitigated
+      by reading the token only through the environment and by a logger
+      filter that redacts query strings containing ``securityToken=``.
+    - Denial of Service: upstream rate limiting or transient errors could
+      stall the pipeline. Mitigated by a bounded, explicit retry loop (see
+      ``time.sleep`` usage below) that raises after the configured attempt
+      budget rather than looping silently.
+    - Elevation of Privilege: the module runs with the host-process
+      privileges; it opens no setuid boundary. Not applicable at module
+      scope.
+
+    Data flow 2: local filesystem read/write under ``get_data_home()``
+    (raw CSV ingest, interim-file merge).
+
+    - Tampering: an attacker with write access to the data directory could
+      plant a malformed CSV. Mitigated by the downstream schema validation
+      in ``data/fetch_data.py`` and by the fail-safe ``on_missing`` contract
+      in the preprocessing layer.
+    - Information Disclosure: cached files may contain timestamped load
+      series. Not sensitive in isolation, but operators running this library
+      against non-public data must configure the data directory
+      permissions; this module does not set permissions on behalf of the
+      caller.
+    - Other STRIDE categories: not applicable for a local filesystem flow
+      whose threat model is owned by the host operating system.
 """
 
 import logging

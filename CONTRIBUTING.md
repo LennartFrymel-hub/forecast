@@ -249,6 +249,43 @@ This is a safety-critical library. Contributions must maintain:
 
 Any changes that affect these properties must be clearly documented and justified in the PR.
 
+## Threat-model update rule
+
+Every network-facing module carries a STRIDE threat-model table in its module
+docstring. The table enumerates, for every data flow, which of the six STRIDE
+categories (Spoofing, Tampering, Repudiation, Information Disclosure, Denial
+of Service, Elevation of Privilege) apply, which countermeasure is in force,
+and where that countermeasure is implemented.
+
+The network-facing modules currently covered are:
+
+- `src/spotforecast2_safe/downloader/entsoe.py` (ENTSO-E Transparency Platform)
+- `src/spotforecast2_safe/weather/weather_client.py` (Open-Meteo API)
+
+**Rule.** Any pull request that changes the network-facing attack surface MUST
+update the STRIDE table in the module docstring of every affected file in the
+same commit. "Changing the attack surface" means any of:
+
+- adding, removing, or redirecting an outbound request;
+- changing the parser, schema, or validation of an external response;
+- adding, removing, or altering the handling of a credential, secret, or
+  session token;
+- changing the on-disk cache format, location, or trust boundary;
+- adding a new network-facing module under `src/spotforecast2_safe/`.
+
+Pure refactors, docstring fixes, and test-only changes do **not** trigger this
+rule.
+
+The rule is enforced as a self-certification item in
+`.github/pull_request_template.md` ("Threat-model update" section). Reviewers
+reject PRs that check the "attack-surface change" box without showing a diff
+to the corresponding module-level STRIDE table.
+
+This rule closes the IEC 62443-4-1 SR-1 / SR-2 (threat-model-driven security
+requirements) and EU AI Act Article 9 (lifecycle risk management) obligations
+listed in the compliance tables of `MODEL_CARD.md` and of the technical
+report `bart26h/index.qmd`.
+
 ## Reporting Issues
 
 Before reporting a bug:
