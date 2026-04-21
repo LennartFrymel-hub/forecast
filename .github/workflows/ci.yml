@@ -41,9 +41,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@e58605a9b6da7c637471fab8847a5e5a6b8df081  # v5.2.2
+
+      - name: Resolve dependency graph
+        # uv.lock is not checked in, so regenerate it here. The scan must
+        # see the same closure that a fresh clone would install.
+        run: uv lock
+
       - name: Scan uv.lock for prohibited dependencies
         run: |
           set -euo pipefail
+          if [[ ! -f uv.lock ]]; then
+            echo "::error::uv.lock missing after 'uv lock' - cannot enforce prohibited-dependency contract"
+            exit 1
+          fi
           forbidden=(plotly matplotlib spotoptim optuna torch tensorflow)
           status=0
           for pkg in "${forbidden[@]}"; do
@@ -110,11 +122,16 @@ jobs:
       
       - name: Set up uv
         uses: astral-sh/setup-uv@e58605a9b6da7c637471fab8847a5e5a6b8df081  # v5.2.2
-      
+
+      - name: Resolve dependency graph
+        # uv.lock is not checked in. Regenerate it so tests/test_prohibited_dependencies.py
+        # (which greps uv.lock as part of the compliance contract) runs against a real file.
+        run: uv lock
+
       - name: Install dependencies
         run: |
           uv pip install --system -e ".[dev]"
-      
+
       - name: Run pytest
         run: |
           pytest tests/ -v --tb=short --cov=src/spotforecast2_safe --cov-branch --cov-report=xml --cov-report=term
