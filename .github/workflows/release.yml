@@ -54,7 +54,48 @@ jobs:
           python -m build
           echo "Build artifacts created:"
           ls -lah dist/
-      
+
+      - name: Generate CycloneDX SBOM from uv.lock
+        if: success()
+        run: |
+          # uv exports a CycloneDX 1.5 SBOM of the resolved production
+          # dependency graph directly from uv.lock. No external tool is
+          # installed into the build environment, so the SBOM describes
+          # exactly the closure that ships in the wheel. sbom-export is
+          # still a uv preview feature; the explicit --preview-features
+          # flag makes that opt-in visible in the workflow log.
+          uv export --preview-features sbom-export \
+            --format cyclonedx1.5 --no-dev \
+            -o dist/sbom.cdx.json
+          echo "CycloneDX 1.5 SBOM generated:"
+          ls -lah dist/sbom.cdx.json
+
+      - name: Inject project CPE on SBOM root component
+        if: success()
+        # The SBOM uv emits keys components on PURL. NVD-backed vulnerability
+        # scanners (CISA KEV, several VM-aaS products) resolve via CPE 2.3.
+        # This step injects the project's own CPE, produced by
+        # spotforecast2_safe.utils.cpe.get_cpe_identifier, onto the root
+        # component so the CPE actually ships in the signed artefact.
+        # Must run before Sigstore so the signature covers the enriched file.
+        run: |
+          python scripts/enrich_sbom_with_cpe.py --sbom dist/sbom.cdx.json
+
+      - name: Sign wheel, sdist, and SBOM with Sigstore
+        if: success()
+        # Keyless OIDC signing backed by the job's id-token: write
+        # permission; no long-lived secrets. Signature bundles land in the
+        # public Rekor transparency log and are written next to each input
+        # as ``<input>.sigstore`` (or ``.sigstore.json`` in v3+).
+        # TODO(supply-chain): pin this action to a commit SHA (the rest of
+        # the workflow uses SHA pins) before the next production release.
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        with:
+          inputs: |
+            ./dist/*.whl
+            ./dist/*.tar.gz
+            ./dist/sbom.cdx.json
+
       - name: Setup Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
         with:

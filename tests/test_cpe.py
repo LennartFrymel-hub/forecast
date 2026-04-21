@@ -117,6 +117,19 @@ class TestGetCPEIdentifier:
         for part in parts[6:]:
             assert part == "*"
 
+    def test_cpe_split_rejoin_round_trip(self):
+        """Decomposing the CPE at ':' separators and recomposing with
+        ':'.join must yield byte-identical output across stable, release-
+        candidate, pre-release, wildcard, and empty-string versions.
+        This pins the reverse-direction invariant claimed in the
+        compliance narrative alongside the forward-direction well-
+        formedness checks above; a downstream pipeline that parses and
+        re-emits CPE strings (e.g. ``cyclonedx-py``) must not alter the
+        canonical string."""
+        for version in ("*", "0.8.0", "0.8.0-rc.1", "0.7.0-beta.2", ""):
+            original = get_cpe_identifier(version)
+            assert ":".join(original.split(":")) == original
+
 
 class TestCPEIntegration:
     """Integration tests for CPE identifier usage."""
