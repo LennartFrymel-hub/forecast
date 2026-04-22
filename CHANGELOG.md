@@ -1,3 +1,37 @@
+## [2.0.0](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v1.1.0...v2.0.0) (2026-04-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* introduces the audit-log schema as a public
+compliance contract (EU AI Act Art. 12, IEC 62443-4-2 SAR 6.1,
+IEC 61508-3 sec. 7.4.7). Downstream log consumers must now validate
+against audit_log_schema.json.
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+
+### Features
+
+* **ci:** add prohibited-dependencies guard job and compliance test ([d22b0af](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/d22b0af33b09c16092e5ec610ced2eca795ee9a2))
+* introduce versioned audit-log JSON schema with CI gate ([74541d1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/74541d1f406ef4b49d94b2eea375a2c34c60c516))
+* **manager:** pin LightGBM determinism flags to eliminate multi-core histogram drift ([e7b6b63](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/e7b6b6360ee7772758890fd7ccff829b8f470a72))
+* require STRIDE updates on attack-surface pull requests ([186c02b](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/186c02b6bf1d72a26b2dd5a197423c2f9167cd9e))
+* ship signed CycloneDX SBOM with project CPE on each release ([2759f80](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/2759f809ff2ddded74e7644025681e46591bf998))
+
+
+### Bug Fixes
+
+* **ci:** generate uv.lock before prohibited-deps and pytest jobs ([fa4bd60](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/fa4bd60f94e6ebc41f9f54364d07664964e3ffef))
+* **ci:** generate uv.lock before release-workflow tests ([6a2ea97](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/6a2ea97a137b74341fe2e8ff231d33301a61475b))
+* **tasks:** route demo CSV fetches through get_package_data_home ([1329bd9](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/1329bd967fc3f3f9cbd5e770faf2ec4df5d2d98a))
+
+
+### Documentation
+
+* frame regulatory gap in English abstract and mirror compliance updates ([13a81dc](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/13a81dc992f44990a86fb49e61c46a0e3040cf26))
+* iso/iec added ([15524f7](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/15524f7b727f89cd364dddcbbcf4e78090273930))
+* until 9.4 ([6b80fd9](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/6b80fd9ec6f5b8517f8733ab9e0c637fcde7a225))
+
 ## [2.0.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v1.1.0...v2.0.0-rc.1) (2026-04-22)
 
 
