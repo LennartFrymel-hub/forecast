@@ -34,14 +34,23 @@ jobs:
       
       - name: Set up uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86
-      
+
+      - name: Resolve dependency graph
+        # uv.lock is not checked in. Regenerate it so tests/test_prohibited_dependencies.py
+        # greps a real file and the SBOM export below reflects the same closure.
+        run: uv lock
+
       - name: Install dependencies
         run: |
           uv pip install --system build twine
           uv pip install --system -e ".[dev]"
-      
+
       - name: Run tests
         run: |
+          if [[ ! -f uv.lock ]]; then
+            echo "::error::uv.lock missing before tests - prohibited-deps gate cannot run"
+            exit 1
+          fi
           pytest tests/ -v
       
       - name: Verify package name in pyproject.toml
