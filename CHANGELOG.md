@@ -1,3 +1,10 @@
+## [2.0.1-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v2.0.1-rc.1...v2.0.1-rc.2) (2026-04-22)
+
+
+### Bug Fixes
+
+* **ci:** prune SBOM and sigstore bundles before PyPI upload ([27e7dbc](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/27e7dbc55651a564db4820da8c16a87c2ef85fc8))
+
 ## [2.0.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v2.0.0...v2.0.1-rc.1) (2026-04-22)
 
 
