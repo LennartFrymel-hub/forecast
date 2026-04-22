@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v2.0.0...v2.0.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* **ci:** disable @semantic-release/github PR/issue comment hooks ([aed3762](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/aed37622af294c70e98c1c4d5bd9c4da18eb9323)), closes [#123](https://github.com/sequential-parameter-optimization/spotforecast2-safe/issues/123)
+
 ## [2.0.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v2.0.0...v2.0.1-rc.1) (2026-04-22)
 
 
