@@ -19,9 +19,10 @@ class TestDemoConfig:
 
     def test_default_config_initialization(self):
         """Verify DemoConfig initializes with sensible defaults."""
+        from spotforecast2_safe.data.fetch_data import get_package_data_home
 
         config_data = {
-            "data_path": Path.home() / "spotforecast2_data" / "data_test.csv",
+            "data_path": get_package_data_home() / "demo11.csv",
             "model_root": Path.home() / "spotforecast2_safe_models",
             "log_root": Path.home() / "spotforecast2_safe_models" / "logs",
             "forecast_horizon": 24,

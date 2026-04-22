@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
+from spotforecast2_safe.data.fetch_data import get_package_data_home
+
 
 @dataclass(frozen=True)
 class DemoConfig:
@@ -113,7 +115,7 @@ class DemoConfig:
     """
 
     data_path: Path = field(
-        default_factory=lambda: Path.home() / "spotforecast2_data" / "data_test.csv"
+        default_factory=lambda: get_package_data_home() / "demo11.csv"
     )
     model_root: Path = field(
         default_factory=lambda: Path.home() / "spotforecast2_safe_models"

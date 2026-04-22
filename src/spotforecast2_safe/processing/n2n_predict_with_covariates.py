@@ -66,7 +66,7 @@ try:
 except ImportError:  # pragma: no cover - fallback when tqdm is not installed
     tqdm = None
 
-from spotforecast2_safe.data.fetch_data import fetch_data
+from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
 from spotforecast2_safe.forecaster.recursive import ForecasterRecursive
 from spotforecast2_safe.forecaster.utils import predict_multivariate
 from spotforecast2_safe.manager.exo.calendar import (
@@ -293,7 +293,9 @@ def n2n_predict_with_covariates(
     if data is None:
         if verbose:
             print("  Fetching data from CSV...")
-        data = fetch_data(filename="data_in.csv", timezone=timezone)
+        data = fetch_data(
+            filename=get_package_data_home() / "demo10.csv", timezone=timezone
+        )
     else:
         if verbose:
             print("  Using provided dataframe...")
