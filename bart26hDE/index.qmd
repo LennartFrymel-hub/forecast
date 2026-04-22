@@ -11,6 +11,7 @@ authors:
     roles: writing, conceptualization, supervision
   - name: Eva Bartz
     affiliation: Bartz & Bartz GmbH, 51643 Gummersbach, Deutschland
+    orcid: 0009-0005-2989-2385
     email: eva.bartz@bartzundbartz.de
     roles: writing
 runninghead: "spotforecast2-safe"
@@ -25,7 +26,31 @@ echo: true
 reference-section-title: Literaturverzeichnis
 header-includes: |
   \usepackage{dirtree}
+  \usepackage{rotating}
   \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\},fontsize=\small}
+  \usepackage{etoolbox}
+  \makeatletter
+  \renewcommand{\@maketitle}{%
+    \vbox{%
+      \hsize\textwidth
+      \linewidth\hsize
+      \vskip 0.1in
+      \@toptitlebar
+      \centering
+      {\LARGE\sc \@title\par}
+      \@bottomtitlebar
+      \textsc{\runninghead}\\
+      \vskip 0.1in
+      \def\And{\end{tabular}\hfil\linebreak[0]\hfil%
+        \begin{tabular}[t]{c}\fontencoding{TU}\selectfont\bfseries\rule{\z@}{24\p@}\ignorespaces}%
+      \def\AND{\end{tabular}\hfil\linebreak[4]\hfil%
+        \begin{tabular}[t]{c}\fontencoding{TU}\selectfont\bfseries\rule{\z@}{24\p@}\ignorespaces}%
+      \begin{tabular}[t]{c}\fontencoding{TU}\selectfont\bfseries\rule{\z@}{24\p@}\@author\end{tabular}%
+      \vskip 0.4in \@minus 0.1in \center{\today} \vskip 0.2in
+    }%
+  }
+  \patchcmd{\abstract}{\scshape Abstract}{\scshape Zusammenfassung}{}{}
+  \makeatother
 format:
   arxiv-pdf:
     keep-tex: true
@@ -55,7 +80,7 @@ Funktionale Sicherheit und KI-Transparenz sind indessen nicht die einzigen regul
 In industriellen Einsatzkontexten läuft eine Prognosebibliothek als Software-Komponente auf Ebene 2 oder 3 des Purdue-Referenzmodells^[Ein Referenzmodell für Automations- und Industrienetze.] (ISA-95 / IEC 62264), wo der dominierende Cybersicherheitsrahmen die Normreihe ISA/IEC 62443 [@iec62443_1_1] ist. Die Normreihe verteilt die Verantwortlichkeiten auf Anlagenbetreiber (62443-2-1 [@iec62443_2_1]), Dienstleister (62443-2-4 [@iec62443_2_4]), Systemintegratoren (62443-3-2 [@iec62443_3_2], 62443-3-3 [@iec62443_3_3]) sowie Komponentenhersteller (62443-4-1 [@iec62443_4_1], 62443-4-2 [@iec62443_4_2]); die beiden letztgenannten Teile sind für einen Softwareanbieter unmittelbar einschlägig. Innerhalb der Europäischen Union (EU) ist die 62443-Reihe zudem die aussichtsreichste Kandidatin für eine harmonisierte Norm zur Cyberresilienz-Verordnung (CRA) [@euCRA24] und prägt die Risikomanagementpflichten nach der Richtlinie (EU) 2022/2555 ("NIS-2-Richtlinie") [@euNIS22] sowie der Richtlinie zur Resilienz kritischer Einrichtungen (CER-Richtlinie) [@euRCE22].
 @fluc24a bezeichnet 62443-2-1 als "Äquivalent der ISO/IEC 27001 für cyberphysische Systeme (CPS)". Der für `spotforecast2-safe` unmittelbar bindende Teil ist indessen 62443-4-1, dessen Anforderungen an den sicheren Produktentwicklungszyklus eng auf die vier Entwicklungsregeln des vorliegenden Pakets abbilden. NIST SP 800-82 Rev. 3 [@nist80082r3] stellt einen ergänzenden US-Bundesrahmen mit erheblicher technischer Überschneidung bereit.
 
-Das Paket `spotforecast2-safe` ist eine Antwort auf dieses Spannungsverhältnis zwischen Sofwareentwicklung in der KI-Forschung und im Bereich sicherheitskritisicher Anwendungen.
+Das Paket `spotforecast2-safe` versucht, diese Lücken zwischen der Sofwareentwicklung in der KI-Forschung und im Bereich sicherheitskritisicher Anwendungen zu schließen.
 Ausgangspunkt ist `skforecast` [@scip24a], eine gut dokumentierte Prognosebibliothek, welche den rekursiven Mehrschrittansatz, Lag- und Fenstermerkmale, direkte Mehrzielprognosen sowie Rolling-Origin-Kreuzvalidierung umsetzt.
 Ungefähr ein Drittel der sicherheitskritischen Codezeilen sind ein direkter Port aus dem `skforecast`-Quellcode, wobei der ursprüngliche BSD-3-Clause-Urhebervermerk erhalten bleibt.
  Ergänzender Code setzt vier Code-Entwicklungsregeln um.
@@ -65,14 +90,14 @@ Ungefähr ein Drittel der sicherheitskritischen Codezeilen sind ein direkter Por
  Viertens: minimaler Umfang, d.h. eine versionierte Negativliste ("Sperrliste") verbotener Abhängigkeiten (siehe @sec-principles) unterbindet den Import von Visualisierungs-, AutoML- und Deep-Learning-Bibliotheken.
  
  Ergänzend zu den Code-Entwicklungsregeln werden vier Prozessregeln definiert.
-Durch die Berücksichtigung dieser Regeln ist der Funktionsumfang der Software reduziert. Um diese gewollte Reduktion auszugleichen, wird `spotforecast2-safe` Teilmenge eines umfangreicheren Schwesterpakets, `spotforecast2` [@spotforecast2], vertrieben. Das `spotforecast2` Paket erhält zusätzliche Funktionen: interaktive Visualisierung auf Grundlage von `plotly` und `matplotlib`, AutoML-Hyperparametersuche mittels `optuna` und `spotoptim`, sowie Modellerklärungswerkzeuge auf Basis von `shap`.
+Durch die Berücksichtigung dieser Regeln ist der Funktionsumfang der Software reduziert. Um diese gewollte Reduktion auszugleichen, wird `spotforecast2-safe` als Teilmenge des umfangreicheren Schwesterpakets `spotforecast2` [@spotforecast2]vertrieben. Das `spotforecast2` Paket erhält zusätzliche Funktionen: interaktive Visualisierung auf Grundlage von `plotly` und `matplotlib`, AutoML-Hyperparametersuche mittels `optuna` und `spotoptim`, sowie Modellerklärungswerkzeuge auf Basis von `shap`.
 
-Der Rest dieses Berichts beschreibt die von `spotforecast2-safe` implementierte Teilmenge. Der Bericht verfolgt drei Ziele. Erstens verortet er das Paket innerhalb der Landschaft der Python-Zeitreihenwerkzeuge und erläutert, welche Funktionen in der sicherheitskritischen Teilmenge aus welchem Grund bewusst fehlen (@sec-related). Zweitens dokumentiert er die Architektur, die formalen Vorverarbeitungs- und Prognosealgorithmen sowie die in den jüngsten Versionen ausgelieferten sicherheitsrelevanten Entwurfsentscheidungen (@sec-principles bis @sec-safety). Drittens bildet er die Entwurfsentscheidungen auf einzelne Bestimmungen der KI-VO und der beiden Normen zur funktionalen Sicherheit ab und schließt mit einem kurzen Beispiel zur elektrischen Lastprognose (@sec-compliance und @sec-example).
+Der Rest dieses Berichts beschreibt die von `spotforecast2-safe` implementierte Teilmenge. Der Bericht verfolgt drei Ziele. Erstens verortet er das Paket innerhalb der Landschaft der Python-Zeitreihenwerkzeuge und erläutert, welche Funktionen in der sicherheitskritischen Teilmenge aus welchem Grund bewusst fehlen (@sec-related). Zweitens dokumentiert er die Architektur (@sec-architecture), die formalen Vorverarbeitungs- und Prognosealgorithmen (@sec-preprocessing bis @sec-modelselection) sowie die in den jüngsten Versionen ausgelieferten sicherheitsrelevanten Entwurfsentscheidungen (@sec-principles bis @sec-safety). Drittens bildet er die Entwurfsentscheidungen auf einzelne Bestimmungen der KI-VO und der beiden Normen zur funktionalen Sicherheit ab und schließt mit einem kurzen Beispiel zur elektrischen Lastprognose (@sec-compliance und @sec-example).
 Der Bericht ist selbst Bestandteil des Prüfnarrativs: Jeder Codeblock wird zum Zeitpunkt der Dokumentenerstellung ausgeführt und das gesamte Dokument inkl. Literaturverzeichnis steht unter Versionskontrolle.
 
 # Verwandte Arbeiten {#sec-related}
 
-Das Python-Ökosystem der Zeitreihenprognose ist im vergangenen Jahrzehnt stark gewachsen und hat Implementationen der statitischen Programmiersprache R [@r21a] übernommen. Die wissenschaftliche Grundlinie wird durch `statsmodels` gesetzt, welches ARIMA-, SARIMAX- und Exponentialglättungsmodelle in Anlehnung an die klassische Darstellung von @box15a bereitstellt. `scikit-learn` [@pedr11a] verzichtet bewusst auf zeitreihenspezifische Funktionen und delegiert diese an nachgelagerte Bibliotheken. Die wichtigsten Bibliotheken werden kurz vorgestellt.
+Das Python-Ökosystem der Zeitreihenprognose ist im vergangenen Jahrzehnt stark gewachsen und hat Implementationen der statitischen Programmiersprache R [@r21a] übernommen. Grundlegend ist das Paket `statsmodels`, welches ARIMA-, SARIMAX- und Exponentialglättungsmodelle in Anlehnung an die klassische Darstellung von @box15a bereitstellt. `scikit-learn` [@pedr11a] verzichtet bewusst auf zeitreihenspezifische Funktionen und delegiert diese an nachgelagerte Bibliotheken. Die wichtigsten Bibliotheken werden kurz vorgestellt.
 
 `skforecast` [@scip24a] stellt eine `Forecaster`-Abstraktion bereit, welche jeden mit scikit-learn kompatiblen Regressor in einen rekursiven, direkten oder mehrreihigen Forecaster einhüllt. Es ist der engste konzeptionelle Verwandte des hier dokumentierten Pakets. Wir übernehmen daraus die Architektur der rekursiven Prognose, den Rolling-Origin-Splitter und wesentliche Teile der Module `_binner`, `_differentiator` sowie die Residuen-Infrastruktur. Nicht übernommen werden das Visualisierungs-Subsystem (das auf `matplotlib` und `plotly` angewiesen ist) und das AutoML-artige `bayesian_search_forecaster` (das auf `optuna` beruht und nichtdeterministische Optimierungsspuren erzeugt).
 Diese Tools sind im Paket `spotforecast2` enthalten.
@@ -85,38 +110,10 @@ Die "M-competitions" [@makr20a; @makr22a] haben sich zum De-facto-Benchmark für
 Die Entscheidung, die unterstützten Backends des Pakets auf LightGBM, XGBoost und scikit-learn-Regressoren zu beschränken (und `ForecasterRecursiveLGBM` sowie `ForecasterRecursiveXGB` als die beiden Standard-Modelle auszuliefern), folgt unmittelbar aus dieser empirischen Evidenz.
 
 Keine der genannten Bibliotheken ist ingenieurtechnisch mangelhaft. Im Gegenteil, sie stellen herausragende (Forschungs-) Software dar.
-Allerdings kann eine Software, die für die schnelle Exploration optimiert ist,  nicht zugleich ein SIL-3-Software-Verifikationsbudget erfüllen, ohne dass erhebliche betreiberspezifische Nacharbeit entsteht. `spotforecast2-safe` verlagert diese Nacharbeit in das Paket selbst, so dass der Betreiber die Nachweise erbt, statt sie reproduzieren zu müssen.
+Allerdings kann eine Software, die für die schnelle Exploration optimiert ist,  nicht automatisch ein SIL-3-Software-Verifikationsbudget erfüllen, ohne dass erhebliche betreiberspezifische Nacharbeit entsteht. `spotforecast2-safe` verlagert diese Nacharbeit in das Paket selbst, so dass der Betreiber die Nachweise erbt, statt sie reproduzieren zu müssen.
 
 Eine parallele Forschungslinie behandelt, *wie* die Vertrauenswürdigkeit eines Hochrisiko-KI-Systems zu beurteilen ist. @stet24a schlagen einen Rahmen zur Vertrauenswürdigkeits-Assurance vor, der die Anforderungen der KI-VO entlang des V-Modells in prüfbare Eigenschaften zerlegt und die KI-System-Technik mit der Assurance-Argumentation der funktionalen Sicherheit verbindet. Der vorliegende Bericht ist mit diesem Rahmen vereinbar: Jede Prozessregel in @sec-principles ist ein Argumentationsschritt, und die Spalten *Mechanismus* und *Nachweis* der @tbl-compliance sind die Substantiationen. Der rechtswissenschaftliche Hintergrund wird von @raue25a aufgearbeitet, dessen Band zu *Künstlicher Intelligenz und Grundrechten* die Wechselwirkung der Verordnung mit der Charta der Grundrechte der Europäischen Union, dem Antidiskriminierungsrecht und dem Datenschutzrecht untersucht. @raue25a ist die maßgebliche Bezugsquelle, wenn ein Betreiber die hier dokumentierten technischen Nachweise in eine Grundrechte-Folgenabschätzung (Fundamental Rights Impact Assessment, FRIA) nach Art. 27 KI-VO zu übertragen hat.
 
-
-# Entwurfsgrundsätze {#sec-principles}
-
-Die Entwurfsgrundsätze gliedern sich in zwei parallele Kategorien. *Code-Entwicklungsregeln* beschränken, welche Bestandteile der Quelltext enthalten darf; sie werden zum Commit-Zeitpunkt durch einen Test oder einen Linter^[Ein Linter ist ein statisches Analysewerkzeug, das den Quelltext ohne Ausführung auf Stilverletzungen, verdächtige Muster und Verstöße gegen Programmierkonventionen prüft. Im vorliegenden Paket werden `ruff`, `black`, `isort` und `mypy` über Pre-Commit-Hooks aufgerufen.] durchgesetzt. *Prozessregeln* beschränken, wie das Paket entwickelt, ausgeliefert und betrieben wird, und werden durch `MODEL_CARD.md`, CI-Workflows und die Release-Pipeline erfüllt, nicht durch Quelltext-Tests. Beide Kategorien sind erforderlich: Die Code-Entwicklungsregeln allein genügen nicht, um die regulatorischen Pflichten zu Rückverfolgbarkeit, Bedrohungsmodellierung, Daten-Governance, Lieferketten-Integrität und betrieblicher Beobachtbarkeit zu erfüllen.
-
-## Code-Entwicklungsregeln
-
-Die vier nicht verhandelbaren Code-Regeln lauten:
-
-1. *Kein toter Code ("No dead code").* Keine Funktion, Klasse oder Verzweigung wird ausgeliefert, ohne dass ein Test oder ein ausführbares Docstring-Beispiel sie erreicht. Eine Testsuite `test_docstring_examples_*.py` erzwingt dies.
-2. *Deterministische Transformationen.* Gleiche Eingabe, gleiche bitweise Ausgabe. Zufallszahlengeneratoren sind geseedet; die Dictionary-Iterationsreihenfolge wird nicht herangezogen; `joblib`-Parallelität ist auf ein festes `n_jobs` Argument fixiert.
-3. *Fail-safe-Verarbeitung.* Ungültige Eingaben lösen eine explizite Ausnahme aus, statt stillschweigend imputiert oder konvertiert zu werden. Stille Imputation ist nur hinter einem typisierten `Literal["raise", "ffill_bfill", "passthrough"]`-Schalter verfügbar, der ausdrücklich gesetzt werden muss.
-4. *Minimale CVE-Angriffsfläche (Common Vulnerabilities and Exposures).* Eine kurze, versionierte Sperrliste verbotener Abhängigkeiten (`plotly`, `matplotlib`, `spotoptim`, `optuna`, `torch`, `tensorflow`) wird durch einen Test durchgesetzt, der die Lockfile mit `grep` prüft. Laufzeitabhängigkeiten sind auf eine kuratierte Teilmenge weit verbreiteter Pakete beschränkt, deren Betreuer Sicherheitsmitteilungen veröffentlichen.
-
-Diese Regeln erschließen zugleich die Entwicklungspraktiken für sichere Software, welche IEC 62443-4-1 [@iec62443_4_1] fordert. Die Norm definiert acht Prozessgebiete^[Security Management (SM), Specification of Security Requirements (SR), Secure by Design (SD), Secure Implementation (SI), Security Verification and Validation (SVV), Management of Security-related Issues (DM), Security Update Management (SUM) und Security Guidelines (SG).] auf vier Reifegradstufen (Maturity Level, ML 1 *Initial* bis ML 4 *Improving*). Die Regel „kein toter Code" instanziiert SM-1 (Sicherheitsmanagementprozess) und SI-1 (durchgesetzte Codierrichtlinien); „deterministische Transformationen" instanziiert SVV-1 und SVV-3 (reproduzierbare Verifikation); „fail-safe-Verarbeitung" instanziiert SR-2 (bedrohungsmodellgetriebene Anforderungen) und DM-1 (Fehlererkennung); die Regel des minimalen Umfangs instanziiert SM-7 (Sicherheit von Komponenten Dritter). Die Reifegradstufe des Security Development Lifecycle (SDL), die das Paket aktuell nachweist, beträgt ML 2 *Managed*. Die Reifegradstufe ML 3 *Defined* setzt ein formales Bedrohungsmodell voraus, das unter den Zukunftsarbeiten in @sec-outlook aufgeführt ist.
-
-## Prozessregeln
-
-Vier weitere Regeln bestimmen, wie das Paket entwickelt, ausgeliefert und betrieben wird. Keine davon lässt sich durch eine pytest-Zusicherung gegen den Quelltext erzwingen; jede wird durch ein Artefakt erfüllt (`MODEL_CARD.md`, einen CI-Workflow, die Semantic-Release-Pipeline oder ein Logging-Schema) und zum Prüfungs- oder Release-Zeitpunkt kontrolliert. Diese Aufteilung entspricht der V-Modell-basierten Struktur zur Vertrauenswürdigkeits-Assurance, die @stet24a vorgeschlagen haben und in der KI-spezifische regulatorische Anforderungen zu prüfbaren Eigenschaften verfeinert werden, deren Nachweise entlang des Entwicklungslebenszyklus gesammelt werden.
-
-1. *Rückverfolgbarkeit.* Jedes öffentliche Symbol und jede nicht triviale private Hilfsfunktion verweist zurück auf eine dokumentierte Anforderung in `MODEL_CARD.md` (2. bis 5.) oder auf eine bestimmte Klausel der Compliance-Tabelle in @sec-compliance. Damit werden IEC 61508-3 Abschnitt 7.2 (Spezifikation der Software-Sicherheitsanforderungen) [@iec61508], ISO 26262-6 Abschnitt 7.4.2 (ASIL-abhängige Anforderungsherleitung) [@iso26262] sowie Art. 9 KI-VO (Risikomanagement über den gesamten Lebenszyklus) [@euAI24] erfüllt. Waisen-Symbole --- solche ohne Anforderungsverweis und ohne `MODEL_CARD`-Eintrag --- werden in der Code-Prüfung statt durch die CI beanstandet.
-2. *Dokumentiertes Bedrohungsmodell.* Für jedes netzseitige Modul (`downloader/entsoe.py`, `weather/weather_client.py`) wird eine STRIDE-Tabelle^[STRIDE ist ein von Microsoft eingeführtes Klassifikationsschema für Bedrohungen. Das Akronym steht für *Spoofing* (Identitätsvortäuschung), *Tampering* (Manipulation), *Repudiation* (Abstreitbarkeit), *Information Disclosure* (Informationsoffenlegung), *Denial of Service* (Dienstverweigerung) und *Elevation of Privilege* (Rechteausweitung). Eine STRIDE-Tabelle zählt je Modul und Datenfluss auf, welche dieser sechs Kategorien zutreffen, welche Gegenmaßnahme greift und in welcher Quelldatei diese realisiert ist.] gepflegt; jede Änderung der Angriffsfläche erfordert im selben Pull-Request einen aktualisierten Bedrohungseintrag. Damit werden IEC 62443-4-1 SR-1 und SR-2 (bedrohungsmodellgetriebene Sicherheitsanforderungen) [@iec62443_4_1] erfüllt und die in @sec-outlook eingeräumte ML-2-$\rightarrow$-ML-3-Lücke geschlossen.
-3. *Signierte Lieferkette.* Jeder Release bringt ein signiertes PyPI-Wheel und eine signierte Software-Stücklisten-Attestierung (Software Bill of Materials, SBOM) mit, die beide gemeinsam mit dem GitHub-Release im `sigstore`-Transparenzprotokoll veröffentlicht werden. Das signierte Wheel erfüllt IEC 62443-4-1 SUM-3 (sichere Auslieferung von Updates) [@iec62443_4_1] sowie die korrespondierende Anforderung an die Auslieferungs-Integrität nach Anhang I Teil I CRA [@euCRA24]. Die signierte SBOM-Attestierung erfüllt Anhang I Teil II CRA (Pflichten zur Behandlung von Schwachstellen), dessen Nummer 1 die Erstellung einer Software-Stückliste ausdrücklich vorschreibt. Die Eingangsseite der Lieferkette ist bereits durch Code-Regel 4 abgedeckt.
-4. *Strukturiertes Audit-Protokoll.* Jede betriebliche Aktion erzeugt einen Protokollsatz gemäß einem fixierten JSON-Schema unter `~/spotforecast2_safe_models/logs/`; das Schema ist versioniert, und jede Änderung führt über den Conventional-Commits-Betreff `feat!:` zu einem Major-Versionssprung. Damit werden IEC 62443-4-2 SAR 6.1 (Zugänglichkeit des Audit-Protokolls) [@iec62443_4_2] sowie IEC 61508-3 Abschnitt 7.4.7 (Verifikation der integrierten Software) [@iec61508] erfüllt, die beide eine betriebliche Rückverfolgbarkeit jenseits der entwicklungsbegleitenden Tests verlangen.
-
-Eine weitere, gesondert geführte Regel betrifft die Daten-Governance: Das Paket selbst liefert keine Trainingsdaten aus; jedes Forecaster-Objekt zeichnet jedoch die Provenienz der Daten, auf denen es angepasst wurde (Quell-URL, Abrufzeitstempel, Inhalts-Hash), in seinem persistierten Zustand auf. Dies erfüllt die Provenienz-Anforderung aus Art. 10 KI-VO (Daten und Daten-Governance) [@euAI24], und damit so viel, wie eine Bibliothek ohne Einsicht in die tatsächlichen Trainingsdaten des Betreibers erfüllen kann. Die Beurteilung von Repräsentativität, Verzerrung und Eignung für den bestimmungsgemäßen Zweck obliegt weiterhin dem Betreiber und wird in dessen eigener `MODEL_CARD.md` dokumentiert. Wir behandeln diese Pflicht als Verfeinerung der Rückverfolgbarkeitsregel und nicht als fünfte Prozessregel, da der Mechanismus (Provenienz als persistiertes Artefakt) ein Spezialfall der Anforderungs-zu-Implementierungs-Verknüpfung ist.
-
-Ein weiterer, nicht strikt zu den vier Regeln zählender, aber aus ihnen folgender Grundsatz ist, dass jede Quelldatei einen SPDX-Kopf im von REUSE v3.0 [@reuse30] empfohlenen Format trägt. Portierte `skforecast`-Dateien tragen sowohl den ursprünglichen BSD-3-Clause-Vermerk als auch die hinzugefügte AGPL-3.0-or-later-Angabe, so dass die lizenzrechtliche Auflösung eine Doppellizenz-Ableitung ergibt und nicht als Versuch einer Nachlizenzierung fremder Software zu lesen ist.
 
 # Architektur {#sec-architecture}
 
@@ -244,6 +241,37 @@ plt.show()
 
 @bergm12a liefern die theoretische Rechtfertigung: Unter Standardvoraussetzungen der Stationarität ist der Forward-Chaining-Kreuzvalidierungsschätzer für den mittleren quadratischen Ein-Schritt-Vorhersagefehler konsistent, der gewöhnliche $k$-fache Kreuzvalidierungsschätzer dagegen nicht. Das Paket exponiert daher ausschließlich die beiden zeitbewussten Splitter; aus der Manager-Schicht heraus besteht kein Fluchtweg zu den `sklearn`-Originalen.
 
+
+
+# Entwurfsgrundsätze {#sec-principles}
+
+Die Entwurfsgrundsätze gliedern sich in zwei parallele Kategorien. Die *Code-Entwicklungsregeln* beschränken, welche Bestandteile der Quelltext enthalten darf; sie werden zum Commit-Zeitpunkt durch einen Test oder einen Linter^[Ein Linter ist ein statisches Analysewerkzeug, das den Quelltext ohne Ausführung auf Stilverletzungen, verdächtige Muster und Verstöße gegen Programmierkonventionen prüft. Im vorliegenden Paket werden `ruff`, `black`, `isort` und `mypy` über Pre-Commit-Hooks aufgerufen.] durchgesetzt. *Prozessregeln* beschränken, wie das Paket entwickelt, ausgeliefert und betrieben wird, und werden durch `MODEL_CARD.md`, CI-Workflows und die Release-Pipeline erfüllt, nicht durch Quelltext-Tests. Beide Kategorien sind erforderlich: Die Code-Entwicklungsregeln allein genügen nicht, um die regulatorischen Pflichten zu Rückverfolgbarkeit, Bedrohungsmodellierung, Daten-Governance, Lieferketten-Integrität und betrieblicher Beobachtbarkeit zu erfüllen.
+
+## Code-Entwicklungsregeln
+
+Die vier nicht verhandelbaren Code-Regeln lauten:
+
+1. *Kein toter Code ("No dead code").* Keine Funktion, Klasse oder Verzweigung wird ausgeliefert, ohne dass ein Test oder ein ausführbares Docstring-Beispiel sie erreicht. Eine Testsuite `test_docstring_examples_*.py` erzwingt dies.
+2. *Deterministische Transformationen.* Gleiche Eingabe, gleiche bitweise Ausgabe. Zufallszahlengeneratoren sind geseedet; die Dictionary-Iterationsreihenfolge wird nicht herangezogen; `joblib`-Parallelität ist auf ein festes `n_jobs` Argument fixiert.
+3. *Fail-safe-Verarbeitung.* Ungültige Eingaben lösen eine explizite Ausnahme aus, statt stillschweigend imputiert oder konvertiert zu werden. Stille Imputation ist nur hinter einem typisierten `Literal["raise", "ffill_bfill", "passthrough"]`-Schalter verfügbar, der ausdrücklich gesetzt werden muss.
+4. *Minimale CVE-Angriffsfläche (Common Vulnerabilities and Exposures).* Eine kurze, versionierte Sperrliste verbotener Abhängigkeiten (`plotly`, `matplotlib`, `spotoptim`, `optuna`, `torch`, `tensorflow`) wird durch einen Test durchgesetzt, der die Lockfile mit `grep` prüft. Laufzeitabhängigkeiten sind auf eine kuratierte Teilmenge weit verbreiteter Pakete beschränkt, deren Betreuer Sicherheitsmitteilungen veröffentlichen.
+
+Diese Regeln erschließen zugleich die Entwicklungspraktiken für sichere Software, welche IEC 62443-4-1 [@iec62443_4_1] fordert. Die Norm definiert acht Prozessgebiete^[Security Management (SM), Specification of Security Requirements (SR), Secure by Design (SD), Secure Implementation (SI), Security Verification and Validation (SVV), Management of Security-related Issues (DM), Security Update Management (SUM) und Security Guidelines (SG).] auf vier Reifegradstufen (Maturity Level, ML 1 *Initial* bis ML 4 *Improving*). Die Regel „kein toter Code" instanziiert SM-1 (Sicherheitsmanagementprozess) und SI-1 (durchgesetzte Codierrichtlinien); „deterministische Transformationen" instanziiert SVV-1 und SVV-3 (reproduzierbare Verifikation); „fail-safe-Verarbeitung" instanziiert SR-2 (bedrohungsmodellgetriebene Anforderungen) und DM-1 (Fehlererkennung); die Regel des minimalen Umfangs instanziiert SM-7 (Sicherheit von Komponenten Dritter). Die Reifegradstufe des Security Development Lifecycle (SDL), die das Paket aktuell nachweist, beträgt ML 2 *Managed*. Die Reifegradstufe ML 3 *Defined* setzt ein formales Bedrohungsmodell voraus, das unter den Zukunftsarbeiten in @sec-outlook aufgeführt ist.
+
+## Prozessregeln
+
+Vier weitere Regeln bestimmen, wie das Paket entwickelt, ausgeliefert und betrieben wird. Keine davon lässt sich durch eine pytest-Zusicherung gegen den Quelltext erzwingen; jede wird durch ein Artefakt erfüllt (`MODEL_CARD.md`, einen CI-Workflow, die Semantic-Release-Pipeline oder ein Logging-Schema) und zum Prüfungs- oder Release-Zeitpunkt kontrolliert. Diese Aufteilung entspricht der V-Modell-basierten Struktur zur Vertrauenswürdigkeits-Assurance, die @stet24a vorgeschlagen haben und in der KI-spezifische regulatorische Anforderungen zu prüfbaren Eigenschaften verfeinert werden, deren Nachweise entlang des Entwicklungslebenszyklus gesammelt werden.
+
+1. *Rückverfolgbarkeit.* Jedes öffentliche Symbol und jede nicht triviale private Hilfsfunktion verweist zurück auf eine dokumentierte Anforderung in `MODEL_CARD.md` (2. bis 5.) oder auf eine bestimmte Klausel der Compliance-Tabelle in @sec-compliance. Damit werden IEC 61508-3 Abschnitt 7.2 (Spezifikation der Software-Sicherheitsanforderungen) [@iec61508], ISO 26262-6 Abschnitt 7.4.2 (ASIL-abhängige Anforderungsherleitung) [@iso26262] sowie Art. 9 KI-VO (Risikomanagement über den gesamten Lebenszyklus) [@euAI24] erfüllt. Waisen-Symbole --- solche ohne Anforderungsverweis und ohne `MODEL_CARD`-Eintrag --- werden in der Code-Prüfung statt durch die CI beanstandet.
+2. *Dokumentiertes Bedrohungsmodell.* Für jedes netzseitige Modul (`downloader/entsoe.py`, `weather/weather_client.py`) wird eine STRIDE-Tabelle^[STRIDE ist ein von Microsoft eingeführtes Klassifikationsschema für Bedrohungen. Das Akronym steht für *Spoofing* (Identitätsvortäuschung), *Tampering* (Manipulation), *Repudiation* (Abstreitbarkeit), *Information Disclosure* (Informationsoffenlegung), *Denial of Service* (Dienstverweigerung) und *Elevation of Privilege* (Rechteausweitung). Eine STRIDE-Tabelle zählt je Modul und Datenfluss auf, welche dieser sechs Kategorien zutreffen, welche Gegenmaßnahme greift und in welcher Quelldatei diese realisiert ist.] gepflegt; jede Änderung der Angriffsfläche erfordert im selben Pull-Request einen aktualisierten Bedrohungseintrag. Damit werden IEC 62443-4-1 SR-1 und SR-2 (bedrohungsmodellgetriebene Sicherheitsanforderungen) [@iec62443_4_1] erfüllt und die in @sec-outlook eingeräumte ML-2-$\rightarrow$-ML-3-Lücke geschlossen.
+3. *Signierte Lieferkette.* Jeder Release bringt ein signiertes PyPI-Wheel und eine signierte Software-Stücklisten-Attestierung (Software Bill of Materials, SBOM) mit, die beide gemeinsam mit dem GitHub-Release im `sigstore`-Transparenzprotokoll veröffentlicht werden. Das signierte Wheel erfüllt IEC 62443-4-1 SUM-3 (sichere Auslieferung von Updates) [@iec62443_4_1] sowie die korrespondierende Anforderung an die Auslieferungs-Integrität nach Anhang I Teil I CRA [@euCRA24]. Die signierte SBOM-Attestierung erfüllt Anhang I Teil II CRA (Pflichten zur Behandlung von Schwachstellen), dessen Nummer 1 die Erstellung einer Software-Stückliste ausdrücklich vorschreibt. Die Eingangsseite der Lieferkette ist bereits durch Code-Regel 4 abgedeckt.
+4. *Strukturiertes Audit-Protokoll.* Jede betriebliche Aktion erzeugt einen Protokollsatz gemäß einem fixierten JSON-Schema unter `~/spotforecast2_safe_models/logs/`; das Schema ist versioniert, und jede Änderung führt über den Conventional-Commits-Betreff `feat!:` zu einem Major-Versionssprung. Damit werden IEC 62443-4-2 SAR 6.1 (Zugänglichkeit des Audit-Protokolls) [@iec62443_4_2] sowie IEC 61508-3 Abschnitt 7.4.7 (Verifikation der integrierten Software) [@iec61508] erfüllt, die beide eine betriebliche Rückverfolgbarkeit jenseits der entwicklungsbegleitenden Tests verlangen.
+
+Eine weitere, gesondert geführte Regel betrifft die Daten-Governance: Das Paket selbst liefert keine Trainingsdaten aus; jedes Forecaster-Objekt zeichnet jedoch die Provenienz der Daten, auf denen es angepasst wurde (Quell-URL, Abrufzeitstempel, Inhalts-Hash), in seinem persistierten Zustand auf. Dies erfüllt die Provenienz-Anforderung aus Art. 10 KI-VO (Daten und Daten-Governance) [@euAI24], und damit so viel, wie eine Bibliothek ohne Einsicht in die tatsächlichen Trainingsdaten des Betreibers erfüllen kann. Die Beurteilung von Repräsentativität, Verzerrung und Eignung für den bestimmungsgemäßen Zweck obliegt weiterhin dem Betreiber und wird in dessen eigener `MODEL_CARD.md` dokumentiert. Wir behandeln diese Pflicht als Verfeinerung der Rückverfolgbarkeitsregel und nicht als fünfte Prozessregel, da der Mechanismus (Provenienz als persistiertes Artefakt) ein Spezialfall der Anforderungs-zu-Implementierungs-Verknüpfung ist.
+
+Ein weiterer, nicht strikt zu den vier Regeln zählender, aber aus ihnen folgender Grundsatz ist, dass jede Quelldatei einen SPDX-Kopf im von REUSE v3.0 [@reuse30] empfohlenen Format trägt. Portierte `skforecast`-Dateien tragen sowohl den ursprünglichen BSD-3-Clause-Vermerk als auch die hinzugefügte AGPL-3.0-or-later-Angabe, so dass die lizenzrechtliche Auflösung eine Doppellizenz-Ableitung ergibt und nicht als Versuch einer Nachlizenzierung fremder Software zu lesen ist.
+
+
 # Sicherheitskritische Umsetzung {#sec-safety}
 
 Die vier Entwurfsgrundsätze aus @sec-principles genügen für sich nicht; jeder erfordert eine spezifische ingenieurtechnische Entscheidung und einen begleitenden Test. Diese Disziplin, d.h. die Übersetzung regulatorischer Bestimmungen in implementierbare, prüfbare Softwareanforderungen bei gleichzeitiger Aufrechterhaltung einer bidirektionalen Rückverfolgbarkeit zwischen jeder Bestimmung und dem sie erfüllenden Mechanismus, ist als *Legal-Requirements-Engineering* (LRE) bekannt [@otto07a; @breau08a]. @tbl-compliance stellt die LRE-Rückverfolgungsmatrix für das vorliegende Paket dar. Einen systematischen Überblick über das Gebiet gibt @kose24a. Die Pull-Requests und Vorfälle, welche die gegenwärtige Auslegung motiviert haben, werden in @sec-changelog festgehalten.
@@ -351,30 +379,141 @@ Die Cyberresilienz-Verordnung [@euCRA24], in Kraft getreten am 10. Dezember 2024
 
 # Compliance-Abbildung {#sec-compliance}
 
-Die Code- und Prozessregeln aus @sec-principles bilden auf einzelne Bestimmungen der KI-VO, der IEC 61508-3, der ISO 26262-6, der Normreihe ISA/IEC 62443 und der Cyberresilienz-Verordnung ab. @tbl-compliance erfasst die Zuordnung. Jede Zeile nennt eine Klausel oder Anforderung, den Mechanismus im Paket, der sie adressiert, sowie den Test oder den Continuous-Integration-(CI-)Workflow, in dem dieser Mechanismus ausgeübt wird.
+Die Code- und Prozessregeln aus @sec-principles bilden auf einzelne Bestimmungen der KI-VO, der IEC 61508-3, der ISO 26262-6, der Normreihe ISA/IEC 62443 und der Cyberresilienz-Verordnung ab. @fig-compliance-map fasst die Zuordnung visuell zusammen; @tbl-compliance erfasst sie zeilenweise mit Mechanismus- und Nachweis-Spalte. Jede Tabellenzeile nennt eine Klausel oder Anforderung, den Mechanismus im Paket, der sie adressiert, sowie den Test oder den Continuous-Integration-(CI-)Workflow, in dem dieser Mechanismus ausgeübt wird.
 
 Die KI-VO organisiert die anbieterseitigen Pflichten um Art. 17 herum; dieser verlangt ein dokumentiertes Qualitätsmanagementsystem (QMS) [@hens24a], welches die einzelnen materiellen Pflichten (Risikomanagement in Art. 9, Daten-Governance in Art. 10, technische Dokumentation in Art. 11, Aufzeichnungspflichten in Art. 12, Transparenz in Art. 13, Genauigkeit und Robustheit in Art. 15) mit den anbieterseitigen Prozesspflichten (Aufzeichnungspflicht des Anbieters nach Art. 18, Beobachtung nach dem Inverkehrbringen nach Art. 72 und Meldung schwerwiegender Vorfälle nach Art. 73) integriert. @tbl-compliance enthält daher eine Art.-17-Zeile, deren Mechanismus-Spalte auf die zur Erfüllung der jeweiligen Teilpflicht dienenden Mechanismen verweist und deren Nachweis-Spalte die benachbarten Zeilen querverweist. Ein Betreiber, der eine Konformitätsbewertung vorbereitet, kann die Art.-17-Zeile als Index in die übrige Tabelle lesen.
 
 Jenseits der bindenden Pflichten der Verordnung liefert die KI-spezifische Ergänzung der Normreihe *Systems and software Quality Requirements and Evaluation* (SQuaRE), ISO/IEC 25059:2023 [@isoiec25059], das Qualitäts­vokabular, das die erwarteten harmonisierten CEN-CENELEC-Normen nach Art. 40 KI-VO voraussichtlich übernehmen werden. Ihr Qualitätsmodell verfeinert die Unterteilmerkmale funktionale Korrektheit, Robustheit und Steuerbarkeit durch den Benutzer der ISO/IEC 25010 für KI-Systeme und bildet damit das natürliche technische Pendant zu Art. 15 KI-VO. Die Fassung 2023 wird derzeit überarbeitet: Der Draft International Standard (DIS) ISO/IEC 25059:2025 befindet sich im Umfrageverfahren, und eine an die KI-VO angepasste europäische Fassung (Preliminary European Norm, prEN ISO/IEC 25059) wird über das Gemeinschaftstechnische Komitee 21 (JTC 21) von CEN-CENELEC zur öffentlichen Umfrage erwartet.
 
+```{python}
+#| label: fig-compliance-map
+#| echo: false
+#| fig-env: sidewaysfigure
+#| fig-cap: "Abbildung der Code- (CR) und Prozessregeln (PR) aus @sec-principles auf die regulatorischen Bestimmungen der folgenden Tabelle. Eine Kante von einer Regel zu einem Artikel bedeutet, dass der in der Mechanismus-Spalte genannte Mechanismus diese Regel instanziiert. Grüne Kanten gehen von Code-Regeln aus, blaue von Prozessregeln."
+
+import graphviz
+
+g = graphviz.Digraph("compliance", format="pdf")
+g.attr(rankdir="LR", nodesep="0.10", ranksep="0.7",
+       fontname="TeX Gyre Termes", compound="true", concentrate="true",
+       size="8.3,5.8!", ratio="fill", newrank="true")
+g.attr("node", fontname="TeX Gyre Termes", fontsize="9",
+       shape="box", style="rounded,filled", margin="0.05,0.03",
+       height="0.28", width="0.70")
+g.attr("edge", fontname="TeX Gyre Termes", fontsize="8", arrowsize="0.55")
+
+with g.subgraph(name="cluster_code") as c:
+    c.attr(label="Code-Regeln", style="rounded", color="gray50",
+           fontname="TeX Gyre Termes", fontsize="10")
+    c.attr("node", fillcolor="#e7f5ec")
+    c.node("CR1", "CR1\nKein toter Code")
+    c.node("CR2", "CR2\nDeterminismus")
+    c.node("CR3", "CR3\nFail-safe")
+    c.node("CR4", "CR4\nMin. CVE-Fläche")
+
+with g.subgraph(name="cluster_proc") as c:
+    c.attr(label="Prozessregeln", style="rounded", color="gray50",
+           fontname="TeX Gyre Termes", fontsize="10")
+    c.attr("node", fillcolor="#e6efff")
+    c.node("PR1", "PR1\nRückverfolgbarkeit")
+    c.node("PR2", "PR2\nBedrohungsmodell")
+    c.node("PR3", "PR3\nSignierte Lieferkette")
+    c.node("PR4", "PR4\nAudit-Protokoll")
+
+families = [
+    ("kivo", "KI-VO (EU AI Act)", "#fff0e7",
+        [("KIVO_9", "Art. 9"), ("KIVO_10", "Art. 10"),
+         ("KIVO_11", "Art. 11"), ("KIVO_12", "Art. 12"),
+         ("KIVO_13", "Art. 13"), ("KIVO_15", "Art. 15"),
+         ("KIVO_17", "Art. 17"), ("KIVO_18", "Art. 18"),
+         ("KIVO_72", "Art. 72"), ("KIVO_73", "Art. 73")]),
+    ("iso25059", "ISO/IEC 25059", "#f4e7ff",
+        [("ISO25059", "SQuaRE")]),
+    ("iec61508", "IEC 61508-3", "#ffeaea",
+        [("IEC_7_4_4", "7.4.4"), ("IEC_7_4_5", "7.4.5"),
+         ("IEC_AnnexC", "Anh. C")]),
+    ("iso26262", "ISO 26262-6", "#fff6d6",
+        [("ISO_8_4_5", "8.4.5"), ("ISO_9_4_3", "9.4.3")]),
+    ("iec62443", "IEC 62443-4-1 / 4-2", "#e7fff6",
+        [("SM_4", "SM-4"), ("SR_2", "SR-2"), ("SVV_3", "SVV-3"),
+         ("DM_1", "DM-1"), ("SUM_3", "SUM-3"),
+         ("SAR_3_4", "SAR 3.4"), ("SAR_6_1", "SAR 6.1")]),
+    ("cra", "CRA Anhang I", "#e7f0ff",
+        [("CRA_a", "§3 lit. a"), ("CRA_b", "§3 lit. b")]),
+    ("nis2", "NIS-2 Art. 21 (2) e", "#f0e7ff",
+        [("NIS2", "lit. e")]),
+]
+for cid, label, fill, nodes in families:
+    with g.subgraph(name=f"cluster_{cid}") as c:
+        c.attr(label=label, style="rounded", color="gray50",
+               fontname="TeX Gyre Termes", fontsize="10")
+        c.attr("node", fillcolor=fill)
+        for nid, nlabel in nodes:
+            c.node(nid, nlabel)
+
+edges = [
+    ("PR1", "KIVO_9"), ("PR2", "KIVO_9"), ("PR3", "KIVO_9"), ("PR4", "KIVO_9"),
+    ("CR3", "KIVO_10"), ("PR1", "KIVO_10"),
+    ("PR1", "KIVO_11"),
+    ("PR4", "KIVO_12"),
+    ("PR1", "KIVO_13"), ("CR1", "KIVO_13"),
+    ("CR2", "KIVO_15"), ("CR3", "KIVO_15"), ("CR4", "KIVO_15"),
+    ("CR1", "KIVO_17"), ("CR2", "KIVO_17"), ("CR3", "KIVO_17"), ("CR4", "KIVO_17"),
+    ("PR1", "KIVO_17"), ("PR2", "KIVO_17"), ("PR3", "KIVO_17"), ("PR4", "KIVO_17"),
+    ("PR1", "KIVO_18"), ("PR3", "KIVO_18"),
+    ("PR4", "KIVO_72"), ("CR4", "KIVO_72"),
+    ("PR3", "KIVO_73"),
+    ("CR2", "ISO25059"), ("CR3", "ISO25059"),
+    ("CR1", "IEC_7_4_4"), ("PR1", "IEC_7_4_4"),
+    ("CR1", "IEC_7_4_5"),
+    ("CR1", "IEC_AnnexC"),
+    ("CR3", "ISO_8_4_5"),
+    ("CR1", "ISO_9_4_3"),
+    ("CR4", "SM_4"),
+    ("CR3", "SR_2"), ("PR2", "SR_2"),
+    ("CR1", "SVV_3"), ("CR2", "SVV_3"),
+    ("PR2", "DM_1"), ("CR3", "DM_1"),
+    ("PR3", "SUM_3"),
+    ("CR2", "SAR_3_4"),
+    ("PR4", "SAR_6_1"),
+    ("CR4", "CRA_a"),
+    ("CR3", "CRA_b"),
+    ("PR3", "NIS2"),
+]
+for src, dst in edges:
+    color = "#2b8c4c" if src.startswith("CR") else "#2b5a8c"
+    g.edge(src, dst, color=color)
+
+g
+```
+
 ```{=latex}
-\begin{table*}
-\centering
-\small
+{\small
+\begin{longtable}{p{0.16\textwidth} p{0.44\textwidth} p{0.32\textwidth}}
 \caption{Abbildung regulatorischer Bestimmungen auf Paket-Mechanismen und die Nachweise, die sie ausüben. KI-VO = Verordnung (EU) 2024/1689; IEC61508 = IEC 61508-3:2010; ISO26262 = ISO 26262-6:2018; IEC62443 = Normreihe ISA/IEC 62443; CRA = Verordnung (EU) 2024/2847 (Cyberresilienz-Verordnung); NIS-2-RL = Richtlinie (EU) 2022/2555.}
-\label{tbl-compliance}
-\begin{tabular}{p{0.16\textwidth} p{0.44\textwidth} p{0.32\textwidth}}
+\label{tbl-compliance}\\
 \hline
 \textbf{Bestimmung} & \textbf{Mechanismus} & \textbf{Nachweis} \\
 \hline
-KI-VO Art.~9 (Risikomanagement über den gesamten Lebenszyklus) & Die vier Prozessregeln aus @sec-principles bilden den Risikomanagementrahmen; STRIDE-Bedrohungsmodell je netzseitiges Modul; Bedrohungseinträge werden im selben Pull-Request wie die zugehörige Codeänderung aktualisiert. & \texttt{CONTRIBUTING.md}; modulweise Bedrohungsmodell-Einträge; Prüftor in \texttt{.github/pull\_request\_template.md}. \\
+\endfirsthead
+\multicolumn{3}{l}{\itshape (Fortsetzung von \tablename~\ref{tbl-compliance})}\\
+\hline
+\textbf{Bestimmung} & \textbf{Mechanismus} & \textbf{Nachweis} \\
+\hline
+\endhead
+\hline
+\multicolumn{3}{r}{\itshape (Fortsetzung auf der nächsten Seite)}\\
+\endfoot
+\hline
+\endlastfoot
+KI-VO Art.~9 (Risikomanagement über den gesamten Lebenszyklus) & Die vier Prozessregeln aus Kapitel~\ref{sec-principles} bilden den Risikomanagementrahmen; STRIDE-Bedrohungsmodell je netzseitiges Modul; Bedrohungseinträge werden im selben Pull-Request wie die zugehörige Codeänderung aktualisiert. & \texttt{CONTRIBUTING.md}; modulweise Bedrohungsmodell-Einträge; Prüftor in \texttt{.github/pull\_request\_template.md}. \\
 KI-VO Art.~10 (Daten-Governance) & Ausdrücklicher \texttt{on\_missing}-Vertrag; keine stille Imputation; Provenienz der Trainingsdaten in \texttt{MODEL\_CARD.md} festgehalten. & \texttt{tests/test\_linearly\_interpolate\_ts.py} übt alle drei \texttt{Literal}-Werte; \texttt{tests/data/test\_fetch\_data.py} deckt den E/A-Vertrag ab. \\
 KI-VO Art.~11 und Anhang~IV (technische Dokumentation) & \texttt{MODEL\_CARD.md} wird im Repository zu Zweckbestimmung, Datenprovenienz, Metriken und Grenzen gepflegt; automatisch generierte API-Dokumentation mittels quartodoc. & \texttt{MODEL\_CARD.md}; \texttt{docs/} gebaut durch \texttt{docs.yml}. \\
 KI-VO Art.~12 (Aufzeichnungspflichten / automatische Protokolle) & Doppel-Handler-Logger: Konsole plaintext, Datei-Senke JSON nach fixiertem Schema (\texttt{audit\_log\_schema.json}); \texttt{SCHEMA\_VERSION} ist aus dem Schema abgeleitet, Schemaänderungen werden durch den CI-Job \texttt{audit-log-schema-gate} an einen Conventional-Commits-Betreff \texttt{feat!:} gebunden und erzwingen einen Major-Sprung über Semantic-Release. & \texttt{src/spotforecast2\_safe/manager/logger.py}; \texttt{src/spotforecast2\_safe/manager/audit\_log\_schema.json}; \texttt{tests/manager/test\_logger\_schema.py}; \texttt{.github/workflows/ci.yml}-Job \texttt{audit-log-schema-gate}. \\
 KI-VO Art.~13 (Transparenz) & Ausführbare Docstrings für jedes öffentliche Symbol; festgelegte öffentliche API in \texttt{\_\_all\_\_}; CHANGELOG durch Semantic-Release erzeugt. & \texttt{test\_docstring\_examples\_*.py}; \texttt{test\_cpe.py}; CHANGELOG.md. \\
 KI-VO Art.~15 (Genauigkeit, Robustheit, Cybersicherheit) & Deterministische Transformationen; Sperrliste verbotener Abhängigkeiten; enge Ausnahmebehandlung an Netzwerkgrenzen; CPE-Kennung für SBOM. & \texttt{test\_exceptions\_examples.py}; \texttt{tests/test\_prohibited\_dependencies.py}; \texttt{tests/test\_cpe.py}. \\
-ISO/IEC 25059:2023 (SQuaRE-Qualitätsmodell für KI-Systeme --- technisches Pendant zu Art.~15 KI-VO) & Funktionale Korrektheit durch deterministische Transformationen; Robustheit durch typisierte Konfiguration und fail-safe \texttt{on\_missing}-Vertrag; Steuerbarkeit durch das in @sec-principles dokumentierte Verbot stiller Auto-Anpassung. & Aggregiert die Nachweise aus der Art.~15-Zeile: \texttt{test\_exceptions\_examples.py}; \texttt{test\_linearly\_interpolate\_ts.py}; Abwesenheit von Tuning-Einstiegspunkten durch \texttt{grep} in \texttt{ci.yml} verifiziert. \\
-KI-VO Art.~17 (Qualitätsmanagementsystem --- Dachbestimmung) & QMS dokumentiert als: (i) Compliance-Strategie über die Prozessregeln aus @sec-principles; (ii) Entwurfskontrolle in \texttt{CONTRIBUTING.md}; (iii) Verifikation und Validierung in den CI-Workflows; (iv) Datenmanagement in der Art.~10-Zeile; (v) Risikomanagement in der Art.~9-Zeile; (vi) Beobachtung nach dem Inverkehrbringen und Vorfallsmeldung in den Zeilen zu Art.~72 und Art.~73; (vii) Aufzeichnungspflichten in den Zeilen zu Art.~12 und Art.~18; (viii) Ressourcen- und Verantwortungsrahmen in \texttt{MODEL\_CARD.md} Abschnitt 5 sowie \texttt{CODEOWNERS}. & Aggregiert die benachbarten Zeilen; QMS-Zusammenfassung gepflegt in \texttt{MODEL\_CARD.md} Abschnitt 5; unter Git versioniert, so dass das QMS zu jedem Release-Tag rekonstruiert werden kann. \\
+ISO/IEC 25059:2023 (SQuaRE-Qualitätsmodell für KI-Systeme --- technisches Pendant zu Art.~15 KI-VO) & Funktionale Korrektheit durch deterministische Transformationen; Robustheit durch typisierte Konfiguration und fail-safe \texttt{on\_missing}-Vertrag; Steuerbarkeit durch das in Kapitel~\ref{sec-principles} dokumentierte Verbot stiller Auto-Anpassung. & Aggregiert die Nachweise aus der Art.~15-Zeile: \texttt{test\_exceptions\_examples.py}; \texttt{test\_linearly\_interpolate\_ts.py}; Abwesenheit von Tuning-Einstiegspunkten durch \texttt{grep} in \texttt{ci.yml} verifiziert. \\
+KI-VO Art.~17 (Qualitätsmanagementsystem --- Dachbestimmung) & QMS dokumentiert als: (i) Compliance-Strategie über die Prozessregeln aus Kapitel~\ref{sec-principles}; (ii) Entwurfskontrolle in \texttt{CONTRIBUTING.md}; (iii) Verifikation und Validierung in den CI-Workflows; (iv) Datenmanagement in der Art.~10-Zeile; (v) Risikomanagement in der Art.~9-Zeile; (vi) Beobachtung nach dem Inverkehrbringen und Vorfallsmeldung in den Zeilen zu Art.~72 und Art.~73; (vii) Aufzeichnungspflichten in den Zeilen zu Art.~12 und Art.~18; (viii) Ressourcen- und Verantwortungsrahmen in \texttt{MODEL\_CARD.md} Abschnitt 5 sowie \texttt{CODEOWNERS}. & Aggregiert die benachbarten Zeilen; QMS-Zusammenfassung gepflegt in \texttt{MODEL\_CARD.md} Abschnitt 5; unter Git versioniert, so dass das QMS zu jedem Release-Tag rekonstruiert werden kann. \\
 KI-VO Art.~18 (Aufzeichnungspflichten des Anbieters --- Dokumentation, Protokolle, Konformitätsnachweise) & Das Repository selbst ist das Aufzeichnungsarchiv: Conventional-Commits-Historie, Semantic-Release-Tags, \texttt{CHANGELOG.md}, release-spezifische \texttt{MODEL\_CARD.md}, \texttt{uv.lock}-Momentaufnahme je Tag. Aufzeichnungen werden über die zehnjährige Frist des Art.~18 KI-VO mittels Git-Historie und GitHub-Releases vorgehalten. & \texttt{.releaserc.json}; \texttt{CHANGELOG.md}; \texttt{MODEL\_CARD.md}; Git-Tags. \\
 KI-VO Art.~72 (Beobachtung nach dem Inverkehrbringen) & Strukturiertes Audit-Protokoll unter \texttt{\~{}/spotforecast2\_safe\_models/logs/}; CPE-Kennung ermöglicht die Schwachstellenverfolgung nach Release. & \texttt{manager/logger.py}; \texttt{tests/test\_cpe.py}. \\
 KI-VO Art.~73 (Meldung schwerwiegender Vorfälle an die Behörden) & GitHub Security Advisories als vertraulicher Offenlegungskanal; CodeQL- und Scorecard-Workflows als Früherkennungssignale; CHANGELOG-Einträge verweisen auf Advisory-Kennungen; öffentliche Offenlegung über GitHub-Releases mit Auslieferung der Korrektur. & \texttt{codeql.yml}, \texttt{scorecard.yml}; \texttt{SECURITY.md}; \texttt{CHANGELOG.md}. \\
@@ -393,9 +532,8 @@ IEC62443-4-2 SAR 6.1 (Zugänglichkeit des Audit-Protokolls) & Doppel-Handler-Log
 CRA Anhang I Nr.~1 Abs.~3 lit.~a (keine bekannten ausnutzbaren Schwachstellen) & CPE-Kennung; CodeQL; Dependabot; \texttt{grep}-Prüfung der Lockfile gegen verbotene Abhängigkeiten. & CI-Workflows; \texttt{tests/test\_prohibited\_dependencies.py}; \texttt{uv.lock}; \texttt{tests/test\_cpe.py}. \\
 CRA Anhang I Nr.~1 Abs.~3 lit.~b (sicher als Standardeinstellung) & Fail-safe-Standardwert \texttt{on\_missing="raise"}; keine impliziten Netzwerkaufrufe beim Import. & \texttt{test\_exceptions\_examples.py}. \\
 NIS-2-RL Art.~21 Abs.~2 lit.~e (Sicherheit bei Erwerb, Entwicklung, Wartung) & SDL-Nachweis aus Tabelle~\ref{tbl-62443-4-1}, zusammengefasst in \texttt{MODEL\_CARD.md} Abschnitt 5. & \texttt{MODEL\_CARD.md}. \\
-\hline
-\end{tabular}
-\end{table*}
+\end{longtable}
+}
 ```
 
 Die Tabelle beansprucht nicht, eine vollständige IEC-61508-SIL-3-Zertifizierung allein auf Basis von Unit-Tests nachzuweisen. Eine solche Behauptung erforderte eine Integration in einen zertifizierten Hardware-/Software-Stack und läge außerhalb des Umfangs einer Open-Source-Bibliothek. Der Anspruch besteht vielmehr darin, dass das Paket an der Quelle eine bestimmte Klasse von Prüfungsfeststellungen beseitigt, welche andernfalls den Bericht einer Aufsichtsbehörde dominieren würden: undokumentierte stille Imputation, unbeherrschte transitive Abhängigkeiten, nichtdeterministische Ausgaben und ungeprüfte öffentliche API-Oberflächen.
