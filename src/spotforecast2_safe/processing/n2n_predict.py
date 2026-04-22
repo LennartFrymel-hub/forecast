@@ -42,7 +42,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 
-from spotforecast2_safe.data.fetch_data import fetch_data
+from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
 from spotforecast2_safe.forecaster.recursive import ForecasterEquivalentDate
 from spotforecast2_safe.forecaster.utils import predict_multivariate
 from spotforecast2_safe.manager.persistence import (
@@ -190,7 +190,9 @@ def n2n_predict(
     else:
         if verbose:
             print("Fetching data from CSV...")
-        data = fetch_data(filename="data_in.csv", columns=TARGET)
+        data = fetch_data(
+            filename=get_package_data_home() / "demo10.csv", columns=TARGET
+        )
 
     _, _, _, _ = get_start_end(
         data=data,

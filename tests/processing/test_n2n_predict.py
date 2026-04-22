@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
+from spotforecast2_safe.data.fetch_data import get_package_data_home
 from spotforecast2_safe.processing.n2n_predict import n2n_predict
 
 
@@ -68,7 +69,9 @@ def test_n2n_predict_flow(
     # --- Assertions ---
 
     # Verify fetch_data called with correct columns
-    mock_fetch_data.assert_called_once_with(filename="data_in.csv", columns=columns)
+    mock_fetch_data.assert_called_once_with(
+        filename=get_package_data_home() / "demo10.csv", columns=columns
+    )
 
     # Verify preprocessing steps called
     mock_start_end.assert_called_once()
