@@ -123,6 +123,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
         run: npx semantic-release
 
+      - name: Prune non-distribution artefacts from dist/
+        if: success()
+        # semantic-release has already attached SBOM and sigstore bundles
+        # to the GitHub Release above. PyPI's upload path rejects anything
+        # twine can't recognise as a wheel or sdist, so remove them before
+        # pypa/gh-action-pypi-publish runs twine check.
+        run: |
+          rm -f dist/sbom.cdx.json dist/*.sigstore dist/*.sigstore.json
+          ls -lah dist/
+
       - name: Publish to PyPI
         if: success()
         uses: pypa/gh-action-pypi-publish@f7600683efdcb7656dec5b29656edb7bc586e597  # release/v1
