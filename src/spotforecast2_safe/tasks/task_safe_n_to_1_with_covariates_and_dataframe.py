@@ -43,7 +43,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from spotforecast2_safe.data.fetch_data import fetch_data
+from spotforecast2_safe.data.fetch_data import fetch_data, get_package_data_home
 from spotforecast2_safe.manager.logger import setup_logging
 from spotforecast2_safe.manager.tools import _parse_bool
 from spotforecast2_safe.processing.agg_predict import agg_predict
@@ -520,7 +520,7 @@ def main(
         # Use a copy to avoid accidental mutation of the module-level default.
         weights = DEFAULT_WEIGHTS.copy()
 
-    data = fetch_data(filename="data_in.csv")
+    data = fetch_data(filename=get_package_data_home() / "demo10.csv")
 
     logger.info("--- Starting n_to_1_with_covariates using modular functions ---")
 

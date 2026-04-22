@@ -20,7 +20,7 @@ class TestTaskSafeDemo(unittest.TestCase):
 
         # Create temporary test data file
         with tempfile.TemporaryDirectory() as tmpdir:
-            data_path = Path(tmpdir) / "data_test.csv"
+            data_path = Path(tmpdir) / "demo11.csv"
 
             # Create mock data with columns matching what the forecasters return
             test_data = pd.DataFrame(
