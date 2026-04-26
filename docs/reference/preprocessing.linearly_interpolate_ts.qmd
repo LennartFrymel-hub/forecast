@@ -13,13 +13,27 @@ Linear interpolation transformer for time series data.
 ### LinearlyInterpolateTS { #spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS }
 
 ```python
-preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS()
+preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS(on_missing='raise')
 ```
 
 Transformer that applies linear interpolation to time series data.
 
-This transformer fills missing values using linear interpolation and
-forward-fills any remaining gaps (e.g., at the end of the series).
+The transformer always runs ``y.interpolate(method="linear")`` first.
+The ``on_missing`` keyword then chooses how to handle any NaN that
+linear interpolation cannot bridge (typically the leading and
+trailing endpoints of the series).
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type                                                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Default   |
+|------------|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| on_missing | [OnMissing](`spotforecast2_safe.preprocessing.linearly_interpolate_ts.OnMissing`) | Contract for residual NaN after linear interpolation.  - ``"raise"`` (default, fail-safe): raise ``ValueError`` if   any NaN remains. Refuses to silently embed imputed values   disguised as measurements. - ``"ffill_bfill"``: explicit opt-in to endpoint   forward-then-backward fill, so that leading and trailing   NaNs are both bridged. - ``"passthrough"``: return the linearly interpolated   series unchanged. The caller promises to handle the   residual NaN downstream. | `'raise'` |
+
+#### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                                                                                                           |
+|--------|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If ``on_missing`` is not one of the three accepted values, or if ``on_missing="raise"`` (the default) and any NaN remains after linear interpolation. |
 
 #### Examples {.doc-section .doc-section-examples}
 
@@ -27,18 +41,41 @@ forward-fills any remaining gaps (e.g., at the end of the series).
 >>> import pandas as pd
 >>> import numpy as np
 >>> from spotforecast2_safe.preprocessing.linearly_interpolate_ts import LinearlyInterpolateTS
+```
+
+Interior gaps are bridged by linear interpolation under every
+mode; the default ``"raise"`` then succeeds because nothing
+remains:
+
+```python
+>>> s = pd.Series([1.0, np.nan, 3.0])
+>>> LinearlyInterpolateTS().fit_transform(s).tolist()
+[1.0, 2.0, 3.0]
+```
+
+Endpoint NaNs are bridged only when the caller opts in
+explicitly:
+
+```python
 >>> s = pd.Series([1.0, np.nan, 3.0, np.nan])
->>> interpolator = LinearlyInterpolateTS()
->>> s_filled = interpolator.fit_transform(s)
->>> s_filled.tolist()
+>>> LinearlyInterpolateTS(on_missing="ffill_bfill").fit_transform(s).tolist()
 [1.0, 2.0, 3.0, 3.0]
+```
+
+``"passthrough"`` lets the residual NaN survive for the caller
+to handle:
+
+```python
+>>> out = LinearlyInterpolateTS(on_missing="passthrough").fit_transform(s)
+>>> bool(out.isna().iloc[-1])
+True
 ```
 
 #### Methods
 
 | Name | Description |
 | --- | --- |
-| [apply](#spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.apply) | Apply linear interpolation and forward-fill. |
+| [apply](#spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.apply) | Apply linear interpolation and dispatch on ``on_missing``. |
 | [fit](#spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.fit) | Fitted transformer (no-op). |
 | [transform](#spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.transform) | Transform the input data by applying linear interpolation. |
 
@@ -48,7 +85,7 @@ forward-fills any remaining gaps (e.g., at the end of the series).
 preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.apply(y)
 ```
 
-Apply linear interpolation and forward-fill.
+Apply linear interpolation and dispatch on ``on_missing``.
 
 ###### Parameters {.doc-section .doc-section-parameters}
 
@@ -58,9 +95,19 @@ Apply linear interpolation and forward-fill.
 
 ###### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type                                                                                                                | Description                                                    |
-|--------|---------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
-|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Union[pd.Series, pd.DataFrame]: Interpolated and ffilled data. |
+| Name   | Type                                                                                                                | Description                                                |
+|--------|---------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
+|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Union[pd.Series, pd.DataFrame]: The transformed data. For  |
+|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | ``on_missing="ffill_bfill"`` any residual endpoint NaN has |
+|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | been forward- and back-filled; for ``"passthrough"`` it    |
+|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | survives; for ``"raise"`` (the default) the method raises  |
+|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | instead of returning a NaN-bearing result.                 |
+
+###### Raises {.doc-section .doc-section-raises}
+
+| Name   | Type                       | Description                                                                                                                            |
+|--------|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+|        | [ValueError](`ValueError`) | If ``self.on_missing`` is not a recognized value, or if ``self.on_missing == "raise"`` and any NaN remains after linear interpolation. |
 
 ##### fit { #spotforecast2_safe.preprocessing.linearly_interpolate_ts.LinearlyInterpolateTS.fit }
 
@@ -99,6 +146,7 @@ Transform the input data by applying linear interpolation.
 
 ###### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type                                                                                                                | Description                                        |
-|--------|---------------------------------------------------------------------------------------------------------------------|----------------------------------------------------|
-|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Union[pd.Series, pd.DataFrame]: Interpolated data. |
+| Name   | Type                                                                                                                | Description                                             |
+|--------|---------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------|
+|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | Union[pd.Series, pd.DataFrame]: Interpolated data, with |
+|        | [Union](`typing.Union`)\[[pd](`pandas`).[Series](`pandas.Series`), [pd](`pandas`).[DataFrame](`pandas.DataFrame`)\] | residual NaN handled according to ``self.on_missing``.  |
