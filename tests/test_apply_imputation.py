@@ -243,7 +243,7 @@ class TestApplyImputationLogging:
             LinearlyInterpolateTS,
         )
 
-        interp = LinearlyInterpolateTS()
+        interp = LinearlyInterpolateTS(on_missing="passthrough")
         trial = df.copy()
         trial["A"] = interp.fit_transform(trial["A"])
         if trial["A"].isnull().sum() > 0:

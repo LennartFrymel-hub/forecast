@@ -297,7 +297,10 @@ def apply_imputation(
         logger.info("Weight function created with %d entries.", len(weights_series))
     elif config.imputation_method == "linear":
         logger.info("Applying linear interpolation...")
-        interpolator = LinearlyInterpolateTS()
+        # passthrough lets residual endpoint NaNs survive into the
+        # post-imputation NaN count + WARNING below, matching the
+        # surrounding logger.warning contract.
+        interpolator = LinearlyInterpolateTS(on_missing="passthrough")
         # LinearlyInterpolateTS expects a Series; apply per column
         for col in config.targets:
             series = df_pipeline[col]

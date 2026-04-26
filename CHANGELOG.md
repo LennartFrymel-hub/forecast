@@ -1,9 +1,41 @@
-## [2.0.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v2.0.0...v2.0.1) (2026-04-22)
+## [3.0.0-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v2.0.1-rc.2...v3.0.0-rc.1) (2026-04-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* **preprocessing:** `LinearlyInterpolateTS()` no longer silently fills
+endpoint NaN; callers that relied on the implicit fill must opt in
+via `on_missing="ffill_bfill"` (or `"passthrough"` if they want to
+handle residuals themselves). In-tree callers updated:
+- preprocessing/imputation.py: switched to `passthrough` so residual
+  NaN flows into the existing post-imputation WARNING path instead of
+  being silently bridged.
+- manager/models/forecaster_recursive_model.py: 8 callsites switched
+  to `ffill_bfill` to preserve the fit-time invariant that no NaN
+  reaches the estimator.
+
+Tests: existing tests updated for the new defaults; new tests cover
+the raise path, the ffill_bfill leading-NaN behaviour, the
+passthrough residual-survival behaviour, and the invalid-value error.
+quartodoc reference page regenerated.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+### Features
+
+* **preprocessing:** add on_missing contract to LinearlyInterpolateTS ([3c17cd6](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/3c17cd64ebccb6d3b27dec1cef3c264a05bc64a8))
+
+
+### Documentation
+
+* **bart26hDE:** compliance figure + longtable + title-bold + section reorder ([16763ac](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/16763acf764d5812cab55c05d4edd3e10e71b900))
+
+## [2.0.1-rc.2](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v2.0.1-rc.1...v2.0.1-rc.2) (2026-04-22)
 
 
 ### Bug Fixes
 
-* **ci:** disable @semantic-release/github PR/issue comment hooks ([aed3762](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/aed37622af294c70e98c1c4d5bd9c4da18eb9323)), closes [#123](https://github.com/sequential-parameter-optimization/spotforecast2-safe/issues/123)
+* **ci:** prune SBOM and sigstore bundles before PyPI upload ([27e7dbc](https://github.com/sequential-parameter-optimization/spotforecast2-safe/commit/27e7dbc55651a564db4820da8c16a87c2ef85fc8))
 
 ## [2.0.1-rc.1](https://github.com/sequential-parameter-optimization/spotforecast2-safe/compare/v2.0.0...v2.0.1-rc.1) (2026-04-22)
 
