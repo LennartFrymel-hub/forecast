@@ -557,7 +557,7 @@ class ForecasterRecursiveModel:
 
         # Load data
         y = load_timeseries(on_missing="passthrough")
-        y = LinearlyInterpolateTS().fit_transform(y)
+        y = LinearlyInterpolateTS(on_missing="ffill_bfill").fit_transform(y)
         X = self.preprocessor.build(start_date=y.index.min(), end_date=self.end_dev)
 
         # Apply best params and lags
@@ -602,7 +602,7 @@ class ForecasterRecursiveModel:
             raise ValueError("Forecaster not initialized")
 
         y = load_timeseries(on_missing="passthrough")
-        y = LinearlyInterpolateTS().fit_transform(y)
+        y = LinearlyInterpolateTS(on_missing="ffill_bfill").fit_transform(y)
         X = self.preprocessor.build(start_date=y.index.min(), end_date=self.end_dev)
 
         start_train = self._get_init_train(y.index.min(), self.end_dev)
@@ -636,7 +636,7 @@ class ForecasterRecursiveModel:
             raise ValueError("Forecaster not initialized")
 
         y = load_timeseries(on_missing="passthrough")
-        y = LinearlyInterpolateTS().fit_transform(y)
+        y = LinearlyInterpolateTS(on_missing="ffill_bfill").fit_transform(y)
         X = self.preprocessor.build(start_date=y.index.min(), end_date=y.index.max())
 
         self.fit_with_best()
@@ -697,7 +697,7 @@ class ForecasterRecursiveModel:
             raise ValueError("Forecaster not initialized")
 
         y = load_timeseries(on_missing="passthrough")
-        y = LinearlyInterpolateTS().fit_transform(y)
+        y = LinearlyInterpolateTS(on_missing="ffill_bfill").fit_transform(y)
         X = self.preprocessor.build(start_date=y.index.min(), end_date=y.index.max())
 
         start_future = self.end_dev + pd.Timedelta(hours=1)
@@ -781,10 +781,12 @@ class ForecasterRecursiveModel:
                 ``(metrics, (y_actual, y_forecast))``.
         """
         y = load_timeseries(on_missing="passthrough")
-        y = LinearlyInterpolateTS().fit_transform(y)
+        y = LinearlyInterpolateTS(on_missing="ffill_bfill").fit_transform(y)
 
         y_forecast = load_timeseries_forecast(on_missing="passthrough")
-        y_forecast = LinearlyInterpolateTS().fit_transform(y_forecast)
+        y_forecast = LinearlyInterpolateTS(on_missing="ffill_bfill").fit_transform(
+            y_forecast
+        )
 
         start_future = self.end_dev + pd.Timedelta(hours=1)
 
@@ -915,16 +917,16 @@ class ForecasterRecursiveModel:
 
         try:
             y = load_timeseries(on_missing="passthrough")
-            y = LinearlyInterpolateTS().fit_transform(y)
+            y = LinearlyInterpolateTS(on_missing="ffill_bfill").fit_transform(y)
 
             # Benchmark (back-test mode only; ignored in genuine-future mode)
             try:
                 future_forecast_series = load_timeseries_forecast(
                     on_missing="passthrough"
                 )
-                future_forecast_series = LinearlyInterpolateTS().fit_transform(
-                    future_forecast_series
-                )
+                future_forecast_series = LinearlyInterpolateTS(
+                    on_missing="ffill_bfill"
+                ).fit_transform(future_forecast_series)
             except (FileNotFoundError, KeyError):
                 future_forecast_series = None
 
