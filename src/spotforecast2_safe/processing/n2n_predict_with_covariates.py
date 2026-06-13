@@ -55,11 +55,15 @@ Examples:
 """
 
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from astral import LocationInfo
 from lightgbm import LGBMRegressor
+
+from spotforecast2_safe.manager.models.default_estimators import (
+    build_default_lgbm_regressor,
+)
 
 try:
     from tqdm.auto import tqdm
@@ -75,6 +79,7 @@ from spotforecast2_safe.manager.exo.calendar import (
     get_holiday_features,
 )
 from spotforecast2_safe.manager.exo.weather import get_weather_features
+from spotforecast2_safe.manager.exo.multi_weather import (get_multi_location_weather_features)
 from spotforecast2_safe.manager.features import (
     apply_cyclical_encoding,
     create_interaction_features,
@@ -103,7 +108,7 @@ from spotforecast2_safe.preprocessing.split import split_rel_train_val_test
 
 # Private aliases kept for backward compatibility with existing callers
 # that import the private names from this module.
-_get_weather_features = get_weather_features
+
 _get_calendar_features = get_calendar_features
 _get_day_night_features = get_day_night_features
 _get_holiday_features = get_holiday_features
@@ -111,6 +116,7 @@ _apply_cyclical_encoding = apply_cyclical_encoding
 _create_interaction_features = create_interaction_features
 _select_exogenous_features = select_exogenous_features
 _merge_data_and_covariates = merge_data_and_covariates
+_get_weather_features = get_weather_features
 
 
 # ============================================================================
@@ -128,18 +134,24 @@ def n2n_predict_with_covariates(
     data: Optional[pd.DataFrame] = None,
     forecast_horizon: int = 24,
     contamination: float = 0.01,
-    window_size: int = 72,
-    lags: int = 24,
+    window_size: Union[int, List[int]] = 72,
+    lags: Union[int, List[int]] = 24,
     train_ratio: float = 0.8,
     latitude: float = 51.5136,
     longitude: float = 7.4653,
+    weather_locations: Optional[List[Dict[str, Union[str, float]]]] = None,
+    add_weighted_weather_average: bool = True,
+    keep_regional_weather_features: bool = False,
+    weather_cache_home: Optional[Union[str, Path]] = None,
     timezone: str = "UTC",
     country_code: str = "DE",
     state: str = "NW",
     estimator: Optional[object] = None,
+    additional_exogenous_features: Optional[pd.DataFrame] = None,
     include_weather_windows: bool = False,
     include_holiday_features: bool = False,
     include_poly_features: bool = False,
+    contamination_level: float = 0.5,
     force_train: bool = True,
     model_dir: Optional[Union[str, Path]] = None,
     verbose: bool = True,
@@ -270,10 +282,22 @@ def n2n_predict_with_covariates(
         raise ValueError(
             f"contamination must be between 0 and 0.5, got {contamination}"
         )
-    if window_size <= 0:
-        raise ValueError(f"window_size must be positive, got {window_size}")
-    if lags <= 0:
-        raise ValueError(f"lags must be positive, got {lags}")
+    if isinstance(window_size, int):
+        if window_size <= 0:
+            raise ValueError(f"window_size must be positive, got {window_size}")
+    else:
+        if not window_size:
+            raise ValueError("window_size list must not be empty")
+        if any(int(ws) <= 0 for ws in window_size):
+            raise ValueError(f"all window sizes must be positive, got {window_size}")
+    if isinstance(lags, int):
+        if lags <= 0:
+            raise ValueError(f"lags must be positive, got {lags}")
+    else:
+        if not lags:
+            raise ValueError("lags list must not be empty")
+        if any(int(lag) <= 0 for lag in lags):
+            raise ValueError(f"all lags must be positive, got {lags}")
     if not 0 < train_ratio < 1:
         raise ValueError(f"train_ratio must be between 0 and 1, got {train_ratio}")
 
@@ -336,9 +360,13 @@ def n2n_predict_with_covariates(
     if verbose:
         print("\n[3/9] Processing missing values and creating sample weights...")
 
+    IMPUTATION_WINDOW_SIZE = 720
+
     imputed_data, weights_series = get_missing_weights(
-        data, window_size=window_size, verbose=verbose
-    )
+    data,
+    window_size=IMPUTATION_WINDOW_SIZE,
+    verbose=verbose,
+)
 
     # Create weight function for forecaster
     # Weights are already directly usable: 1.0 (valid/default), 0.0 (near gap)
@@ -378,7 +406,23 @@ def n2n_predict_with_covariates(
     )
 
     # Weather
-    weather_features, weather_aligned = _get_weather_features(
+    if weather_locations:
+        weather_features, weather_aligned = get_multi_location_weather_features(
+        data=imputed_data,
+        start=start,
+        cov_end=cov_end,
+        forecast_horizon=forecast_horizon,
+        locations=weather_locations,
+        timezone=timezone,
+        freq="h",
+        fallback_on_failure=True,
+        cache_home=weather_cache_home,
+        add_weighted_average=add_weighted_weather_average,
+        keep_regional_features=keep_regional_weather_features,
+        verbose=verbose,
+    )
+    else:
+        weather_features, weather_aligned = _get_weather_features(
         data=imputed_data,
         start=start,
         cov_end=cov_end,
@@ -424,6 +468,66 @@ def n2n_predict_with_covariates(
         axis=1,
     )
 
+    additional_exog_columns: List[str] = []
+
+    if additional_exogenous_features is not None:
+        additional_exog = fetch_data(
+            dataframe=additional_exogenous_features,
+            timezone=timezone,
+        )
+
+        additional_exog = additional_exog.sort_index()
+
+        if additional_exog.index.has_duplicates:
+            raise ValueError(
+                "Additional exogenous features contain duplicate timestamps."
+            )
+
+        expected_index = exogenous_features.index
+
+        missing_timestamps = expected_index.difference(additional_exog.index)
+        if len(missing_timestamps) > 0:
+            preview = ", ".join(str(ts) for ts in missing_timestamps[:5])
+            raise ValueError(
+                "Additional exogenous features do not cover the full required "
+                f"time range. First missing timestamps: {preview}"
+            )
+
+        additional_exog = additional_exog.reindex(expected_index)
+
+        overlapping_columns = sorted(
+            set(additional_exog.columns).intersection(exogenous_features.columns)
+        )
+        if overlapping_columns:
+            raise ValueError(
+                "Additional exogenous feature columns already exist: "
+                f"{overlapping_columns}"
+            )
+
+        non_numeric_columns = additional_exog.select_dtypes(
+            exclude=["number", "bool"]
+        ).columns.tolist()
+
+        if non_numeric_columns:
+            raise TypeError(
+                "Additional exogenous feature columns must be numeric. "
+                f"Non-numeric columns: {non_numeric_columns}"
+            )
+
+        missing_count_additional = int(additional_exog.isna().sum().sum())
+        if missing_count_additional != 0:
+            raise ValueError(
+                "Missing values in additional exogenous features: "
+                f"{missing_count_additional}"
+            )
+
+        additional_exog_columns = additional_exog.columns.tolist()
+
+        exogenous_features = pd.concat(
+            [exogenous_features, additional_exog],
+            axis=1,
+        )
+
     missing_count = exogenous_features.isnull().sum().sum()
     if missing_count != 0:
         raise ValueError(
@@ -452,6 +556,7 @@ def n2n_predict_with_covariates(
         include_weather_windows=include_weather_windows,
         include_holiday_features=include_holiday_features,
         include_poly_features=include_poly_features,
+        additional_exog_columns=additional_exog_columns,
     )
 
     if verbose:
@@ -505,7 +610,7 @@ def n2n_predict_with_covariates(
         )
 
     if estimator is None:
-        estimator = LGBMRegressor(random_state=1234, verbose=-1)
+        estimator = build_default_lgbm_regressor(random_state=1234)
 
     window_features = RollingFeatures(stats=["mean"], window_sizes=window_size)
     end_validation = pd.concat([data_train, data_val]).index[-1]
@@ -618,6 +723,7 @@ def n2n_predict_with_covariates(
         "target_columns": target_columns,
         "exog_features": exog_features,
         "n_exog_features": len(exog_features),
+        "additional_exogenous_features": additional_exog_columns,
         "train_size": len(data_train),
         "val_size": len(data_val),
         "test_size": len(data_test),

@@ -275,7 +275,9 @@ def select_exogenous_features(
     include_weather_windows: bool = False,
     include_holiday_features: bool = False,
     include_poly_features: bool = False,
+    additional_exog_columns: Optional[List[str]] = None,
 ) -> List[str]:
+
     """Select and deduplicate exogenous feature columns for model training.
 
     Builds a prioritised, deduplicated list of column names from
@@ -360,9 +362,30 @@ def select_exogenous_features(
 
     if include_holiday_features:
         holiday_related = [
-            col for col in exogenous_features.columns if col.startswith("holiday")
+            col
+            for col in exogenous_features.columns
+            if (
+                col.startswith("holiday")
+                or col == "is_holiday"
+                or col.startswith("is_holiday")
+            )
         ]
         exog_list.extend(holiday_related)
+
+    if additional_exog_columns:
+        missing_additional = [
+            col
+            for col in additional_exog_columns
+            if col not in exogenous_features.columns
+        ]
+
+        if missing_additional:
+            raise ValueError(
+                "Additional exogenous feature columns are missing from "
+                f"exogenous_features: {missing_additional}"
+            )
+
+        exog_list.extend(additional_exog_columns)
 
     if include_poly_features:
         poly_features_list = [

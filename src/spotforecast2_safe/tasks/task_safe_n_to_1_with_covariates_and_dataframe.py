@@ -139,7 +139,7 @@ def n_to_1_with_covariates(
     forecast_horizon: int = 24,
     contamination: float = 0.01,
     window_size: int = 72,
-    lags: int = 24,
+    lags: Union[int, List[int]] = 24,
     train_ratio: float = 0.8,
     latitude: float = 51.5136,
     longitude: float = 7.4653,
@@ -408,6 +408,7 @@ def n_to_1_with_covariates(
         "timezone": timezone,
         "country_code": country_code,
         "state": state,
+        
         "estimator": estimator,
         "include_weather_windows": include_weather_windows,
         "include_holiday_features": include_holiday_features,
@@ -464,7 +465,7 @@ def n_to_1_with_covariates(
 def main(
     forecast_horizon: int = 24,
     contamination: float = 0.01,
-    window_size: int = 72,
+    window_size: Union[int, List[int]] = 72,
     lags: int = 24,
     train_ratio: float = 0.8,
     latitude: float = 51.5136,
