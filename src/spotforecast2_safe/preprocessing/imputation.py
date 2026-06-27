@@ -196,10 +196,7 @@ def get_missing_weights(
         window_size = int(window_size)
 
         if window_size <= 0:
-    raise ValueError(
-        "window_size must be a positive integer when provided as a scalar, "
-        f"got {window_size}"
-    )
+            raise ValueError(f"window_size must be a positive integer, got {window_size}")
 
     else:
         if not window_size:
