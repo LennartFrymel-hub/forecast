@@ -98,7 +98,7 @@ jobs:
         # as ``<input>.sigstore`` (or ``.sigstore.json`` in v3+).
         # TODO(supply-chain): pin this action to a commit SHA (the rest of
         # the workflow uses SHA pins) before the next production release.
-        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        uses: sigstore/gh-action-sigstore-python@f514d46b907ebcd5bedc05145c03b69c1edd8b46 # v3.0.0
         with:
           inputs: |
             ./dist/*.whl
