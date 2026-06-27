@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Lennart Frymel
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: ClusterFuzzLite
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+  schedule:
+    - cron: "37 2 * * 1"
+
+permissions: read-all
+
+jobs:
+  fuzz:
+    name: Python Fuzzing
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Build fuzzers
+        uses: google/clusterfuzzlite/actions/build_fuzzers@52ecc61cb587ee99c26825a112a21abf19c7448c
+        with:
+          language: python
+          sanitizer: address
+
+      - name: Run fuzzers
+        uses: google/clusterfuzzlite/actions/run_fuzzers@52ecc61cb587ee99c26825a112a21abf19c7448c
+        with:
+          language: python
+          sanitizer: address
+          fuzz-seconds: 120
+          mode: code-change
+          github-token: ${{ secrets.GITHUB_TOKEN }}

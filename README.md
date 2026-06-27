@@ -9,10 +9,10 @@
 ### Version & License
 
 [![Python Version](https://img.shields.io/badge/python-3.13%2B-blue)](https://www.python.org/downloads/)
-[![GitHub Release](https://img.shields.io/github/v/release/sequential-parameter-optimization/spotforecast2-safe)](https://github.com/sequential-parameter-optimization/spotforecast2-safe/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/LennartFrymel-hub/forecast)](https://github.com/LennartFrymel-hub/forecast/releases)
 [![PyPI Version](https://img.shields.io/pypi/v/spotforecast2-safe)](https://pypi.org/project/spotforecast2-safe/)
 
-[![License](https://img.shields.io/github/license/sequential-parameter-optimization/spotforecast2-safe)](LICENSE)
+[![License](https://img.shields.io/github/license/LennartFrymel-hub/forecast)](LICENSE)
 
 ### Downloads
 
@@ -29,21 +29,24 @@
 
 ### Testing
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/sequential-parameter-optimization/spotforecast2-safe/ci.yml?branch=main&label=Tests)](https://github.com/sequential-parameter-optimization/spotforecast2-safe/actions/workflows/ci.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/LennartFrymel-hub/forecast/ci.yml?branch=main&label=Tests)](https://github.com/LennartFrymel-hub/forecast/actions/workflows/ci.yml)
 [![Documentation](https://img.shields.io/badge/docs-passing-brightgreen)](https://sequential-parameter-optimization.github.io/spotforecast2-safe/)
 [![codecov](https://codecov.io/gh/sequential-parameter-optimization/spotforecast2-safe/branch/develop/graph/badge.svg)](https://codecov.io/gh/sequential-parameter-optimization/spotforecast2-safe)
 [![REUSE status](https://api.reuse.software/badge/github.com/sequential-parameter-optimization/spotforecast2-safe)](https://api.reuse.software/info/github.com/sequential-parameter-optimization/spotforecast2-safe)
 
 ### Scores
 
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11932/badge)](https://www.bestpractices.dev/projects/11932)
-[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/sequential-parameter-optimization/spotforecast2-safe)](https://scorecard.dev/viewer/?uri=github.com/sequential-parameter-optimization/spotforecast2-safe)
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/LennartFrymel-hub/forecast)](https://scorecard.dev/viewer/?uri=github.com/LennartFrymel-hub/forecast)
+
+OpenSSF Best Practices badge: register this fork at
+[bestpractices.dev](https://www.bestpractices.dev/) and replace this note with
+the generated badge for `github.com/LennartFrymel-hub/forecast`.
 
 
 
 ### Status
 
-[![Maintenance](https://img.shields.io/badge/maintenance-active-green)](https://github.com/sequential-parameter-optimization/spotforecast2-safe)
+[![Maintenance](https://img.shields.io/badge/maintenance-active-green)](https://github.com/LennartFrymel-hub/forecast)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
